@@ -2,11 +2,13 @@
 
 Status: **blocks a public v1.0 release**
 
-The current ingredient folder contains 392 WebP files. File hashing finds 250
-unique files and 142 duplicates. Existing notes identify a source for 59 files:
-36 TheMealDB records and 23 Wikimedia Commons file pages. The remaining 333
-files have no recorded source. None of the 392 files currently has the complete
-approved metadata required by the release gate.
+The current ingredient folder contains 257 byte-unique WebP files and no
+duplicate files. A browser alias map preserves 135 additional ingredient names
+without shipping repeated bytes. Eight project-original beef images have
+complete approved metadata. Existing legacy notes identify a source for 55 of
+the remaining physical files, but those records are not complete license
+approvals. The other 202 physical files have no recorded source. In total, 249
+physical files still need replacement or complete approval before release.
 
 Run the report without failing normal development:
 
@@ -56,3 +58,13 @@ permission.
 4. Remove redundant files or explicitly map several ingredient names to one
    approved image.
 5. Run the strict audit before creating a release tag.
+
+## Completed remediation
+
+- Exact duplicate files were collapsed into `IMAGE_ALIASES.json`; every alias
+  resolves locally, alias chains are rejected, and automated tests require all
+  physical files to have unique bytes.
+- Eight repeated beef placeholders were replaced by visually distinct,
+  project-original generated images. Their unedited source sheet is retained
+  under `assets/generated`, their derivation is reproducible, and their release
+  permission is recorded in `IMAGE_LICENSE.md` and `IMAGE_PROVENANCE.json`.

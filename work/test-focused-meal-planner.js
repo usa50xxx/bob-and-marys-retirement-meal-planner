@@ -2,6 +2,7 @@ const http = require("http");
 const fs = require("fs");
 const fsp = require("fs/promises");
 const path = require("path");
+const { createHash } = require("crypto");
 const { chromium } = require("playwright");
 
 function dateFromToday(days) {
@@ -283,10 +284,15 @@ async function run() {
       }))
     );
     const loadedBeefCards = beefCards.filter((card) => card.loaded);
-    const uniqueBeefPictures = new Set(beefCards.map((card) => card.src)).size;
+    const beefPictureHashes = await Promise.all(beefCards.map(async (card) => {
+      const response = await fetch(new URL(card.src, page.url()));
+      const contents = Buffer.from(await response.arrayBuffer());
+      return createHash("sha256").update(contents).digest("hex");
+    }));
+    const uniqueBeefPictures = new Set(beefPictureHashes).size;
     check(beefCards.length >= 18 && loadedBeefCards.length === beefCards.length && uniqueBeefPictures >= 18,
       "Beef choices have loaded, distinct pictures",
-      `${beefCards.length} choices, ${loadedBeefCards.length} loaded, ${uniqueBeefPictures} unique; ` +
+      `${beefCards.length} choices, ${loadedBeefCards.length} loaded, ${uniqueBeefPictures} byte-unique; ` +
       `missing: ${beefCards.filter((card) => !card.loaded).map((card) => `${card.name}=${card.src}`).join(", ")}`);
     console.error("CHECKPOINT builder");
 

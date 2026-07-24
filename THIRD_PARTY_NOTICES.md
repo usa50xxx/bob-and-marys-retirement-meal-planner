@@ -18,11 +18,11 @@ directory of each release package.
 
 ## Development-only components
 
-The repository also uses pdf-lib (MIT), Playwright (Apache-2.0), sharp
-(Apache-2.0), and esbuild (MIT) to create test fixtures, test the app, optimize
-images, and prepare Android 7-compatible scripts. These packages are
-development tools and are not copied into the portable website or Android web
-bundle.
+The repository also uses pdf-lib (MIT), Playwright (Apache-2.0), axe-core
+Playwright integration (MPL-2.0), sharp (Apache-2.0), and esbuild (MIT) to
+create test fixtures, test the app, audit accessibility, optimize images, and
+prepare Android 7-compatible scripts. These packages are development tools and
+are not copied into the portable website or Android web bundle.
 
 ## Food images
 
@@ -31,6 +31,9 @@ blocked until every bundled image has a complete source, author, license, and
 license link approved for redistribution. See the repository's
 [image provenance audit](https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/docs/IMAGE_PROVENANCE_AUDIT.md)
 for the current status.
+
+Project-original generated ingredient images are identified individually in
+`IMAGE_PROVENANCE.json` and distributed under `IMAGE_LICENSE.md`.
 
 ## Capacitor MIT License
 

@@ -8,6 +8,7 @@ const imageDir = path.join(projectRoot, "outputs", "meal-planner", "images", "in
 const legacySourceFile = path.join(imageDir, "IMAGE_SOURCES.json");
 const beefSourceFile = path.join(imageDir, "beef-cut-image-attribution.txt");
 const provenanceFile = path.join(imageDir, "IMAGE_PROVENANCE.json");
+const aliasesFile = path.join(imageDir, "IMAGE_ALIASES.json");
 const strict = process.argv.includes("--strict");
 
 async function readJson(file, fallback) {
@@ -66,6 +67,7 @@ try {
 }
 
 const provenance = await readJson(provenanceFile, []);
+const aliases = await readJson(aliasesFile, {});
 const approved = new Set(
   provenance
     .filter(isCompleteApproval)
@@ -81,6 +83,7 @@ const summary = {
   totalImages: imageNames.length,
   uniqueImages: hashes.size,
   duplicateFiles: imageNames.length - hashes.size,
+  imageAliases: Object.keys(aliases).length,
   referencedByExistingNotes: referenced.size,
   missingAnySourceRecord: imageNames.length - referenced.size,
   approvedForRelease: approved.size,
@@ -92,6 +95,7 @@ console.log("Ingredient image provenance audit");
 console.log(`  Files: ${summary.totalImages}`);
 console.log(`  Byte-for-byte unique: ${summary.uniqueImages}`);
 console.log(`  Duplicate files: ${summary.duplicateFiles}`);
+console.log(`  Ingredient aliases: ${summary.imageAliases}`);
 console.log(`  Existing source references: ${summary.referencedByExistingNotes}`);
 console.log(`  Missing any source record: ${summary.missingAnySourceRecord}`);
 console.log(`  Fully approved for release: ${summary.approvedForRelease}`);

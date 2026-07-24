@@ -57,11 +57,20 @@ try {
     "utf8",
   );
 
-  assert.ok(first.fileCount > 400);
+  const sourceImageNames = (await fs.readdir(
+    path.join(projectRoot, "outputs", "meal-planner", "images", "ingredients"),
+  )).filter((name) => name.endsWith(".webp"));
+  const stagedImageNames = (await fs.readdir(
+    path.join(destination, "images", "ingredients"),
+  )).filter((name) => name.endsWith(".webp"));
+  assert.ok(first.fileCount > sourceImageNames.length);
+  assert.equal(stagedImageNames.length, sourceImageNames.length);
   await fs.access(path.join(destination, "index.html"));
   await fs.access(path.join(destination, "compatibility.js"));
+  await fs.access(path.join(destination, "ingredient-image-aliases.js"));
   await fs.access(path.join(destination, "PRIVACY.md"));
   await fs.access(path.join(destination, "THIRD_PARTY_NOTICES.md"));
+  await fs.access(path.join(destination, "IMAGE_LICENSE.md"));
   await assert.rejects(fs.access(path.join(destination, "planner-data.json")));
   await assert.rejects(fs.access(path.join(destination, "backups")));
 

@@ -1,0 +1,90 @@
+[
+  {
+    "status": "approved",
+    "file": "beef_tenderloin.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-replacements-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "corned_beef.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-replacements-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "cube_steak.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-replacements-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "eye_round_roast.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-replacements-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "london_broil.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-replacements-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "meatballs.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-replacements-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "minced_beef.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-replacements-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "rump_roast.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-replacements-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  }
+]

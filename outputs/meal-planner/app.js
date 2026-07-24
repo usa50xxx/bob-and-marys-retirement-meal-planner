@@ -2723,7 +2723,9 @@ function finishCookingSession() {
 }
 
 function ingredientImageUrl(name) {
-  return `images/ingredients/${ingredientImageKey(name)}.webp`;
+  const key = ingredientImageKey(name);
+  const aliases = window.BOB_MARY_INGREDIENT_IMAGE_ALIASES || {};
+  return `images/ingredients/${aliases[key] || key}.webp`;
 }
 
 function ingredientRemoteImageUrl(name) {

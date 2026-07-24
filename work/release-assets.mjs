@@ -20,6 +20,7 @@ const PUBLIC_ROOT_FILES = new Set([
   "favicon.ico",
   "food-engine.js",
   "index.html",
+  "ingredient-image-aliases.js",
   "iphone.html",
   "meal-planner-server.ps1",
   "receipt-reader.js",
@@ -27,7 +28,7 @@ const PUBLIC_ROOT_FILES = new Set([
   "recovery.js",
   "styles.css",
 ]);
-const LEGAL_FILES = ["PRIVACY.md", "THIRD_PARTY_NOTICES.md"];
+const LEGAL_FILES = ["PRIVACY.md", "THIRD_PARTY_NOTICES.md", "IMAGE_LICENSE.md"];
 const DEVELOPMENT_MEALDB_ENDPOINT = "https://www.themealdb.com/api/json/v1/1/";
 const LEGACY_WEBVIEW_SCRIPTS = [
   "food-engine.js",
