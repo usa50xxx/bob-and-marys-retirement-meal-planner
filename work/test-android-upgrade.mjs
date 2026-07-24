@@ -19,6 +19,7 @@ const serial = options.serial
   || process.env.ANDROID_SERIAL
   || `emulator-${process.env.EMULATOR_PORT || "5554"}`;
 const candidateSource = resolveApk(options.candidate);
+const baselineSource = options.baseline ? resolveApk(options.baseline) : "";
 const gradle = fs.readFileSync("android/app/build.gradle", "utf8");
 const releaseCode = Number(gradle.match(/appVersionCode\s*=\s*(\d+)/)?.[1]);
 if (!releaseCode) throw new Error("Could not read appVersionCode from Android build.gradle.");
@@ -43,13 +44,17 @@ async function waitFor(cdp, expression, message, timeout = 30000) {
 }
 
 try {
-  run(process.execPath, ["work/sync-android.mjs"]);
-  run(process.execPath, [
-    "work/run-gradle.mjs",
-    "assembleDebug",
-    `-PbobMaryVersionCodeOverride=${baselineCode}`,
-  ]);
-  fs.copyFileSync("android/app/build/outputs/apk/debug/app-debug.apk", baselineApk);
+  if (baselineSource) {
+    fs.copyFileSync(baselineSource, baselineApk);
+  } else {
+    run(process.execPath, ["work/sync-android.mjs"]);
+    run(process.execPath, [
+      "work/run-gradle.mjs",
+      "assembleDebug",
+      `-PbobMaryVersionCodeOverride=${baselineCode}`,
+    ]);
+    fs.copyFileSync("android/app/build/outputs/apk/debug/app-debug.apk", baselineApk);
+  }
 
   installApk(serial, baselineApk, { allowDowngrade: true });
   let pid = await startApp(serial);
@@ -203,7 +208,7 @@ try {
   }, null, 2));
 } finally {
   const generatedApk = path.resolve("android/app/build/outputs/apk/debug/app-debug.apk");
-  if (fs.existsSync(candidateApk)) {
+  if (!baselineSource && fs.existsSync(candidateApk)) {
     fs.mkdirSync(path.dirname(generatedApk), { recursive: true });
     fs.copyFileSync(candidateApk, generatedApk);
   }

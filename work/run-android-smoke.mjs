@@ -21,13 +21,17 @@ const expectedRelease = options.release || androidProperty(serial, "ro.build.ver
 const expectedLayout = options.layout || "phone";
 
 if (options.upgrade) {
-  run(process.execPath, [
+  const upgradeArguments = [
     "work/test-android-upgrade.mjs",
     "--candidate",
     candidateApk,
     "--serial",
     serial,
-  ]);
+  ];
+  if (options.baseline) {
+    upgradeArguments.push("--baseline", resolveApk(options.baseline));
+  }
+  run(process.execPath, upgradeArguments);
 } else {
   installApk(serial, candidateApk);
 }
