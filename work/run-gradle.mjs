@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import process from "node:process";
@@ -9,6 +10,10 @@ const tasks = process.argv.slice(2);
 if (!tasks.length) {
   console.error("Provide at least one Gradle task.");
   process.exit(2);
+}
+
+if (process.platform !== "win32") {
+  fs.chmodSync(path.join(androidDir, "gradlew"), 0o755);
 }
 
 const result = spawnSync(wrapper, ["--no-daemon", ...tasks], {
