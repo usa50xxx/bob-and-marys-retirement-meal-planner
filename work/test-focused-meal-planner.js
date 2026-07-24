@@ -88,11 +88,19 @@ async function run() {
   const server = createServer();
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   console.error("CHECKPOINT server");
-  const browser = await chromium.launch({
-    headless: true,
-    executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
-    args: ["--no-sandbox"]
-  });
+  let browser;
+  try {
+    browser = await chromium.launch({
+      headless: true,
+      ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH
+        ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH }
+        : {}),
+      args: ["--no-sandbox"]
+    });
+  } catch (error) {
+    await new Promise((resolve) => server.close(resolve));
+    throw error;
+  }
   console.error("CHECKPOINT browser");
   const page = await browser.newPage({ viewport: { width: 1365, height: 900 } });
   page.setDefaultTimeout(15000);
