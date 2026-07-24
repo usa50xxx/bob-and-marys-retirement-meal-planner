@@ -97,7 +97,7 @@ stated requirement for new apps and updates beginning August 31, 2026.
 - [ ] A paid TheMealDB publish key is configured and the provider credit is approved.
 - [ ] Repository software license is selected.
 - [x] Support and privacy questions can be submitted through the repository issue tracker.
-- [ ] Release notes explain known limitations and backup instructions.
+- [x] Release notes explain known limitations and backup instructions.
 - [x] Automated tracked-only staging prevents personal data from entering thumb-drive and Android release packages.
 
 Google Play requires an accurate

@@ -6,7 +6,9 @@ The offline website is in `outputs/meal-planner`. The installable Android
 package is in `outputs/android`, and its native project is in `android`.
 
 The current application version is `0.9.0`. Release work and product priorities
-are tracked in [docs/V1_ROADMAP.md](docs/V1_ROADMAP.md).
+are tracked in [docs/V1_ROADMAP.md](docs/V1_ROADMAP.md). The reviewed draft
+notes for the first stable version are in
+[docs/releases/v1.0.0.md](docs/releases/v1.0.0.md).
 
 ## Android build
 

@@ -143,8 +143,25 @@ jobs:
 
       - name: Create or update draft GitHub release
         run: |
+          notes_file="docs/releases/${RELEASE_TAG}.md"
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            is_draft="$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)"
+            if [ "$is_draft" != "true" ]; then
+              echo "::error::Refusing to replace an already published release."
+              exit 1
+            fi
             gh release upload "$RELEASE_TAG" dist/* --clobber
+            if [ -f "$notes_file" ]; then
+              gh release edit "$RELEASE_TAG" \
+                --title "Bob and Mary's Meal Planner ${RELEASE_TAG}" \
+                --notes-file "$notes_file"
+            fi
+          elif [ -f "$notes_file" ]; then
+            gh release create "$RELEASE_TAG" dist/* \
+              --draft \
+              --notes-file "$notes_file" \
+              --verify-tag \
+              --title "Bob and Mary's Meal Planner ${RELEASE_TAG}"
           else
             gh release create "$RELEASE_TAG" dist/* \
               --draft \
