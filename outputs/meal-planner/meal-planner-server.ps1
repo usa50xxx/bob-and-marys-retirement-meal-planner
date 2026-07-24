@@ -103,6 +103,98 @@ function Send-Response($stream, $status, $contentType, $bodyBytes) {
   $stream.Write($bodyBytes, 0, $bodyBytes.Length)
 }
 
+function Send-JsonResponse($stream, $status, $value) {
+  $json = $value | ConvertTo-Json -Compress -Depth 5
+  Send-Response $stream $status "application/json; charset=utf-8" ([System.Text.Encoding]::UTF8.GetBytes($json))
+}
+
+function Test-PublicRecipeAddress([System.Net.IPAddress]$address) {
+  if ([System.Net.IPAddress]::IsLoopback($address)) { return $false }
+  if ($address.AddressFamily -eq [System.Net.Sockets.AddressFamily]::InterNetwork) {
+    $bytes = $address.GetAddressBytes()
+    if ($bytes[0] -eq 0 -or $bytes[0] -eq 10 -or $bytes[0] -eq 127 -or $bytes[0] -ge 224) { return $false }
+    if ($bytes[0] -eq 169 -and $bytes[1] -eq 254) { return $false }
+    if ($bytes[0] -eq 172 -and $bytes[1] -ge 16 -and $bytes[1] -le 31) { return $false }
+    if ($bytes[0] -eq 192 -and $bytes[1] -eq 168) { return $false }
+    return $true
+  }
+
+  if ($address.IsIPv6LinkLocal -or $address.IsIPv6SiteLocal -or $address.IsIPv6Multicast) { return $false }
+  $first = $address.GetAddressBytes()[0]
+  return (($first -band 0xFE) -ne 0xFC)
+}
+
+function Assert-PublicRecipeUri([Uri]$uri) {
+  if ($uri.Scheme -notin @("http", "https")) {
+    throw "Use a recipe link beginning with http or https."
+  }
+  if ([string]::IsNullOrWhiteSpace($uri.DnsSafeHost) -or $uri.DnsSafeHost -eq "localhost") {
+    throw "That recipe address is not allowed."
+  }
+
+  $addresses = [System.Net.Dns]::GetHostAddresses($uri.DnsSafeHost)
+  if (-not $addresses.Count -or ($addresses | Where-Object { -not (Test-PublicRecipeAddress $_) })) {
+    throw "That recipe address is not allowed."
+  }
+}
+
+function Read-RecipePage([string]$url) {
+  Add-Type -AssemblyName System.Net.Http
+  $handler = [System.Net.Http.HttpClientHandler]::new()
+  $handler.AllowAutoRedirect = $false
+  $handler.AutomaticDecompression = [System.Net.DecompressionMethods]::GZip -bor [System.Net.DecompressionMethods]::Deflate
+  $client = [System.Net.Http.HttpClient]::new($handler)
+  $client.Timeout = [TimeSpan]::FromSeconds(18)
+  $client.DefaultRequestHeaders.UserAgent.ParseAdd("BobAndMaryMealPlanner/0.9")
+  $current = [Uri]$url
+
+  try {
+    for ($redirect = 0; $redirect -le 4; $redirect++) {
+      Assert-PublicRecipeUri $current
+      $response = $client.GetAsync($current, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).GetAwaiter().GetResult()
+      try {
+        $statusCode = [int]$response.StatusCode
+        if ($statusCode -ge 300 -and $statusCode -lt 400 -and $response.Headers.Location) {
+          $current = [Uri]::new($current, $response.Headers.Location)
+          continue
+        }
+        if (-not $response.IsSuccessStatusCode) {
+          throw "The recipe website returned an error."
+        }
+
+        $contentLength = $response.Content.Headers.ContentLength
+        if ($contentLength -and $contentLength -gt 2097152) {
+          throw "That recipe page is too large to read safely."
+        }
+        $mediaType = [string]$response.Content.Headers.ContentType.MediaType
+        if ($mediaType -and $mediaType -notmatch "^(text/html|application/xhtml\+xml|text/plain)$") {
+          throw "That link is not a readable recipe page."
+        }
+
+        $bytes = $response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult()
+        if ($bytes.Length -gt 2097152) {
+          throw "That recipe page is too large to read safely."
+        }
+        $encoding = [System.Text.Encoding]::UTF8
+        $charset = [string]$response.Content.Headers.ContentType.CharSet
+        if (-not [string]::IsNullOrWhiteSpace($charset)) {
+          try { $encoding = [System.Text.Encoding]::GetEncoding($charset.Trim('"')) } catch {}
+        }
+        return @{
+          html = $encoding.GetString($bytes)
+          finalUrl = $current.AbsoluteUri
+        }
+      } finally {
+        $response.Dispose()
+      }
+    }
+    throw "That recipe website redirected too many times."
+  } finally {
+    $client.Dispose()
+    $handler.Dispose()
+  }
+}
+
 try {
   while ($true) {
     $client = $listener.AcceptTcpClient()
@@ -123,6 +215,26 @@ try {
     $method = "GET"
     if ($requestLine -match "^(\w+)\s+") {
       $method = $Matches[1].ToUpperInvariant()
+    }
+
+    if ($requestLine -match "^\w+\s+(/[^\s]*)" -and $Matches[1].Split("?")[0] -eq "/api/recipe") {
+      if ($method -ne "GET") {
+        Send-JsonResponse $stream "405 Method Not Allowed" @{ error = "Only recipe links can be read here." }
+        $client.Close()
+        continue
+      }
+
+      try {
+        $target = $Matches[1]
+        $urlMatch = [regex]::Match($target, "(?:\?|&)url=([^&]+)")
+        if (-not $urlMatch.Success) { throw "Enter a recipe website link first." }
+        $recipeUrl = [Uri]::UnescapeDataString($urlMatch.Groups[1].Value)
+        Send-JsonResponse $stream "200 OK" (Read-RecipePage $recipeUrl)
+      } catch {
+        Send-JsonResponse $stream "400 Bad Request" @{ error = [string]$_.Exception.Message }
+      }
+      $client.Close()
+      continue
     }
 
     if ($requestLine -match "^\w+\s+(/[^\s]*)" -and $Matches[1].Split("?")[0] -eq "/api/data") {

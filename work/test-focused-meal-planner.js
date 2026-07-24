@@ -426,7 +426,7 @@ async function run() {
 
     check(errors.length === 0, "No browser JavaScript errors", errors.join(" | "));
     check(badResponses.length === 0, "No failed local asset requests", badResponses.join(" | "));
-    check(plannerData.schemaVersion === 4, "Planner data saves with the current schema");
+    check(plannerData.schemaVersion === 5, "Planner data saves with the current schema");
     console.error("CHECKPOINT complete");
 
     console.log(JSON.stringify({ passed: results.length, results }, null, 2));

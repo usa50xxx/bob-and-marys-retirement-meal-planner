@@ -8,6 +8,7 @@ outputs/meal-planner/backups/
 # Generated test output and temporary review artifacts.
 work/**/*.png
 !work/receipt-fixtures/*.png
+!work/recipe-fixtures/*.png
 work/**/*.jpg
 work/**/*.xml
 work/*-images.txt

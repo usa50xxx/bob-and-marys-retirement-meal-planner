@@ -210,15 +210,22 @@
             </div>
           </section>
 
-          <section class="helper-card" id="pasteRecipeCard" aria-label="Paste a copied recipe" data-app-views="recipes">
+          <section class="helper-card" id="pasteRecipeCard" aria-label="Add a recipe" data-app-views="recipes">
             <div class="section-title">
               <div>
-                <h2>Paste a recipe</h2>
-                <p>Copy a recipe from a website, email, or note, then paste it here.</p>
+                <h2>Add a recipe</h2>
+                <p>Use a link, paste the words, or upload a PDF or photograph. You will check everything before it is saved.</p>
               </div>
             </div>
+            <div class="recipe-link-row">
+              <label>
+                Recipe website link
+                <input id="recipeUrlInput" type="url" inputmode="url" placeholder="https://example.com/favorite-recipe" />
+              </label>
+              <button type="button" id="readRecipeUrl">Read link</button>
+            </div>
             <label>
-              Recipe paste box
+              Paste recipe words
               <textarea id="recipePasteBox" rows="7" placeholder="Example:
 Grandma's Meatloaf
 Serves 4
@@ -229,8 +236,71 @@ Serves 4
 Mix everything, shape into a loaf, and bake at 350 for 1 hour."></textarea>
             </label>
             <div class="actions">
-              <button type="button" id="savePastedRecipe" class="primary">Save pasted recipe</button>
+              <button type="button" id="savePastedRecipe" class="primary">Review pasted recipe</button>
+              <label class="import-button">
+                Upload PDF or photo
+                <input id="recipeFileInput" type="file" accept=".pdf,.txt,image/*,application/pdf,text/plain" />
+              </label>
               <button type="button" id="clearPastedRecipe">Clear box</button>
+            </div>
+            <p id="recipeReadStatus" class="status-line" role="status" aria-live="polite">Nothing is saved until you approve the review.</p>
+
+            <div id="recipeReview" class="recipe-review" hidden>
+              <div class="section-title">
+                <div>
+                  <h3>Check this recipe</h3>
+                  <p>Correct any words, amounts, timing, or temperature the reader misunderstood.</p>
+                </div>
+              </div>
+              <div class="recipe-review-main">
+                <label>
+                  Recipe name
+                  <input id="reviewRecipeName" type="text" />
+                </label>
+                <label>
+                  Serves
+                  <input id="reviewRecipeServings" type="number" min="1" step="1" />
+                </label>
+              </div>
+              <div class="recipe-detail-grid">
+                <label>
+                  Prep time
+                  <input id="reviewPrepTime" type="text" placeholder="15 minutes" />
+                </label>
+                <label>
+                  Cook time
+                  <input id="reviewCookTime" type="text" placeholder="45 minutes" />
+                </label>
+                <label>
+                  Total time
+                  <input id="reviewTotalTime" type="text" placeholder="1 hour" />
+                </label>
+                <label>
+                  Temperature
+                  <input id="reviewTemperature" type="text" placeholder="350°F" />
+                </label>
+              </div>
+              <label>
+                Source link
+                <input id="reviewSourceUrl" type="url" inputmode="url" placeholder="Optional" />
+              </label>
+              <div id="reviewRecipePhotoBox" class="recipe-review-photo" hidden>
+                <img id="reviewRecipePhoto" alt="" />
+                <span>Picture found with the recipe</span>
+              </div>
+              <div class="section-title">
+                <h3>Ingredients</h3>
+                <button type="button" id="addReviewIngredient">Add ingredient</button>
+              </div>
+              <div id="reviewIngredientRows" class="ingredient-rows"></div>
+              <label>
+                Cooking steps
+                <textarea id="reviewRecipeNotes" rows="8" placeholder="Put each step on a new line."></textarea>
+              </label>
+              <div class="actions">
+                <button type="button" id="saveReviewedRecipe" class="primary">Save checked recipe</button>
+                <button type="button" id="cancelRecipeReview">Cancel</button>
+              </div>
             </div>
           </section>
 
@@ -245,6 +315,28 @@ Mix everything, shape into a loaf, and bake at 350 for 1 hour."></textarea>
                 <input id="baseServings" type="number" min="1" step="1" required />
               </label>
             </div>
+            <div class="recipe-detail-grid">
+              <label>
+                Prep time
+                <input id="recipePrepTime" type="text" placeholder="15 minutes" />
+              </label>
+              <label>
+                Cook time
+                <input id="recipeCookTime" type="text" placeholder="45 minutes" />
+              </label>
+              <label>
+                Total time
+                <input id="recipeTotalTime" type="text" placeholder="1 hour" />
+              </label>
+              <label>
+                Temperature
+                <input id="recipeTemperature" type="text" placeholder="350°F" />
+              </label>
+            </div>
+            <label>
+              Recipe source link
+              <input id="recipeSourceUrl" type="url" inputmode="url" placeholder="Optional" />
+            </label>
 
             <div class="photo-box">
               <div>
@@ -594,6 +686,7 @@ Tip: copy the item list from Walmart, Publix, Aldi, or another store, paste it h
     <script src="vendor/tesseract/tesseract.min.js"></script>
     <script src="food-engine.js"></script>
     <script src="receipt-reader.js"></script>
+    <script src="recipe-reader.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

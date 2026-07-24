@@ -12,6 +12,7 @@ let editorUndoArmed = true;
 let cookingSession = null;
 let cookingTimerTicker = null;
 let cookingWakeLock = null;
+let pendingRecipeDraft = null;
 
 const sampleRecipes = [
   {
@@ -91,6 +92,11 @@ const recipeForm = document.querySelector("#recipeForm");
 const recipeName = document.querySelector("#recipeName");
 const baseServings = document.querySelector("#baseServings");
 const recipeNotes = document.querySelector("#recipeNotes");
+const recipePrepTime = document.querySelector("#recipePrepTime");
+const recipeCookTime = document.querySelector("#recipeCookTime");
+const recipeTotalTime = document.querySelector("#recipeTotalTime");
+const recipeTemperature = document.querySelector("#recipeTemperature");
+const recipeSourceUrl = document.querySelector("#recipeSourceUrl");
 const recipePhotoPreview = document.querySelector("#recipePhotoPreview");
 const recipePhotoInput = document.querySelector("#recipePhotoInput");
 const removeRecipePhoto = document.querySelector("#removeRecipePhoto");
@@ -118,9 +124,28 @@ const clearWeeklyPlan = document.querySelector("#clearWeeklyPlan");
 const printWeeklyList = document.querySelector("#printWeeklyList");
 const copyWeeklyList = document.querySelector("#copyWeeklyList");
 const pasteRecipeCard = document.querySelector("#pasteRecipeCard");
+const recipeUrlInput = document.querySelector("#recipeUrlInput");
+const readRecipeUrl = document.querySelector("#readRecipeUrl");
 const recipePasteBox = document.querySelector("#recipePasteBox");
 const savePastedRecipe = document.querySelector("#savePastedRecipe");
+const recipeFileInput = document.querySelector("#recipeFileInput");
 const clearPastedRecipe = document.querySelector("#clearPastedRecipe");
+const recipeReadStatus = document.querySelector("#recipeReadStatus");
+const recipeReview = document.querySelector("#recipeReview");
+const reviewRecipeName = document.querySelector("#reviewRecipeName");
+const reviewRecipeServings = document.querySelector("#reviewRecipeServings");
+const reviewPrepTime = document.querySelector("#reviewPrepTime");
+const reviewCookTime = document.querySelector("#reviewCookTime");
+const reviewTotalTime = document.querySelector("#reviewTotalTime");
+const reviewTemperature = document.querySelector("#reviewTemperature");
+const reviewSourceUrl = document.querySelector("#reviewSourceUrl");
+const reviewRecipePhotoBox = document.querySelector("#reviewRecipePhotoBox");
+const reviewRecipePhoto = document.querySelector("#reviewRecipePhoto");
+const reviewIngredientRows = document.querySelector("#reviewIngredientRows");
+const addReviewIngredient = document.querySelector("#addReviewIngredient");
+const reviewRecipeNotes = document.querySelector("#reviewRecipeNotes");
+const saveReviewedRecipe = document.querySelector("#saveReviewedRecipe");
+const cancelRecipeReview = document.querySelector("#cancelRecipeReview");
 const addIngredient = document.querySelector("#addIngredient");
 const newRecipe = document.querySelector("#newRecipe");
 const deleteRecipe = document.querySelector("#deleteRecipe");
@@ -244,7 +269,15 @@ askFoodAi.addEventListener("click", answerFoodAi);
 foodAiQuestion.addEventListener("keydown", (event) => {
   if (event.key === "Enter") answerFoodAi();
 });
-savePastedRecipe.addEventListener("click", saveRecipeFromPaste);
+savePastedRecipe.addEventListener("click", reviewRecipeFromPaste);
+readRecipeUrl.addEventListener("click", reviewRecipeFromUrl);
+recipeUrlInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") reviewRecipeFromUrl();
+});
+recipeFileInput.addEventListener("change", reviewRecipeFromFile);
+addReviewIngredient.addEventListener("click", () => addReviewIngredientRow());
+saveReviewedRecipe.addEventListener("click", commitReviewedRecipe);
+cancelRecipeReview.addEventListener("click", clearRecipeReview);
 clearPastedRecipe.addEventListener("click", () => {
   recipePasteBox.value = "";
   recipePasteBox.focus();
@@ -300,7 +333,7 @@ devicePromptChoices.forEach((button) => {
   button.addEventListener("click", () => setDeviceMode(button.dataset.deviceChoice, { persist: true, updateUrl: true, announce: true, hidePrompt: true }));
 });
 devicePromptDismiss.addEventListener("click", () => setDeviceMode("computer", { persist: true, updateUrl: false, announce: true, hidePrompt: true }));
-[recipeName, baseServings, recipeNotes].forEach((field) => {
+[recipeName, baseServings, recipeNotes, recipePrepTime, recipeCookTime, recipeTotalTime, recipeTemperature, recipeSourceUrl].forEach((field) => {
   field.addEventListener("input", () => {
     captureEditorUndoOnce();
     saveCurrentFieldsQuietly();
@@ -317,7 +350,7 @@ function loadPlanner() {
     try {
       const parsed = JSON.parse(saved);
       return {
-        recipes: Array.isArray(parsed.recipes) && parsed.recipes.length ? parsed.recipes : sampleRecipes,
+        recipes: normalizeRecipes(parsed.recipes),
         foodStorage: normalizeFoodStorage(parsed.foodStorage || parsed.pantry),
         builderOptions: normalizeBuilderOptions(parsed.builderOptions),
         builderStyles: normalizeBuilderStyles(parsed.builderStyles),
@@ -334,7 +367,7 @@ function loadPlanner() {
   try {
     const oldRecipes = JSON.parse(localStorage.getItem(oldStorageKey));
     return {
-      recipes: Array.isArray(oldRecipes) && oldRecipes.length ? oldRecipes : sampleRecipes,
+      recipes: normalizeRecipes(oldRecipes),
       foodStorage: normalizeFoodStorage(),
       builderOptions: normalizeBuilderOptions(),
       builderStyles: normalizeBuilderStyles(),
@@ -495,7 +528,7 @@ function undoLastChange() {
 
 function applyPlannerData(data) {
   const source = data && typeof data === "object" ? data : {};
-  recipes = Array.isArray(source.recipes) && source.recipes.length ? source.recipes : sampleRecipes;
+  recipes = normalizeRecipes(source.recipes);
   foodStorage = normalizeFoodStorage(source.foodStorage || source.pantry);
   builderOptions = normalizeBuilderOptions(source.builderOptions);
   builderStyles = normalizeBuilderStyles(source.builderStyles);
@@ -536,7 +569,7 @@ function persistRecipes() {
 
 function currentPlannerData() {
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     recipes,
     foodStorage,
     builderOptions,
@@ -643,7 +676,7 @@ function normalizeInventorySettings(saved) {
 
 function defaultPlannerData() {
   return {
-    recipes: sampleRecipes,
+    recipes: normalizeRecipes(sampleRecipes),
     foodStorage: normalizeFoodStorage(),
     builderOptions: normalizeBuilderOptions(),
     builderStyles: normalizeBuilderStyles(),
@@ -651,6 +684,34 @@ function defaultPlannerData() {
     mealCostHistory: [],
     weeklyPlan: normalizeWeeklyPlan(),
     inventorySettings: normalizeInventorySettings()
+  };
+}
+
+function normalizeRecipes(saved) {
+  const source = Array.isArray(saved) && saved.length ? saved : sampleRecipes;
+  return source.map(normalizeRecipe);
+}
+
+function normalizeRecipe(recipe) {
+  const source = recipe && typeof recipe === "object" ? recipe : {};
+  return {
+    id: source.id || crypto.randomUUID(),
+    name: String(source.name || "Imported recipe"),
+    baseServings: cleanNumber(source.baseServings, 1),
+    prepTime: String(source.prepTime || ""),
+    cookTime: String(source.cookTime || ""),
+    totalTime: String(source.totalTime || ""),
+    temperature: String(source.temperature || ""),
+    sourceUrl: String(source.sourceUrl || ""),
+    notes: String(source.notes || ""),
+    photo: String(source.photo || ""),
+    ingredients: Array.isArray(source.ingredients)
+      ? source.ingredients.map((ingredient) => ({
+        amount: Math.max(0, Number(ingredient?.amount) || 0),
+        unit: String(ingredient?.unit || ""),
+        name: String(ingredient?.name || "")
+      }))
+      : []
   };
 }
 
@@ -1939,6 +2000,11 @@ function renderEditor() {
   if (!recipe) {
     recipeName.value = "";
     baseServings.value = 2;
+    recipePrepTime.value = "";
+    recipeCookTime.value = "";
+    recipeTotalTime.value = "";
+    recipeTemperature.value = "";
+    recipeSourceUrl.value = "";
     recipeNotes.value = "";
     recipePhotoPreview.removeAttribute("src");
     recipePhotoPreview.hidden = true;
@@ -1949,6 +2015,11 @@ function renderEditor() {
   deleteRecipe.disabled = recipes.length <= 1;
   recipeName.value = recipe.name;
   baseServings.value = recipe.baseServings;
+  recipePrepTime.value = recipe.prepTime || "";
+  recipeCookTime.value = recipe.cookTime || "";
+  recipeTotalTime.value = recipe.totalTime || "";
+  recipeTemperature.value = recipe.temperature || "";
+  recipeSourceUrl.value = recipe.sourceUrl || "";
   recipeNotes.value = recipe.notes || "";
   recipePhotoPreview.hidden = !recipe.photo;
   if (recipe.photo) {
@@ -2009,7 +2080,8 @@ function renderRecipeShowcase() {
 
   const people = cleanNumber(targetServings.value, 1);
   const steps = recipeSteps(recipe.notes);
-  showcaseSummary.textContent = `${recipe.name} for ${people} people`;
+  const timing = recipeTimingText(recipe);
+  showcaseSummary.textContent = `${recipe.name} for ${people} people${timing ? ` | ${timing}` : ""}`;
   showcaseMealName.textContent = recipe.name;
   showcaseMealPhoto.hidden = false;
   startCooking.disabled = !steps.length;
@@ -2050,6 +2122,15 @@ function renderRecipeShowcase() {
     list.appendChild(li);
   });
   showcaseInstructions.appendChild(list);
+}
+
+function recipeTimingText(recipe) {
+  return [
+    recipe.prepTime ? `Prep ${recipe.prepTime}` : "",
+    recipe.cookTime ? `Cook ${recipe.cookTime}` : "",
+    recipe.totalTime ? `Total ${recipe.totalTime}` : "",
+    recipe.temperature ? recipe.temperature : ""
+  ].filter(Boolean).join(" | ");
 }
 
 function recipeSteps(notes) {
@@ -2935,6 +3016,11 @@ function collectEditorRecipe(existingId = selectedRecipeId) {
     id: existingId || crypto.randomUUID(),
     name: recipeName.value.trim() || "Untitled recipe",
     baseServings: cleanNumber(baseServings.value, 1),
+    prepTime: recipePrepTime.value.trim(),
+    cookTime: recipeCookTime.value.trim(),
+    totalTime: recipeTotalTime.value.trim(),
+    temperature: recipeTemperature.value.trim(),
+    sourceUrl: recipeSourceUrl.value.trim(),
     notes: recipeNotes.value.trim(),
     ingredients,
     photo: existing?.photo || ""
@@ -2989,6 +3075,11 @@ function createRecipe() {
     id: crypto.randomUUID(),
     name: "New recipe",
     baseServings: cleanNumber(targetServings.value, 2),
+    prepTime: "",
+    cookTime: "",
+    totalTime: "",
+    temperature: "",
+    sourceUrl: "",
     notes: "",
     photo: "",
     ingredients: [{ amount: 1, unit: "", name: "" }]
@@ -3210,7 +3301,7 @@ function goBackBuilder() {
   renderMealBuilder();
 }
 
-function saveRecipeFromPaste() {
+function reviewRecipeFromPaste() {
   const pasted = recipePasteBox.value.trim();
   if (!pasted) {
     alert("Paste a recipe into the box first.");
@@ -3218,76 +3309,214 @@ function saveRecipeFromPaste() {
     return;
   }
 
-  const recipe = parsePastedRecipe(pasted);
-  const error = recipeValidationError(recipe);
-  if (error) {
-    window.alert(`I could not save that pasted recipe yet. ${error}`);
-    return;
+  try {
+    openRecipeReview(parsePastedRecipe(pasted), "Pasted recipe ready to check.");
+  } catch (error) {
+    recipeReadStatus.textContent = error?.message || "I could not read that pasted recipe.";
   }
-  captureUndo("pasted recipe");
-  recipes.unshift(recipe);
-  selectedRecipeId = recipe.id;
-  recipePasteBox.value = "";
-  persistRecipes();
-  render();
-  focusSection(recipeForm, recipeName);
 }
 
 function parsePastedRecipe(text) {
-  const lines = text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-  const title = lines[0] || "Pasted recipe";
-  const servingsLine = lines.find((line) => /serves|servings|yield/i.test(line));
-  const servingsMatch = servingsLine?.match(/(\d+)/);
-  const base = servingsMatch ? Number(servingsMatch[1]) : cleanNumber(targetServings.value, 2);
-  const ingredientLines = [];
-  const noteLines = [];
-  let sawLikelyIngredient = false;
-
-  lines.slice(1).forEach((line) => {
-    if (/^(ingredients|directions|instructions|method|prep|steps)\s*:?\s*$/i.test(line)) return;
-    if (line === servingsLine) return;
-
-    if (looksLikeIngredient(line) && !noteLines.length) {
-      ingredientLines.push(line);
-      sawLikelyIngredient = true;
-      return;
-    }
-
-    if (sawLikelyIngredient || line.length > 35) {
-      noteLines.push(line);
-    } else {
-      ingredientLines.push(line);
-    }
-  });
-
-  return {
+  return normalizeRecipe({
     id: crypto.randomUUID(),
-    name: title.replace(/^recipe\s*:\s*/i, ""),
-    baseServings: base,
-    notes: noteLines.join("\n"),
-    photo: "",
-    ingredients: ingredientLines.map(parseIngredientLine).filter((ingredient) => ingredient.name)
-  };
+    ...MealPlannerRecipeReader.parseText(text, {
+      baseServings: cleanNumber(targetServings.value, 2)
+    })
+  });
 }
 
 function looksLikeIngredient(line) {
-  return /^(\d+|\d+\.\d+|\d+\/\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b/i.test(line);
+  return MealPlannerRecipeReader.looksLikeIngredient(line);
 }
 
 function parseIngredientLine(line) {
-  const cleaned = line.replace(/^[-*]\s*/, "").trim();
-  const parsed = parseMeasure(cleaned);
-  const usedText = parsed.originalText || "";
-  const name = cleaned.slice(usedText.length).replace(/^[-, ]+/, "").trim() || cleaned;
+  return MealPlannerRecipeReader.parseIngredientLine(line);
+}
 
-  return {
-    amount: parsed.amount,
-    unit: parsed.unit,
-    name
-  };
+async function reviewRecipeFromUrl() {
+  const value = recipeUrlInput.value.trim();
+  let sourceUrl;
+  try {
+    sourceUrl = new URL(value);
+    if (!["http:", "https:"].includes(sourceUrl.protocol)) throw new Error("Use a website link beginning with http or https.");
+    if (!isPublicRecipeUrl(sourceUrl)) throw new Error("Use a public recipe website link.");
+  } catch (error) {
+    recipeReadStatus.textContent = error?.message || "Enter a complete recipe website link.";
+    recipeUrlInput.focus();
+    return;
+  }
+
+  readRecipeUrl.disabled = true;
+  recipeReadStatus.textContent = "Reading the recipe website...";
+  try {
+    const page = await fetchRecipePage(sourceUrl.href);
+    const draft = MealPlannerRecipeReader.parseHtml(page.html, page.finalUrl || sourceUrl.href);
+    openRecipeReview(draft, "Website recipe ready to check.");
+  } catch (error) {
+    recipeReadStatus.textContent = error?.message
+      || "That website would not share its recipe. Paste the recipe words instead.";
+  } finally {
+    readRecipeUrl.disabled = false;
+  }
+}
+
+function isPublicRecipeUrl(url) {
+  const host = String(url?.hostname || "").toLowerCase().replace(/^\[|\]$/g, "");
+  if (!host || host === "localhost" || host.endsWith(".localhost") || host === "::1") return false;
+  const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (ipv4) {
+    const octets = ipv4.slice(1).map(Number);
+    if (octets.some((part) => part < 0 || part > 255)) return false;
+    if (octets[0] === 0 || octets[0] === 10 || octets[0] === 127 || octets[0] >= 224) return false;
+    if (octets[0] === 169 && octets[1] === 254) return false;
+    if (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) return false;
+    if (octets[0] === 192 && octets[1] === 168) return false;
+  }
+  return !/^(?:fc|fd|fe8|fe9|fea|feb)/i.test(host.replace(/:/g, ""));
+}
+
+async function fetchRecipePage(sourceUrl) {
+  const attempts = isNativeApp()
+    ? [{ direct: true, url: sourceUrl }]
+    : [
+      { direct: false, url: `/api/recipe?url=${encodeURIComponent(sourceUrl)}` },
+      { direct: true, url: sourceUrl }
+    ];
+  let lastError = null;
+
+  for (const attempt of attempts) {
+    try {
+      const response = await fetch(attempt.url);
+      if (!response.ok) {
+        const detail = attempt.direct ? "" : (await response.json().catch(() => null))?.error;
+        throw new Error(detail || "That recipe website could not be read.");
+      }
+      if (attempt.direct) {
+        return { html: await response.text(), finalUrl: response.url || sourceUrl };
+      }
+      const payload = await response.json();
+      if (!payload?.html) throw new Error("The recipe page did not contain readable words.");
+      return payload;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw new Error(lastError?.message || "That website would not share its recipe. Paste the recipe words instead.");
+}
+
+async function reviewRecipeFromFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  recipeReadStatus.textContent = `Reading ${file.name}...`;
+
+  try {
+    const text = await MealPlannerReceipts.readFile(file, (message) => {
+      recipeReadStatus.textContent = String(message || "").replace(/receipt/gi, "recipe");
+    });
+    const draft = MealPlannerRecipeReader.parseText(text, {
+      baseServings: cleanNumber(targetServings.value, 2)
+    });
+    openRecipeReview(draft, `${file.name} is ready to check.`);
+  } catch (error) {
+    recipeReadStatus.textContent = error?.message || "That recipe file could not be read.";
+  } finally {
+    event.target.value = "";
+  }
+}
+
+function openRecipeReview(draft, message = "Recipe ready to check.") {
+  pendingRecipeDraft = normalizeRecipe({
+    ...draft,
+    id: crypto.randomUUID(),
+    baseServings: cleanNumber(draft?.baseServings, cleanNumber(targetServings.value, 2))
+  });
+  reviewRecipeName.value = pendingRecipeDraft.name;
+  reviewRecipeServings.value = pendingRecipeDraft.baseServings;
+  reviewPrepTime.value = pendingRecipeDraft.prepTime;
+  reviewCookTime.value = pendingRecipeDraft.cookTime;
+  reviewTotalTime.value = pendingRecipeDraft.totalTime;
+  reviewTemperature.value = pendingRecipeDraft.temperature;
+  reviewSourceUrl.value = pendingRecipeDraft.sourceUrl;
+  reviewRecipeNotes.value = pendingRecipeDraft.notes;
+  reviewIngredientRows.innerHTML = "";
+  const ingredients = pendingRecipeDraft.ingredients.length
+    ? pendingRecipeDraft.ingredients
+    : [{ amount: 1, unit: "", name: "" }];
+  ingredients.forEach(addReviewIngredientRow);
+
+  reviewRecipePhotoBox.hidden = !pendingRecipeDraft.photo;
+  if (pendingRecipeDraft.photo) {
+    reviewRecipePhoto.src = pendingRecipeDraft.photo;
+  } else {
+    reviewRecipePhoto.removeAttribute("src");
+  }
+  recipeReview.hidden = false;
+  recipeReadStatus.textContent = message;
+  recipeReview.scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => reviewRecipeName.focus(), 300);
+}
+
+function addReviewIngredientRow(ingredient = { amount: 1, unit: "", name: "" }) {
+  const fragment = ingredientTemplate.content.cloneNode(true);
+  const row = fragment.querySelector(".ingredient-row");
+  row.classList.add("review-ingredient-row");
+  row.querySelector(".amount").value = ingredient.amount;
+  row.querySelector(".unit").value = ingredient.unit || "";
+  row.querySelector(".name").value = ingredient.name || "";
+  row.querySelector(".remove").addEventListener("click", () => row.remove());
+  reviewIngredientRows.appendChild(fragment);
+}
+
+function collectReviewedRecipe() {
+  return normalizeRecipe({
+    id: pendingRecipeDraft?.id || crypto.randomUUID(),
+    name: reviewRecipeName.value.trim() || "Untitled recipe",
+    baseServings: cleanNumber(reviewRecipeServings.value, 1),
+    prepTime: reviewPrepTime.value.trim(),
+    cookTime: reviewCookTime.value.trim(),
+    totalTime: reviewTotalTime.value.trim(),
+    temperature: reviewTemperature.value.trim(),
+    sourceUrl: reviewSourceUrl.value.trim(),
+    photo: pendingRecipeDraft?.photo || "",
+    notes: reviewRecipeNotes.value.trim(),
+    ingredients: [...reviewIngredientRows.querySelectorAll(".ingredient-row")]
+      .map((row) => ({
+        amount: cleanNumber(row.querySelector(".amount").value, 0),
+        unit: row.querySelector(".unit").value.trim(),
+        name: row.querySelector(".name").value.trim()
+      }))
+      .filter((ingredient) => ingredient.name)
+  });
+}
+
+function commitReviewedRecipe() {
+  const recipe = collectReviewedRecipe();
+  const error = recipeValidationError(recipe);
+  if (error) {
+    window.alert(`Please check this recipe before saving. ${error}`);
+    return;
+  }
+
+  captureUndo("import recipe");
+  recipes.unshift(recipe);
+  selectedRecipeId = recipe.id;
+  persistRecipes();
+  clearRecipeReview({ preserveStatus: true });
+  recipePasteBox.value = "";
+  recipeUrlInput.value = "";
+  render();
+  setAppView("recipes", { focus: false });
+  recipeReadStatus.textContent = `${recipe.name} was saved after review.`;
+  focusSection(recipeForm, recipeName);
+}
+
+function clearRecipeReview(options = {}) {
+  pendingRecipeDraft = null;
+  recipeReview.hidden = true;
+  reviewIngredientRows.innerHTML = "";
+  reviewRecipePhoto.removeAttribute("src");
+  if (!options.preserveStatus) recipeReadStatus.textContent = "Nothing is saved until you approve the review.";
 }
 
 function deleteSelectedRecipe() {
@@ -3348,14 +3577,7 @@ function importRecipes(event) {
       if (!window.confirm("Import this backup and replace the current recipes and planner data?")) return;
       captureUndo("import backup");
 
-      recipes = importedRecipes.map((recipe) => ({
-        id: recipe.id || crypto.randomUUID(),
-        name: recipe.name || "Imported recipe",
-        baseServings: cleanNumber(recipe.baseServings, 1),
-        notes: recipe.notes || "",
-        photo: recipe.photo || "",
-        ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : []
-      }));
+      recipes = importedRecipes.map(normalizeRecipe);
       foodStorage = normalizeFoodStorage(imported.foodStorage || imported.pantry || foodStorage);
       builderOptions = normalizeBuilderOptions(imported.builderOptions || builderOptions);
       builderStyles = normalizeBuilderStyles(imported.builderStyles || builderStyles);
@@ -3990,7 +4212,8 @@ function renderPrintSheet() {
   const dateText = mealDate.value ? new Date(`${mealDate.value}T12:00:00`).toLocaleDateString() : "No date selected";
   const estimate = estimateSelectedMealCost();
   printTitle.textContent = recipe.name;
-  printMeta.textContent = `${dateText} | Planned for ${people} people${estimate.cost ? ` | Rough cost: ${formatMoney(estimate.cost)}` : ""}`;
+  const timing = recipeTimingText(recipe);
+  printMeta.textContent = `${dateText} | Planned for ${people} people${timing ? ` | ${timing}` : ""}${estimate.cost ? ` | Rough cost: ${formatMoney(estimate.cost)}` : ""}`;
   printIngredients.innerHTML = "";
   getScaledIngredients(recipe).forEach((ingredient) => {
     const li = document.createElement("li");
@@ -4226,16 +4449,19 @@ function saveOnlineMeal(meal) {
     id: crypto.randomUUID(),
     name: meal.strMeal || "Online recipe",
     baseServings: cleanNumber(targetServings.value, 2),
+    prepTime: "",
+    cookTime: "",
+    totalTime: "",
+    temperature: MealPlannerRecipeReader.extractTemperature(meal.strInstructions || ""),
+    sourceUrl: meal.strSource || meal.strYoutube || "",
     notes: meal.strInstructions || "",
     photo: meal.strMealThumb || "",
     ingredients
   };
 
-  recipes.unshift(recipe);
-  selectedRecipeId = recipe.id;
-  persistRecipes();
-  render();
-  onlineStatus.textContent = `${recipe.name} was saved to your recipes.`;
+  openRecipeReview(recipe, `${recipe.name} is ready to check before saving.`);
+  onlineStatus.textContent = `${recipe.name} is open in the review section below.`;
+  focusSection(pasteRecipeCard);
 }
 
 function parseMeasure(measure) {

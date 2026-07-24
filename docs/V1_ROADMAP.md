@@ -79,6 +79,15 @@ Cooklist. Their strongest recurring patterns are:
    servings, ingredients, time, temperature, and steps into an editable review
    screen before saving.
 
+   **Implemented in the 0.9 prerelease:** pasted recipes, PDF files, recipe
+   photographs, public website links, and recipes returned by online search all
+   open the same review screen before anything is saved; the reader extracts
+   Schema.org recipe metadata when available and falls back to visible text;
+   name, servings, prep/cook/total time, temperature, source, ingredients, and
+   cooking steps can all be corrected; the thumb-drive server safely retrieves
+   public recipe pages without allowing private-network addresses; and the
+   review remains usable at phone width.
+
 5. Add confidence and recovery.
    Keep Undo visible, make automatic backups easy to restore, show the last
    successful save time, and explain any import row that could not be read.
