@@ -84,11 +84,12 @@ stated requirement for new apps and updates beginning August 31, 2026.
 - [ ] Signed APK upgrades an existing 0.9 installation without data loss.
 - [ ] Signed AAB passes Play Console pre-launch checks.
 - [ ] Core tasks pass on Android 7, current Android, and tablet layouts.
-- [ ] Native CI passes on Android 7 and Android 15, including offline recipe-photo OCR.
-- [ ] The installed-app upgrade test preserves and migrates a saved recipe and inventory item.
+- [x] Native CI passes on Android 7 and Android 15, including offline recipe-photo OCR.
+- [x] The installed-app upgrade test preserves and migrates a saved recipe and inventory item.
 - [ ] Airplane-mode operation and optional online recipe search are tested.
-- [ ] Backup and restore are tested with realistic data.
-- [ ] Accessibility review covers text scaling, contrast, touch targets, and screen readers.
+- [x] Backup and restore are tested with realistic data.
+- [x] Automated WCAG A/AA checks cover every main screen, selected recipes, guided cooking, phone layouts, keyboard access, visible focus, and screen-reader names.
+- [ ] Manual accessibility review covers 200% text scaling and real TalkBack or VoiceOver use.
 - [x] Privacy policy draft describes local data, photos, files, internet access, and disabled Android automatic backup.
 - [ ] Privacy policy is published at a stable URL, linked inside the app, and entered in Play Console.
 - [ ] Play Console Data safety answers match the verified release behavior and third-party requests.
