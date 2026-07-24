@@ -144,6 +144,29 @@ async function run() {
   await page.addInitScript(() => {
     localStorage.setItem("bobMaryMealPlannerDeviceMode", "computer");
     localStorage.setItem("bobMaryMealPlannerView", "home");
+    window.__wakeLockRequests = 0;
+    Object.defineProperty(navigator, "wakeLock", {
+      configurable: true,
+      value: {
+        request: async () => {
+          window.__wakeLockRequests += 1;
+          let released = false;
+          const releaseListeners = [];
+          return {
+            get released() {
+              return released;
+            },
+            addEventListener(type, listener) {
+              if (type === "release") releaseListeners.push(listener);
+            },
+            async release() {
+              released = true;
+              releaseListeners.forEach((listener) => listener());
+            }
+          };
+        }
+      }
+    });
   });
 
   const results = [];
@@ -187,6 +210,55 @@ async function run() {
     await page.fill("#targetServings", "4");
     const scaledText = await page.locator("#scaledList").innerText();
     check(/2 lb\s+ground beef/i.test(scaledText), "Recipe ingredients scale for four people", scaledText);
+    await page.locator("#startCooking").click();
+    check(await page.locator("#cookingMode").isVisible(), "Guided cooking opens for the selected recipe");
+    check(
+      /Test Meatloaf/i.test(await page.locator("#cookingTitle").innerText()) &&
+        /Step 1 of 3/i.test(await page.locator("#cookingStepCount").innerText()) &&
+        /Heat oven to 350 F/i.test(await page.locator("#cookingStepText").innerText()),
+      "Guided cooking shows one readable instruction at a time"
+    );
+    check(
+      await page.locator("#cookingIngredients .cooking-ingredient").count() === 3 &&
+        /2 lb/i.test(await page.locator("#cookingIngredients").innerText()),
+      "Guided cooking shows scaled ingredient checkboxes"
+    );
+    check(
+      await page.evaluate(() => window.__wakeLockRequests) === 1 &&
+        /stay awake/i.test(await page.locator("#cookingWakeStatus").innerText()),
+      "Guided cooking requests screen-awake mode"
+    );
+    await page.locator("[data-cooking-ingredient='0']").check();
+    await page.locator("#cookingStepDone").check();
+    await page.locator("#nextCookingStep").click();
+    check(
+      /Step 2 of 3/i.test(await page.locator("#cookingStepCount").innerText()) &&
+        /Mix ingredients/i.test(await page.locator("#cookingStepText").innerText()),
+      "Cooking steps move forward without showing every instruction"
+    );
+    await page.locator("#cookingTimerMinutes").fill("0.02");
+    await page.locator("#cookingTimerName").fill("Oven timer");
+    await page.locator("#startCookingTimer").click();
+    await page.locator("[data-quick-timer='5']").click();
+    check(await page.locator(".cooking-timer").count() === 2, "Multiple cooking timers can run together");
+    const quickTimer = page.locator(".cooking-timer", { hasText: "Step 2 timer" });
+    await quickTimer.locator("[data-timer-action='pause']").click();
+    check(/Resume/i.test(await quickTimer.innerText()), "A cooking timer can be paused");
+    await page.waitForFunction(() => {
+      const timer = [...document.querySelectorAll(".cooking-timer")]
+        .find((item) => item.textContent.includes("Oven timer"));
+      return timer?.classList.contains("done");
+    }, null, { timeout: 5000 });
+    check(/Finished/i.test(await page.locator(".cooking-timer", { hasText: "Oven timer" }).innerText()), "A finished timer is announced");
+    await page.locator("#closeCooking").click();
+    await page.locator("#startCooking").click();
+    await page.locator("#previousCookingStep").click();
+    check(
+      await page.locator("#cookingStepDone").isChecked() &&
+        await page.locator("[data-cooking-ingredient='0']").isChecked(),
+      "Cooking progress is saved when the guide is closed and reopened"
+    );
+    await page.locator("#closeCooking").click();
     console.error("CHECKPOINT recipes");
 
     await clickView(page, "home");
@@ -314,8 +386,17 @@ async function run() {
     const saveText = await page.locator("#saveStatus").innerText();
     check(/Saved to thumb drive|Saved in this browser only/i.test(saveText), "Save status is visible", saveText);
 
-    await clickView(page, "inventory");
-    await page.locator("#cookAndDeduct").click();
+    await clickView(page, "recipes");
+    await page.locator("#startCooking").click();
+    await page.locator("#finishCooking").click();
+    await page.waitForFunction(() =>
+      !document.querySelector("#cookingMode")?.open &&
+      document.querySelector("[data-app-view='inventory']")?.getAttribute("aria-current") === "page"
+    );
+    check(
+      await page.evaluate(() => localStorage.getItem("bobMaryMealPlannerCookingSession")) === null,
+      "Finishing guided cooking clears the saved cooking session"
+    );
     await page.waitForFunction(() => !document.querySelector("#freezerList")?.innerText.includes("ground beef"));
     const cookedRefrigerator = await page.locator("#refrigeratorList").innerText();
     const cookedFreezer = await page.locator("#freezerList").innerText();
