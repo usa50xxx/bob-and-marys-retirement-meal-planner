@@ -28,6 +28,7 @@ jobs:
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      THEMEALDB_API_KEY: ${{ secrets.THEMEALDB_API_KEY }}
       GH_TOKEN: ${{ github.token }}
 
     steps:
@@ -62,7 +63,7 @@ jobs:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           missing=0
-          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD THEMEALDB_API_KEY; do
             if [ -z "${!name}" ]; then
               echo "::error::$name is not configured in repository secrets."
               missing=1
@@ -82,6 +83,9 @@ jobs:
 
       - name: Test meal planner
         run: pnpm test
+
+      - name: Require releasable ingredient images
+        run: pnpm images:audit:strict
 
       - name: Test thumb-drive backup and recovery
         shell: pwsh
@@ -114,16 +118,16 @@ jobs:
 
       - name: Package release files
         run: |
+          pnpm release:stage
           mkdir -p dist
           cp android/app/build/outputs/apk/release/app-release.apk \
             "dist/Bob-and-Marys-Meal-Planner-${RELEASE_TAG}.apk"
           cp android/app/build/outputs/bundle/release/app-release.aab \
             "dist/Bob-and-Marys-Meal-Planner-${RELEASE_TAG}.aab"
           (
-            cd outputs
-            zip -9 -r "../dist/Bob-and-Marys-Meal-Planner-Thumb-Drive-${RELEASE_TAG}.zip" \
-              meal-planner \
-              -x "meal-planner/planner-data.json" "meal-planner/backups/*"
+            cd work/release-web
+            zip -9 -r "../../dist/Bob-and-Marys-Meal-Planner-Thumb-Drive-${RELEASE_TAG}.zip" \
+              meal-planner
           )
           cd dist
           sha256sum *.apk *.aab *.zip > SHA256SUMS.txt

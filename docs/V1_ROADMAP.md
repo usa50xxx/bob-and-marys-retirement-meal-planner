@@ -34,6 +34,15 @@ Cooklist. Their strongest recurring patterns are:
 - Publish a privacy policy and choose a repository license.
 - Remove all example or personal shopping data from release packages.
 
+**Release packaging implemented in the 0.9 prerelease:** Android and portable
+website builds now stage only tracked application assets; backups, planner
+data, interrupted-save files, logs, links, and unexpected root files are
+rejected; every staged package includes a deterministic SHA-256 manifest; and
+the signed release workflow refuses to continue until every bundled ingredient
+image has complete approved source and license metadata. A privacy policy and
+third-party notices are included, while image clearance and the repository
+license decision remain open release blockers.
+
 ### P1: highest-value product work
 
 1. Finish the food calculator.

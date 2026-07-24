@@ -17,6 +17,16 @@ The `Draft Android release` workflow runs for semantic version tags such as
 packages the portable thumb-drive website, writes SHA-256 checksums, and
 creates a draft GitHub release for final human review.
 
+Both Android synchronization and thumb-drive packaging use a tracked-only
+release staging step. It rejects backups, planner data, interrupted-save
+temporary files, logs, symbolic links, and unexpected root files. Each package
+contains a deterministic `RELEASE-MANIFEST.json` with file sizes and SHA-256
+hashes.
+
+Normal builds report image provenance progress. Signed release builds use the
+strict audit and stop until every ingredient image has approved redistribution
+metadata.
+
 ## One-time signing setup
 
 Create and protect a release keystore before making a release tag. The same key
@@ -28,6 +38,12 @@ Configure these GitHub Actions repository secrets:
 - `ANDROID_KEYSTORE_PASSWORD`: Keystore password
 - `ANDROID_KEY_ALIAS`: Signing key alias
 - `ANDROID_KEY_PASSWORD`: Signing key password
+- `THEMEALDB_API_KEY`: Paid subscriber key authorized for an app-store build
+
+The paid TheMealDB key is inserted only into staged release assets. Like any
+key used directly by a phone app, it can be recovered from the published app,
+so it should be limited to this use and rotated if the provider account is
+misused.
 
 Keep an encrypted offline backup of the keystore and its passwords in two
 separate physical locations. Losing the signing key can prevent updates to
@@ -68,8 +84,17 @@ stated requirement for new apps and updates beginning August 31, 2026.
 - [ ] Airplane-mode operation and optional online recipe search are tested.
 - [ ] Backup and restore are tested with realistic data.
 - [ ] Accessibility review covers text scaling, contrast, touch targets, and screen readers.
-- [ ] Privacy policy accurately describes local data, photos, files, and internet access.
+- [x] Privacy policy draft describes local data, photos, files, internet access, and disabled Android automatic backup.
+- [ ] Privacy policy is published at a stable URL, linked inside the app, and entered in Play Console.
+- [ ] Play Console Data safety answers match the verified release behavior and third-party requests.
 - [ ] Food image licenses and attribution are complete.
-- [ ] Repository license and support contact are selected.
+- [ ] A paid TheMealDB publish key is configured and the provider credit is approved.
+- [ ] Repository software license is selected.
+- [x] Support and privacy questions can be submitted through the repository issue tracker.
 - [ ] Release notes explain known limitations and backup instructions.
-- [ ] Thumb-drive and Android release packages contain no personal data.
+- [x] Automated tracked-only staging prevents personal data from entering thumb-drive and Android release packages.
+
+Google Play requires an accurate
+[Data safety declaration](https://support.google.com/googleplay/android-developer/answer/10787469)
+and a privacy policy link in Play Console and in the app under its
+[User Data policy](https://support.google.com/googleplay/android-developer/answer/10144311).

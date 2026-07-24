@@ -55,6 +55,9 @@ jobs:
       - name: Test meal planner
         run: pnpm test
 
+      - name: Report ingredient image provenance
+        run: pnpm images:audit
+
       - name: Test thumb-drive backup and recovery
         shell: pwsh
         run: ./work/test-server-recovery.ps1

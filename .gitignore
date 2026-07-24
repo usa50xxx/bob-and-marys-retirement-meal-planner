@@ -17,6 +17,8 @@ work/*-err.txt
 work/beef-cut-fullpage/
 work/beef-cut-screens/
 work/android-web/
+work/release-web/
+work/release-assets-test/
 
 # Native Android build dependencies and generated intermediates.
 node_modules/
