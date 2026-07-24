@@ -770,6 +770,52 @@ h2 {
   gap: 14px;
 }
 
+.recipe-link-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.recipe-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.recipe-review {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.recipe-review-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px;
+  gap: 10px;
+}
+
+.recipe-review-photo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.recipe-review-photo img {
+  width: 104px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #101516;
+}
+
 .photo-box {
   display: grid;
   gap: 12px;
@@ -1963,6 +2009,10 @@ body[data-device-mode="computer"] .device-link[data-device-mode="computer"] {
     grid-template-columns: 1fr 1fr;
   }
 
+  .recipe-detail-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .ingredient-row label:nth-child(3),
   .ingredient-row .remove {
     grid-column: 1 / -1;
@@ -2024,6 +2074,15 @@ body[data-device-mode="computer"] .device-link[data-device-mode="computer"] {
 }
 
 @media (max-width: 520px) {
+  .recipe-link-row,
+  .recipe-review-main,
+  .recipe-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recipe-link-row button {
+    width: 100%;
+  }
   .shell {
     width: min(100% - 20px, 1360px);
     padding-top: 10px;
