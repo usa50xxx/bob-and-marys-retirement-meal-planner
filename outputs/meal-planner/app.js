@@ -912,27 +912,38 @@ function weeklyPlanEntries() {
 }
 
 function weeklyGroceryItems() {
-  const combined = new Map();
+  const combined = [];
   weeklyPlanEntries().forEach(({ day, entry, recipe }) => {
     scaleRecipeIngredients(recipe, cleanNumber(entry.servings, recipe.baseServings || 2))
       .filter((ingredient) => String(ingredient.name || "").trim() && cleanNumber(ingredient.amount, 0) > 0)
       .forEach((ingredient) => {
-      const key = `${normalizeName(ingredient.name)}|${ingredient.unit || ""}`;
-      const current = combined.get(key) || {
-        amount: 0,
-        unit: ingredient.unit || "",
-        name: ingredient.name,
-        recipes: new Set(),
-        days: new Set()
-      };
-      current.amount += cleanNumber(ingredient.amount, 0);
+      const unit = MealPlannerFood.normalizeUnit(ingredient.unit || "");
+      let current = combined.find((item) =>
+        normalizeName(item.name) === normalizeName(ingredient.name) &&
+        MealPlannerFood.convertAmount(1, unit, item.unit) !== null
+      );
+      if (!current) {
+        current = {
+          amount: 0,
+          unit,
+          name: ingredient.name,
+          recipes: new Set(),
+          days: new Set()
+        };
+        combined.push(current);
+      }
+      const converted = MealPlannerFood.convertAmount(
+        cleanNumber(ingredient.amount, 0),
+        unit,
+        current.unit
+      );
+      current.amount += converted ?? cleanNumber(ingredient.amount, 0);
       current.recipes.add(recipe.name);
       current.days.add(day.label);
-      combined.set(key, current);
     });
   });
 
-  return [...combined.values()]
+  return combined
     .map((item) => {
       const stock = MealPlannerFood.analyzeIngredient(item, foodStorage);
       return {
@@ -3176,7 +3187,17 @@ function cookSelectedMeal() {
     ? ` ${analysis.missingCount} ingredient${analysis.missingCount === 1 ? " is" : "s are"} short; available amounts will still be subtracted.`
     : "";
   const costText = estimate.cost ? ` The meal cost of ${formatMoney(estimate.cost)} will be recorded.` : "";
-  if (!window.confirm(`Mark "${recipe.name}" as cooked and subtract its ingredients?${missingText}${costText}`)) return;
+  const usageLines = analysis.rows
+    .filter((row) => row.have > 0)
+    .slice(0, 10)
+    .map((row) => {
+      const amount = Math.min(row.need, row.have);
+      return `${row.ingredient.name}: ${formatAmount(amount)} ${row.ingredient.unit || "item"}`;
+    });
+  const usageText = usageLines.length
+    ? `\n\nFood to subtract:\n${usageLines.map((line) => `- ${line}`).join("\n")}`
+    : "";
+  if (!window.confirm(`Mark "${recipe.name}" as cooked and subtract its ingredients?${missingText}${costText}${usageText}`)) return;
 
   captureUndo("cook meal");
   const consumed = MealPlannerFood.consumeIngredients(foodStorage, scaled);

@@ -30,6 +30,15 @@ let plannerData = {
       { amount: 2, unit: "count", name: "eggs" },
       { amount: 0.25, unit: "cup", name: "ketchup" }
     ]
+  }, {
+    id: "test-burgers",
+    name: "Test Burgers",
+    baseServings: 2,
+    notes: "Shape patties.\nCook until done.",
+    photo: "",
+    ingredients: [
+      { amount: 8, unit: "oz", name: "ground beef" }
+    ]
   }],
   foodStorage: {
     refrigerator: [{ id: "eggs", amount: 6, unit: "count", name: "eggs", price: 2.4, store: "Walmart", itemNumber: "111" }],
@@ -143,6 +152,17 @@ async function run() {
     console.error("CHECKPOINT plan");
     const weeklyText = await page.locator("#weeklyGroceryGroups").innerText();
     check(/ground beef/i.test(weeklyText) && /Buy\s+1\.5 lb/i.test(weeklyText), "Weekly list calculates Have / Need / Buy", weeklyText.replace(/\s+/g, " "));
+    await page.locator("[data-week-recipe='tuesday']").selectOption("test-burgers");
+    await page.locator("[data-week-servings='tuesday']").fill("2");
+    await page.waitForTimeout(450);
+    const mixedUnitWeeklyText = await page.locator("#weeklyGroceryGroups").innerText();
+    check(
+      /ground beef/i.test(mixedUnitWeeklyText) &&
+        /Buy\s+2 lb/i.test(mixedUnitWeeklyText) &&
+        /Monday, Tuesday/i.test(mixedUnitWeeklyText),
+      "Weekly list combines pounds and ounces before subtracting stock",
+      mixedUnitWeeklyText.replace(/\s+/g, " ")
+    );
 
     await clickView(page, "recipes");
     check(await page.locator("#recipeList").isVisible(), "Recipes screen opens");
@@ -219,6 +239,35 @@ async function run() {
     await page.waitForTimeout(600);
     const saveText = await page.locator("#saveStatus").innerText();
     check(/Saved to thumb drive|Saved in this browser only/i.test(saveText), "Save status is visible", saveText);
+
+    await clickView(page, "inventory");
+    await page.locator("#cookAndDeduct").click();
+    await page.waitForFunction(() => !document.querySelector("#freezerList")?.innerText.includes("ground beef"));
+    const cookedRefrigerator = await page.locator("#refrigeratorList").innerText();
+    const cookedFreezer = await page.locator("#freezerList").innerText();
+    const cookedPantry = await page.locator("#pantryList").innerText();
+    check(
+      !/ground beef/i.test(cookedFreezer) &&
+        /eggs\s+2 count/i.test(cookedRefrigerator) &&
+        /ketchup\s+0\.5 cup/i.test(cookedPantry),
+      "Cooking subtracts available food as one transaction",
+      [cookedRefrigerator, cookedFreezer, cookedPantry].join(" ").replace(/\s+/g, " ")
+    );
+    await page.waitForTimeout(500);
+    check(plannerData.mealCostHistory.length === 1, "Cooking records the meal cost once");
+    await page.locator("#undoChange").click();
+    const restoredRefrigerator = await page.locator("#refrigeratorList").innerText();
+    const restoredFreezer = await page.locator("#freezerList").innerText();
+    const restoredPantry = await page.locator("#pantryList").innerText();
+    check(
+      /ground beef\s+8 oz/i.test(restoredFreezer) &&
+        /eggs\s+6 count/i.test(restoredRefrigerator) &&
+        /ketchup\s+1 cup/i.test(restoredPantry),
+      "Undo restores food consumed by cooking",
+      [restoredRefrigerator, restoredFreezer, restoredPantry].join(" ").replace(/\s+/g, " ")
+    );
+    await page.waitForTimeout(500);
+    check(plannerData.mealCostHistory.length === 0, "Undo removes the cooked meal cost");
 
     check(errors.length === 0, "No browser JavaScript errors", errors.join(" | "));
     check(badResponses.length === 0, "No failed local asset requests", badResponses.join(" | "));

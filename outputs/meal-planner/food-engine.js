@@ -54,7 +54,8 @@
     servings: "item",
     serving: "item",
     pieces: "item",
-    piece: "item"
+    piece: "item",
+    counts: "count"
   };
 
   const UNIT_INFO = {
@@ -71,7 +72,8 @@
     pint: { dimension: "volume", factor: 96 },
     quart: { dimension: "volume", factor: 192 },
     gallon: { dimension: "volume", factor: 768 },
-    item: { dimension: "count", factor: 1 }
+    item: { dimension: "count", factor: 1 },
+    count: { dimension: "count", factor: 1 }
   };
 
   const STOP_WORDS = new Set([
@@ -149,8 +151,8 @@
     );
   }
 
-  function findBestInventoryItem(name, storage, desiredUnit = "") {
-    const candidates = flattenStorage(storage)
+  function inventoryMatchCandidates(name, storage, desiredUnit = "") {
+    return flattenStorage(storage)
       .map((item) => {
         const score = nameMatchScore(name, item.name);
         const conversion = convertAmount(1, item.unit || "", desiredUnit || item.unit || "");
@@ -161,27 +163,117 @@
         if (a.compatible !== b.compatible) return a.compatible ? -1 : 1;
         return b.score - a.score;
       });
-    return candidates[0]?.item || null;
+  }
+
+  function findInventoryMatches(name, storage, desiredUnit = "") {
+    const compatible = inventoryMatchCandidates(name, storage, desiredUnit)
+      .filter((entry) => entry.compatible);
+    if (!compatible.length) return [];
+
+    const bestScore = compatible[0].score;
+    const minimumScore = Math.max(70, bestScore - 20);
+    return compatible
+      .filter((entry) => entry.score >= minimumScore)
+      .map((entry) => entry.item);
+  }
+
+  function findBestInventoryItem(name, storage, desiredUnit = "") {
+    return inventoryMatchCandidates(name, storage, desiredUnit)[0]?.item || null;
+  }
+
+  function cloneStorage(storage) {
+    return {
+      refrigerator: (storage?.refrigerator || []).map((item) => ({ ...item })),
+      freezer: (storage?.freezer || []).map((item) => ({ ...item })),
+      pantry: (storage?.pantry || []).map((item) => ({ ...item }))
+    };
+  }
+
+  function removeAllocatedFood(storage, allocations) {
+    const consumed = [];
+
+    allocations.forEach((allocation) => {
+      const section = allocation.section || findSectionForId(storage, allocation.itemId);
+      const list = storage[section] || [];
+      const index = list.findIndex((item) => item.id === allocation.itemId);
+      if (index < 0) return;
+
+      const current = list[index];
+      const beforeAmount = cleanNumber(current.amount, 0);
+      const beforePrice = cleanNumber(current.price, 0);
+      const usedAmount = Math.min(beforeAmount, cleanNumber(allocation.storedAmount, 0));
+      const remainingAmount = Math.max(0, beforeAmount - usedAmount);
+      const remainingRatio = beforeAmount > 0 ? remainingAmount / beforeAmount : 0;
+
+      current.amount = remainingAmount;
+      current.price = beforePrice * remainingRatio;
+      consumed.push({
+        id: current.id,
+        name: current.name,
+        amount: usedAmount,
+        unit: current.unit || "",
+        section,
+        cost: beforePrice - current.price
+      });
+    });
+
+    Object.keys(storage).forEach((section) => {
+      storage[section] = storage[section]
+        .filter((item) => cleanNumber(item.amount, 0) > 0.0001);
+    });
+
+    return consumed;
   }
 
   function analyzeIngredient(ingredient, storage) {
     const need = cleanNumber(ingredient?.amount, 0);
     const unit = normalizeUnit(ingredient?.unit || "");
-    const match = findBestInventoryItem(ingredient?.name, storage, unit);
-    const convertedHave = match
-      ? convertAmount(cleanNumber(match.amount, 0), match.unit || "", unit)
-      : null;
-    const compatible = convertedHave !== null;
-    const have = compatible ? convertedHave : 0;
+    const matches = findInventoryMatches(ingredient?.name, storage, unit);
+    const match = matches[0] || findBestInventoryItem(ingredient?.name, storage, unit);
+    const lots = matches.map((item) => ({
+      item,
+      have: convertAmount(cleanNumber(item.amount, 0), item.unit || "", unit) || 0,
+      price: cleanNumber(item.price, 0)
+    }));
+    const compatible = lots.length > 0;
+    const have = lots.reduce((sum, lot) => sum + lot.have, 0);
     const buy = Math.max(0, need - have);
 
-    let estimatedCost = 0;
+    const pricedLots = lots.filter((lot) => lot.price > 0 && lot.have > 0);
+    const pricedHave = pricedLots.reduce((sum, lot) => sum + lot.have, 0);
+    const pricedTotal = pricedLots.reduce((sum, lot) => sum + lot.price, 0);
+    const estimatedCost = pricedHave > 0 ? need * (pricedTotal / pricedHave) : 0;
+    const allocations = [];
+    let remainingNeed = need;
     let usedCost = 0;
-    if (match && compatible && cleanNumber(match.price, 0) > 0 && have > 0) {
-      const costPerRequestedUnit = cleanNumber(match.price, 0) / have;
-      estimatedCost = need * costPerRequestedUnit;
-      usedCost = Math.min(need, have) * costPerRequestedUnit;
-    }
+
+    lots.forEach((lot) => {
+      if (remainingNeed <= 0.0001 || lot.have <= 0) return;
+      const requestedAmount = Math.min(remainingNeed, lot.have);
+      const storedAmount = convertAmount(
+        requestedAmount,
+        unit,
+        lot.item.unit || ""
+      );
+      if (storedAmount === null) return;
+
+      const storedTotal = cleanNumber(lot.item.amount, 0);
+      const allocationCost = storedTotal > 0
+        ? (lot.price / storedTotal) * storedAmount
+        : 0;
+      allocations.push({
+        itemId: lot.item.id,
+        name: lot.item.name,
+        section: lot.item.section || findSectionForId(storage, lot.item.id),
+        requestedAmount,
+        requestedUnit: unit,
+        storedAmount,
+        storedUnit: lot.item.unit || "",
+        cost: allocationCost
+      });
+      usedCost += allocationCost;
+      remainingNeed -= requestedAmount;
+    });
 
     return {
       ingredient: {
@@ -190,6 +282,8 @@
         name: String(ingredient?.name || "").trim()
       },
       match,
+      matches,
+      allocations,
       compatible,
       have,
       need,
@@ -200,9 +294,15 @@
   }
 
   function analyzeRecipe(ingredients, storage) {
-    const rows = (Array.isArray(ingredients) ? ingredients : [])
+    const workingStorage = cloneStorage(storage);
+    const rows = [];
+    (Array.isArray(ingredients) ? ingredients : [])
       .filter((ingredient) => String(ingredient?.name || "").trim() && cleanNumber(ingredient?.amount, 0) > 0)
-      .map((ingredient) => analyzeIngredient(ingredient, storage));
+      .forEach((ingredient) => {
+        const row = analyzeIngredient(ingredient, workingStorage);
+        rows.push(row);
+        removeAllocatedFood(workingStorage, row.allocations);
+      });
     return {
       rows,
       ready: rows.length > 0 && rows.every((row) => row.buy <= 0.0001),
@@ -213,50 +313,19 @@
   }
 
   function consumeIngredients(storage, ingredients) {
-    const nextStorage = {
-      refrigerator: (storage?.refrigerator || []).map((item) => ({ ...item })),
-      freezer: (storage?.freezer || []).map((item) => ({ ...item })),
-      pantry: (storage?.pantry || []).map((item) => ({ ...item }))
-    };
-    const analysis = analyzeRecipe(ingredients, nextStorage);
+    const nextStorage = cloneStorage(storage);
+    const analysis = analyzeRecipe(ingredients, storage);
     const consumed = [];
 
     analysis.rows.forEach((row) => {
-      if (!row.match || !row.compatible || row.have <= 0) return;
-      const section = row.match.section || findSectionForId(nextStorage, row.match.id);
-      const list = nextStorage[section] || [];
-      const index = list.findIndex((item) => item.id === row.match.id);
-      if (index < 0) return;
-
-      const current = list[index];
-      const requestedInStoredUnit = convertAmount(
-        Math.min(row.need, row.have),
-        row.ingredient.unit,
-        current.unit || ""
-      );
-      if (requestedInStoredUnit === null) return;
-
-      const beforeAmount = cleanNumber(current.amount, 0);
-      const usedAmount = Math.min(beforeAmount, requestedInStoredUnit);
-      const ratioRemaining = beforeAmount > 0 ? Math.max(0, (beforeAmount - usedAmount) / beforeAmount) : 0;
-      current.amount = Math.max(0, beforeAmount - usedAmount);
-      current.price = cleanNumber(current.price, 0) * ratioRemaining;
-      consumed.push({
-        name: current.name,
-        amount: usedAmount,
-        unit: current.unit || "",
-        section
-      });
-    });
-
-    Object.keys(nextStorage).forEach((section) => {
-      nextStorage[section] = nextStorage[section].filter((item) => cleanNumber(item.amount, 0) > 0.0001);
+      consumed.push(...removeAllocatedFood(nextStorage, row.allocations));
     });
 
     return {
       storage: nextStorage,
       consumed,
-      missing: analysis.rows.filter((row) => row.buy > 0.0001)
+      missing: analysis.rows.filter((row) => row.buy > 0.0001),
+      totalUsedCost: consumed.reduce((sum, item) => sum + item.cost, 0)
     };
   }
 
@@ -273,6 +342,7 @@
     consumeIngredients,
     convertAmount,
     findBestInventoryItem,
+    findInventoryMatches,
     flattenStorage,
     nameMatchScore,
     normalizeFoodName,
