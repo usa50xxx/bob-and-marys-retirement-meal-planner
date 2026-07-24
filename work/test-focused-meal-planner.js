@@ -88,11 +88,19 @@ async function run() {
   const server = createServer();
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   console.error("CHECKPOINT server");
-  const browser = await chromium.launch({
-    headless: true,
-    executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
-    args: ["--no-sandbox"]
-  });
+  let browser;
+  try {
+    browser = await chromium.launch({
+      headless: true,
+      ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH
+        ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH }
+        : {}),
+      args: ["--no-sandbox"]
+    });
+  } catch (error) {
+    await new Promise((resolve) => server.close(resolve));
+    throw error;
+  }
   console.error("CHECKPOINT browser");
   const page = await browser.newPage({ viewport: { width: 1365, height: 900 } });
   page.setDefaultTimeout(15000);
@@ -149,7 +157,14 @@ async function run() {
     await clickView(page, "recipes");
     await page.locator("#resetBuiltMeal").click();
     await page.locator("#mainChoiceButtons .choice-button").filter({ hasText: /^Beef$/ }).click();
-    await page.waitForTimeout(300);
+    await page.waitForFunction(() => {
+      const cards = [...document.querySelectorAll("#mainChoiceButtons .choice-button")];
+      return cards.length >= 18 &&
+        cards.every((card) => {
+          const image = card.querySelector("img");
+          return image?.complete && image.naturalWidth > 0;
+        });
+    }, null, { timeout: 15_000 });
     const beefCards = await page.locator("#mainChoiceButtons .choice-button").evaluateAll((buttons) =>
       buttons.map((button) => ({
         name: button.textContent.trim().replace(/\s+/g, " "),

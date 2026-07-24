@@ -1,13 +1,21 @@
 {
   "name": "bob-and-marys-retirement-meal-planner",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "private": true,
   "description": "Offline meal planning, inventory, grocery, receipt, and spending tools for Bob and Mary.",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
-    "test": "node work/food-engine.test.js && node work/generate-receipt-fixtures.mjs && node work/test-focused-meal-planner.js && node work/test-receipt-files.js",
+    "test": "node work/food-engine.test.js && node work/test-focused-meal-planner.js && node work/test-receipt-files.js",
+    "fixtures:generate": "node work/generate-receipt-fixtures.mjs",
     "images:optimize": "node work/optimize-ingredient-images.mjs",
-    "android:sync": "cap sync android",
-    "android:build": "cap sync android && cd android && gradlew.bat assembleDebug"
+    "android:sync": "node work/sync-android.mjs",
+    "android:build": "node work/sync-android.mjs && node work/run-gradle.mjs assembleDebug",
+    "android:build:release": "node work/sync-android.mjs && node work/run-gradle.mjs assembleRelease bundleRelease",
+    "android:lint": "node work/run-gradle.mjs lintDebug",
+    "release:verify": "node work/verify-release-version.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.0",
@@ -17,6 +25,7 @@
     "@capacitor/cli": "^8.0.0",
     "pdf-lib": "^1.17.1",
     "playwright": "^1.61.1",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "typescript": "6.0.3"
   }
 }

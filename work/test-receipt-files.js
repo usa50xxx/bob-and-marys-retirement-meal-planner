@@ -49,11 +49,19 @@ async function run() {
   });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 
-  const browser = await chromium.launch({
-    headless: true,
-    executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
-    args: ["--no-sandbox"]
-  });
+  let browser;
+  try {
+    browser = await chromium.launch({
+      headless: true,
+      ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH
+        ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH }
+        : {}),
+      args: ["--no-sandbox"]
+    });
+  } catch (error) {
+    await new Promise((resolve) => server.close(resolve));
+    throw error;
+  }
   const page = await browser.newPage();
   const errors = [];
   const failures = [];

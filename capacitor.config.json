@@ -1,8 +1,0 @@
-{
-  "appId": "com.bobandmary.mealplanner",
-  "appName": "Bob and Mary's Meal Planner",
-  "webDir": "outputs/meal-planner",
-  "android": {
-    "allowMixedContent": true
-  }
-}
