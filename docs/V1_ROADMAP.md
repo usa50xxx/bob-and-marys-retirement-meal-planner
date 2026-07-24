@@ -41,6 +41,14 @@ Cooklist. Their strongest recurring patterns are:
    and Buy consistently. After cooking, ask the user to confirm what was used
    before subtracting it from inventory.
 
+   **Implemented in the 0.9 prerelease:** compatible quantities are combined
+   across multiple refrigerator, freezer, and pantry entries; pounds, ounces,
+   cups, spoons, metric units, items, and counts convert safely; weekly recipes
+   using different compatible units become one grocery requirement; duplicate
+   recipe lines cannot use the same stock twice; cooking shows the food that
+   will be subtracted; remaining food cost is reduced proportionally; and Undo
+   restores both inventory and the meal-cost record.
+
 2. Add expiration-aware inventory.
    Store best-by dates, highlight food to use soon, and rank recipe ideas that
    prevent waste. Alerts should be optional and easy to understand.
