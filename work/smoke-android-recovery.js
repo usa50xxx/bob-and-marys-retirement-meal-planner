@@ -59,8 +59,15 @@ async function run() {
     document.querySelector('[data-app-view="recipes"]').click();
     return {
       name: document.querySelector("#recipeName").value,
-      recoveryLoaded: typeof window.MealPlannerRecovery?.chooseLocalRecovery === "function",
-      native: Boolean(window.Capacitor?.isNativePlatform?.())
+      recoveryLoaded: Boolean(
+        window.MealPlannerRecovery
+        && typeof window.MealPlannerRecovery.chooseLocalRecovery === "function"
+      ),
+      native: Boolean(
+        window.Capacitor
+        && typeof window.Capacitor.isNativePlatform === "function"
+        && window.Capacitor.isNativePlatform()
+      )
     };
   })()`);
   if (!original.name) throw new Error("The Android app did not open a recipe.");

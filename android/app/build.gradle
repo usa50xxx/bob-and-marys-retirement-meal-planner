@@ -5,6 +5,9 @@ def hasReleaseSigning = releaseKeystorePath &&
         System.getenv("ANDROID_KEYSTORE_PASSWORD") &&
         System.getenv("ANDROID_KEY_ALIAS") &&
         System.getenv("ANDROID_KEY_PASSWORD")
+def appVersionCode = 9000
+def appVersionName = "0.9.0"
+def testVersionCode = project.findProperty("bobMaryVersionCodeOverride")
 
 android {
     namespace = "com.bobandmary.mealplanner"
@@ -13,8 +16,8 @@ android {
         applicationId "com.bobandmary.mealplanner"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 9000
-        versionName "0.9.0"
+        versionCode testVersionCode ? testVersionCode.toInteger() : appVersionCode
+        versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

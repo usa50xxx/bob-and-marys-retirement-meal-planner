@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { transform } from "esbuild";
 
 const APP_SOURCE = "outputs/meal-planner";
 const STATIC_DIRECTORIES = new Set(["images", "vendor"]);
@@ -15,6 +16,7 @@ const PUBLIC_ROOT_FILES = new Set([
   "android.html",
   "app.js",
   "autorun.inf",
+  "compatibility.js",
   "favicon.ico",
   "food-engine.js",
   "index.html",
@@ -27,6 +29,13 @@ const PUBLIC_ROOT_FILES = new Set([
 ]);
 const LEGAL_FILES = ["PRIVACY.md", "THIRD_PARTY_NOTICES.md"];
 const DEVELOPMENT_MEALDB_ENDPOINT = "https://www.themealdb.com/api/json/v1/1/";
+const LEGACY_WEBVIEW_SCRIPTS = [
+  "food-engine.js",
+  "receipt-reader.js",
+  "recipe-reader.js",
+  "recovery.js",
+  "app.js",
+];
 
 function normalizeRelativePath(value) {
   return value.replaceAll("\\", "/").replace(/^\.\/+/, "");
@@ -163,6 +172,22 @@ async function buildManifest(destination) {
   };
 }
 
+async function makeScriptsCompatibleWithAndroid7(destination) {
+  for (const file of LEGACY_WEBVIEW_SCRIPTS) {
+    const target = path.join(destination, file);
+    const source = await fs.readFile(target, "utf8");
+    const result = await transform(source, {
+      charset: "utf8",
+      legalComments: "inline",
+      loader: "js",
+      minify: false,
+      sourcemap: false,
+      target: "chrome69",
+    });
+    await fs.writeFile(target, result.code, "utf8");
+  }
+}
+
 export async function stageReleaseAssets({
   projectRoot = process.cwd(),
   destination,
@@ -212,6 +237,8 @@ export async function stageReleaseAssets({
       "utf8",
     );
   }
+
+  await makeScriptsCompatibleWithAndroid7(resolvedDestination);
 
   const manifest = await buildManifest(resolvedDestination);
   await fs.writeFile(

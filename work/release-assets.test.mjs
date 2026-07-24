@@ -59,6 +59,7 @@ try {
 
   assert.ok(first.fileCount > 400);
   await fs.access(path.join(destination, "index.html"));
+  await fs.access(path.join(destination, "compatibility.js"));
   await fs.access(path.join(destination, "PRIVACY.md"));
   await fs.access(path.join(destination, "THIRD_PARTY_NOTICES.md"));
   await assert.rejects(fs.access(path.join(destination, "planner-data.json")));
@@ -79,6 +80,17 @@ try {
     parsed.files.every((file) => /^[a-f0-9]{64}$/.test(file.sha256)),
     true,
   );
+  for (const script of [
+    "food-engine.js",
+    "receipt-reader.js",
+    "recipe-reader.js",
+    "recovery.js",
+    "app.js",
+  ]) {
+    const stagedScript = await fs.readFile(path.join(destination, script), "utf8");
+    assert.equal(stagedScript.includes("?."), false, `${script} has optional chaining`);
+    assert.equal(stagedScript.includes("??"), false, `${script} has nullish coalescing`);
+  }
 } finally {
   await fs.rm(destination, { recursive: true, force: true });
 }

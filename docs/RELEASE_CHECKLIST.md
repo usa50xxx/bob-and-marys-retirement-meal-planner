@@ -11,6 +11,9 @@ The `Build and test` workflow runs on every push. It:
 5. Runs Android lint.
 6. Builds an installable debug APK.
 7. Uploads the APK, checksum, and lint report to the workflow run.
+8. Reuses that exact APK on Android 7 and Android 15 emulators.
+9. Tests offline recipe-photo reading, recovery, touch sizing, and phone layout.
+10. Upgrades a lower-version installation and verifies saved recipes and inventory survive.
 
 The `Draft Android release` workflow runs for semantic version tags such as
 `v0.9.1`. It repeats the tests, builds a signed APK and Android App Bundle,
@@ -81,6 +84,8 @@ stated requirement for new apps and updates beginning August 31, 2026.
 - [ ] Signed APK upgrades an existing 0.9 installation without data loss.
 - [ ] Signed AAB passes Play Console pre-launch checks.
 - [ ] Core tasks pass on Android 7, current Android, and tablet layouts.
+- [ ] Native CI passes on Android 7 and Android 15, including offline recipe-photo OCR.
+- [ ] The installed-app upgrade test preserves and migrates a saved recipe and inventory item.
 - [ ] Airplane-mode operation and optional online recipe search are tested.
 - [ ] Backup and restore are tested with realistic data.
 - [ ] Accessibility review covers text scaling, contrast, touch targets, and screen readers.
@@ -98,3 +103,8 @@ Google Play requires an accurate
 [Data safety declaration](https://support.google.com/googleplay/android-developer/answer/10787469)
 and a privacy policy link in Play Console and in the app under its
 [User Data policy](https://support.google.com/googleplay/android-developer/answer/10144311).
+
+Staged Android and portable-release scripts are transformed for the Chrome 69
+WebView bundled with the Android 7 test image. The tracked source remains
+readable and modern, and small local polyfills cover UUID generation and
+collection helpers missing from that WebView.

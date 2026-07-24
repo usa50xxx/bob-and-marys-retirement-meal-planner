@@ -6,8 +6,12 @@ const gradle = fs.readFileSync("android/app/build.gradle", "utf8");
 const requestedTag =
   process.argv[2] || process.env.RELEASE_TAG || process.env.GITHUB_REF_NAME;
 const expectedTag = `v${packageJson.version}`;
-const versionName = gradle.match(/versionName\s+"([^"]+)"/)?.[1];
-const versionCode = Number(gradle.match(/versionCode\s+(\d+)/)?.[1]);
+const versionName = gradle.match(/appVersionName\s*=\s*"([^"]+)"/)?.[1]
+  || gradle.match(/versionName\s+"([^"]+)"/)?.[1];
+const versionCode = Number(
+  gradle.match(/appVersionCode\s*=\s*(\d+)/)?.[1]
+  || gradle.match(/versionCode\s+(\d+)/)?.[1],
+);
 const [major, minor, patch] = packageJson.version.split(".").map(Number);
 const expectedCode = major * 1_000_000 + minor * 1_000 + patch;
 

@@ -18,10 +18,11 @@ directory of each release package.
 
 ## Development-only components
 
-The repository also uses pdf-lib (MIT), Playwright (Apache-2.0), and sharp
-(Apache-2.0) to create test fixtures, test the app, and optimize images. These
-packages are development tools and are not copied into the portable website or
-Android web bundle.
+The repository also uses pdf-lib (MIT), Playwright (Apache-2.0), sharp
+(Apache-2.0), and esbuild (MIT) to create test fixtures, test the app, optimize
+images, and prepare Android 7-compatible scripts. These packages are
+development tools and are not copied into the portable website or Android web
+bundle.
 
 ## Food images
 

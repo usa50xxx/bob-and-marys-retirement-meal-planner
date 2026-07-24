@@ -97,3 +97,87 @@ jobs:
           path: android/app/build/reports/lint-results-debug.html
           if-no-files-found: ignore
           retention-days: 7
+
+  native-android:
+    name: Native ${{ matrix.label }}
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Android 7 phone
+            api: 24
+            release: "7.0"
+            upgrade: false
+            extra: ""
+          - label: Android 15 phone and upgrade
+            api: 35
+            release: "15"
+            upgrade: true
+            extra: "--upgrade"
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Install pnpm
+        if: matrix.upgrade
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.9.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: ${{ matrix.upgrade && 'pnpm' || '' }}
+
+      - name: Set up Java
+        if: matrix.upgrade
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle caching
+        if: matrix.upgrade
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Install build dependencies for upgrade test
+        if: matrix.upgrade
+        run: pnpm install --frozen-lockfile
+
+      - name: Download the exact APK built above
+        uses: actions/download-artifact@v7
+        with:
+          name: bob-and-marys-meal-planner-debug-${{ github.sha }}
+          path: dist
+
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Test APK on ${{ matrix.label }}
+        uses: reactivecircus/android-emulator-runner@0a638108440efd5c7f980e6ba145dbcdd8f32009 # v2.37.0
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: >-
+            -no-window -gpu swiftshader_indirect -no-snapshot
+            -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: >-
+            node work/run-android-smoke.mjs
+            --apk dist
+            --api ${{ matrix.api }}
+            --release ${{ matrix.release }}
+            --layout phone
+            ${{ matrix.extra }}

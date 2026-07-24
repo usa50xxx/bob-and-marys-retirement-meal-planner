@@ -7,7 +7,11 @@
     <script>
       (() => {
         try {
-          const nativeApp = window.Capacitor?.isNativePlatform?.()
+          const nativeApp = Boolean(
+            window.Capacitor
+            && typeof window.Capacitor.isNativePlatform === "function"
+            && window.Capacitor.isNativePlatform()
+          )
             || (window.location.protocol === "https:" && window.location.hostname === "localhost");
           if (nativeApp) {
             localStorage.setItem("bobMaryMealPlannerDeviceMode", "android");
@@ -24,7 +28,7 @@
           } else if (/Android/i.test(agent)) {
             window.location.replace("android.html");
           }
-        } catch {
+        } catch (error) {
           // The main app still loads if the browser blocks this early check.
         }
       })();
@@ -699,6 +703,7 @@ Tip: copy the item list from Walmart, Publix, Aldi, or another store, paste it h
       <div id="printNotes"></div>
     </section>
 
+    <script src="compatibility.js"></script>
     <script src="vendor/tesseract/tesseract.min.js"></script>
     <script src="food-engine.js"></script>
     <script src="receipt-reader.js"></script>

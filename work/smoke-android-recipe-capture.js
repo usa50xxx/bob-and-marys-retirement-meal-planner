@@ -1,3 +1,5 @@
+const fs = require("node:fs");
+
 async function run() {
   const endpoint = process.env.ANDROID_CDP_URL || "http://127.0.0.1:9223";
   const targets = await fetch(`${endpoint}/json`).then((response) => response.json());
@@ -46,14 +48,17 @@ async function run() {
   }
 
   await command("Runtime.enable");
-  const nativeFetch = await evaluate(`fetch("https://schema.org/Recipe")
-    .then(async (response) => {
-      const text = await response.text();
-      return { ok: response.ok, status: response.status, hasRecipePage: /schema\\.org Type|A recipe/i.test(text) };
-    })
-    .catch((error) => ({ ok: false, status: 0, error: error.message }))`);
-  if (!nativeFetch.ok || !nativeFetch.hasRecipePage) {
-    throw new Error(`Android native recipe fetch failed: ${JSON.stringify(nativeFetch)}`);
+  let nativeFetch = { skipped: true };
+  if (process.env.ANDROID_SKIP_ONLINE !== "1") {
+    nativeFetch = await evaluate(`fetch("https://schema.org/Recipe")
+      .then(async (response) => {
+        const text = await response.text();
+        return { ok: response.ok, status: response.status, hasRecipePage: /schema\\.org Type|A recipe/i.test(text) };
+      })
+      .catch((error) => ({ ok: false, status: 0, error: error.message }))`);
+    if (!nativeFetch.ok || !nativeFetch.hasRecipePage) {
+      throw new Error(`Android native recipe fetch failed: ${JSON.stringify(nativeFetch)}`);
+    }
   }
   const originalCount = await evaluate(`document.querySelectorAll(".recipe-card").length`);
   const review = await evaluate(`(() => {
@@ -105,6 +110,43 @@ Brush the cod with oil and bake for 15 minutes.\`;
   if (saved.name !== "Android Baked Cod") throw new Error(`Android editor opened ${saved.name} instead.`);
   if (saved.count !== originalCount + 1) throw new Error("Android did not save the reviewed recipe exactly once.");
   if (!saved.reviewHidden) throw new Error("Android review stayed open after saving.");
+
+  let photoReview = null;
+  const photoPath = process.env.ANDROID_RECIPE_PHOTO;
+  if (photoPath) {
+    const photoBase64 = fs.readFileSync(photoPath).toString("base64");
+    photoReview = await evaluate(`(async function () {
+      document.querySelector('[data-app-view="recipes"]').click();
+      document.querySelector("#recipeReview").hidden = true;
+      var binary = atob(${JSON.stringify(photoBase64)});
+      var bytes = new Uint8Array(binary.length);
+      for (var index = 0; index < binary.length; index += 1) {
+        bytes[index] = binary.charCodeAt(index);
+      }
+      var file = new File([bytes], "sample-recipe.png", { type: "image/png" });
+      var input = { files: [file], value: "sample-recipe.png" };
+      await reviewRecipeFromFile({ target: input });
+      return {
+        reviewVisible: !document.querySelector("#recipeReview").hidden,
+        name: document.querySelector("#reviewRecipeName").value,
+        temperature: document.querySelector("#reviewTemperature").value,
+        ingredients: document.querySelectorAll(".review-ingredient-row").length,
+        status: document.querySelector("#recipeReadStatus").textContent,
+        overflow: document.documentElement.scrollWidth - window.innerWidth
+      };
+    })()`);
+    if (!photoReview.reviewVisible) {
+      throw new Error(`Android recipe photo review did not open: ${photoReview.status}`);
+    }
+    if (!/400/.test(photoReview.temperature)) {
+      throw new Error(`Android recipe photo missed the oven temperature: ${JSON.stringify(photoReview)}`);
+    }
+    if (photoReview.ingredients < 1) throw new Error("Android recipe photo found no ingredients.");
+    if (photoReview.overflow > 1) {
+      throw new Error(`Android photo review overflows by ${photoReview.overflow}px.`);
+    }
+  }
+
   if (exceptions.length) throw new Error(`Android WebView exceptions: ${exceptions.join(" | ")}`);
 
   console.log(JSON.stringify({
@@ -112,7 +154,8 @@ Brush the cod with oil and bake for 15 minutes.\`;
     title: target.title,
     nativeFetch,
     review,
-    saved
+    saved,
+    photoReview
   }, null, 2));
   socket.close();
 }
