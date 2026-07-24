@@ -984,6 +984,273 @@ textarea {
   line-height: 1.5;
 }
 
+.cooking-mode {
+  width: min(1080px, calc(100% - 28px));
+  max-width: none;
+  max-height: calc(100dvh - 28px);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #415052;
+  border-radius: 8px;
+  background: #111718;
+  color: var(--ink);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.64);
+}
+
+.cooking-mode::backdrop {
+  background: rgba(4, 7, 8, 0.88);
+}
+
+.cooking-shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: calc(100dvh - 30px);
+}
+
+.cooking-header,
+.cooking-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  padding: 18px 20px;
+  background: #182022;
+}
+
+.cooking-header {
+  border-bottom: 1px solid var(--line);
+}
+
+.cooking-header h2 {
+  font-size: 1.35rem;
+  line-height: 1.25;
+}
+
+.cooking-header .status-line,
+.cooking-footer .status-line {
+  margin: 5px 0 0;
+}
+
+.cooking-footer {
+  border-top: 1px solid var(--line);
+}
+
+.cooking-body {
+  display: grid;
+  grid-template-columns: minmax(270px, 340px) minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cooking-ingredients-panel {
+  min-height: 0;
+  padding: 18px;
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+  background: #141b1d;
+}
+
+.cooking-ingredients-panel summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-weight: 800;
+  list-style-position: inside;
+}
+
+.cooking-ingredients {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.cooking-ingredient {
+  display: grid;
+  grid-template-columns: auto 48px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-height: 66px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #182022;
+  cursor: pointer;
+}
+
+.cooking-ingredient:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--leaf);
+}
+
+.cooking-ingredient input,
+.cooking-step-check input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent);
+}
+
+.cooking-ingredient img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.cooking-ingredient span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.cooking-ingredient small {
+  color: var(--muted);
+}
+
+.cooking-workspace {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  min-height: 0;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.cooking-progress {
+  display: grid;
+  grid-template-columns: auto minmax(140px, 1fr);
+  gap: 14px;
+  align-items: center;
+  color: var(--accent-dark);
+}
+
+.cooking-progress progress {
+  width: 100%;
+  height: 12px;
+  accent-color: var(--accent);
+}
+
+.cooking-step {
+  display: grid;
+  gap: 18px;
+  min-height: 230px;
+  align-content: center;
+  padding: 24px;
+  border: 1px solid #415052;
+  border-radius: 8px;
+  background: #171f21;
+}
+
+.cooking-step-check {
+  display: inline-flex;
+  gap: 9px;
+  align-items: center;
+  color: var(--accent-dark);
+  font-weight: 800;
+}
+
+.cooking-step p {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.45;
+}
+
+.cooking-step-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.cooking-step-actions button:disabled {
+  border-color: var(--line);
+  background: #182022;
+  color: #687274;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cooking-timers {
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.cooking-timers header h3 {
+  margin: 0;
+}
+
+.timer-controls {
+  display: grid;
+  grid-template-columns: minmax(100px, 140px) minmax(180px, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.timer-controls label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.quick-timers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quick-timers button {
+  min-height: 38px;
+}
+
+.cooking-timer-list {
+  display: grid;
+  gap: 8px;
+}
+
+.cooking-timer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 9px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #182022;
+}
+
+.cooking-timer > span {
+  display: grid;
+  gap: 2px;
+}
+
+.cooking-timer time {
+  color: var(--accent-dark);
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.cooking-timer.done {
+  border-color: var(--sun);
+  background: #292618;
+}
+
+.cooking-timer.done time {
+  color: var(--sun);
+}
+
+.cooking-timer .remove {
+  color: var(--warn);
+}
+
+body.cooking-open {
+  overflow: hidden;
+}
+
 .portable {
   display: flex;
   justify-content: space-between;
@@ -1598,6 +1865,90 @@ body[data-device-mode="computer"] .device-link[data-device-mode="computer"] {
   .online-search,
   .online-results {
     grid-template-columns: 1fr;
+  }
+
+  .cooking-mode {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .cooking-shell {
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  .cooking-header,
+  .cooking-footer {
+    align-items: stretch;
+    padding: 14px;
+  }
+
+  .cooking-header {
+    display: grid;
+  }
+
+  .cooking-header .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cooking-body {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .cooking-ingredients-panel {
+    padding: 0;
+    overflow: visible;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .cooking-ingredients-panel summary {
+    min-height: 54px;
+    padding: 0 14px;
+    background: #182022;
+  }
+
+  .cooking-ingredients-panel[open] {
+    padding-bottom: 14px;
+  }
+
+  .cooking-ingredients-panel[open] .cooking-ingredients {
+    padding: 0 14px;
+  }
+
+  .cooking-workspace {
+    overflow: visible;
+    padding: 14px;
+  }
+
+  .cooking-step {
+    min-height: 210px;
+    padding: 18px;
+  }
+
+  .cooking-step p {
+    font-size: 1.3rem;
+  }
+
+  .timer-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .timer-controls button {
+    grid-column: 1 / -1;
+  }
+
+  .cooking-timer {
+    grid-template-columns: minmax(0, 1fr) 1fr 1fr;
+  }
+
+  .cooking-footer {
+    display: grid;
   }
 
   .expiry-toolbar button {

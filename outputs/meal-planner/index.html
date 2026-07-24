@@ -285,6 +285,7 @@ Mix everything, shape into a loaf, and bake at 350 for 1 hour."></textarea>
                 <h2>Recipe view</h2>
                 <p id="showcaseSummary">Meal photo, ingredient pictures, and cooking instructions.</p>
               </div>
+              <button type="button" id="startCooking" class="primary">Start cooking</button>
             </div>
             <div class="showcase-layout">
               <figure class="showcase-photo">
@@ -484,6 +485,84 @@ Tip: copy the item list from Walmart, Publix, Aldi, or another store, paste it h
         <button type="button" class="quiet-button" id="devicePromptDismiss">Keep computer view</button>
       </div>
     </section>
+
+    <dialog id="cookingMode" class="cooking-mode" aria-labelledby="cookingTitle">
+      <div class="cooking-shell">
+        <header class="cooking-header">
+          <div>
+            <p class="eyebrow">Guided cooking</p>
+            <h2 id="cookingTitle"></h2>
+            <p id="cookingMeta" class="status-line"></p>
+          </div>
+          <div class="actions">
+            <button type="button" id="resetCooking">Start over</button>
+            <button type="button" id="closeCooking">Close</button>
+          </div>
+        </header>
+
+        <div class="cooking-body">
+          <details class="cooking-ingredients-panel" open>
+            <summary>
+              <span>Ingredients</span>
+              <strong id="cookingIngredientCount"></strong>
+            </summary>
+            <div id="cookingIngredients" class="cooking-ingredients"></div>
+          </details>
+
+          <main class="cooking-workspace">
+            <div class="cooking-progress">
+              <strong id="cookingStepCount"></strong>
+              <progress id="cookingProgress" max="1" value="0"></progress>
+            </div>
+
+            <section class="cooking-step" aria-live="polite">
+              <label class="cooking-step-check">
+                <input id="cookingStepDone" type="checkbox" />
+                <span>Step complete</span>
+              </label>
+              <p id="cookingStepText"></p>
+            </section>
+
+            <div class="cooking-step-actions">
+              <button type="button" id="previousCookingStep">Previous step</button>
+              <button type="button" id="nextCookingStep" class="primary">Next step</button>
+            </div>
+
+            <section class="cooking-timers" aria-labelledby="cookingTimersTitle">
+              <header>
+                <div>
+                  <h3 id="cookingTimersTitle">Timers</h3>
+                  <p id="cookingWakeStatus" class="status-line"></p>
+                </div>
+              </header>
+              <div class="timer-controls">
+                <label>
+                  Minutes
+                  <input id="cookingTimerMinutes" type="number" min="0.01" max="720" step="0.01" value="10" />
+                </label>
+                <label>
+                  Timer name
+                  <input id="cookingTimerName" type="text" maxlength="40" placeholder="Oven, pasta, resting..." />
+                </label>
+                <button type="button" id="startCookingTimer" class="primary">Start timer</button>
+              </div>
+              <div class="quick-timers" aria-label="Quick timers">
+                <button type="button" data-quick-timer="5">5 minutes</button>
+                <button type="button" data-quick-timer="10">10 minutes</button>
+                <button type="button" data-quick-timer="15">15 minutes</button>
+                <button type="button" data-quick-timer="30">30 minutes</button>
+              </div>
+              <div id="cookingTimers" class="cooking-timer-list"></div>
+            </section>
+          </main>
+        </div>
+
+        <footer class="cooking-footer">
+          <p id="cookingSessionStatus" class="status-line" role="status" aria-live="polite"></p>
+          <button type="button" id="finishCooking" class="primary">Finish and update inventory</button>
+        </footer>
+      </div>
+    </dialog>
 
     <template id="ingredientTemplate">
       <div class="ingredient-row">

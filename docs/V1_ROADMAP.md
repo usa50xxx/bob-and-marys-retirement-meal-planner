@@ -65,6 +65,15 @@ Cooklist. Their strongest recurring patterns are:
    Show one readable step at a time, allow ingredient and step checkoff, keep
    the screen awake while cooking, and provide simple multiple timers.
 
+   **Implemented in the 0.9 prerelease:** the selected recipe opens in a
+   focused cooking guide with scaled ingredient checkboxes, one large step at
+   a time, previous and next controls, saved progress, and a phone-first
+   layout; several named timers can run, pause, resume, finish, restart, or be
+   removed independently; timer deadlines survive closing and reopening the
+   guide; supported browsers keep the screen awake and reacquire the wake lock
+   after returning to the app; and finishing hands off to the existing
+   inventory and meal-cost confirmation before food is subtracted.
+
 4. Add reviewed recipe capture.
    Accept a recipe link, pasted text, PDF, or photograph. Extract the title,
    servings, ingredients, time, temperature, and steps into an editable review
@@ -107,5 +116,7 @@ and a non-technical tester can complete these tasks without help:
 - [Cooklist app](https://cooklist.com/cooklist-app)
 - [NoWaste inventory and expiration tracking](https://www.nowasteapp.com/)
 - [Samsung Food List and expiration tracking](https://www.samsung.com/us/support/answer/ANS10006842/)
+- [Screen Wake Lock API](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API)
+- [W3C Screen Wake Lock specification](https://www.w3.org/TR/screen-wake-lock/)
 - [Android release build guidance](https://developer.android.com/build/build-for-release)
 - [Google Play target API requirements](https://developer.android.com/google/play/requirements/target-sdk)

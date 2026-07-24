@@ -2,12 +2,16 @@ const storageKey = "thumb-drive-meal-planner-v2";
 const oldStorageKey = "thumb-drive-meal-planner-v1";
 const deviceStorageKey = "bobMaryMealPlannerDeviceMode";
 const appViewStorageKey = "bobMaryMealPlannerView";
+const cookingStorageKey = "bobMaryMealPlannerCookingSession";
 let saveTimer = null;
 let saveStatusTimer = null;
 let undoStack = [];
 let currentAppView = "home";
 let pendingReceiptItems = [];
 let editorUndoArmed = true;
+let cookingSession = null;
+let cookingTimerTicker = null;
+let cookingWakeLock = null;
 
 const sampleRecipes = [
   {
@@ -169,6 +173,29 @@ const showcaseMealPhoto = document.querySelector("#showcaseMealPhoto");
 const showcaseMealName = document.querySelector("#showcaseMealName");
 const showcaseIngredients = document.querySelector("#showcaseIngredients");
 const showcaseInstructions = document.querySelector("#showcaseInstructions");
+const startCooking = document.querySelector("#startCooking");
+const cookingMode = document.querySelector("#cookingMode");
+const cookingTitle = document.querySelector("#cookingTitle");
+const cookingMeta = document.querySelector("#cookingMeta");
+const closeCooking = document.querySelector("#closeCooking");
+const resetCooking = document.querySelector("#resetCooking");
+const cookingIngredientsPanel = document.querySelector(".cooking-ingredients-panel");
+const cookingIngredientCount = document.querySelector("#cookingIngredientCount");
+const cookingIngredients = document.querySelector("#cookingIngredients");
+const cookingStepCount = document.querySelector("#cookingStepCount");
+const cookingProgress = document.querySelector("#cookingProgress");
+const cookingStepDone = document.querySelector("#cookingStepDone");
+const cookingStepText = document.querySelector("#cookingStepText");
+const previousCookingStep = document.querySelector("#previousCookingStep");
+const nextCookingStep = document.querySelector("#nextCookingStep");
+const cookingTimerMinutes = document.querySelector("#cookingTimerMinutes");
+const cookingTimerName = document.querySelector("#cookingTimerName");
+const startCookingTimer = document.querySelector("#startCookingTimer");
+const quickTimerButtons = document.querySelectorAll("[data-quick-timer]");
+const cookingTimers = document.querySelector("#cookingTimers");
+const cookingWakeStatus = document.querySelector("#cookingWakeStatus");
+const cookingSessionStatus = document.querySelector("#cookingSessionStatus");
+const finishCooking = document.querySelector("#finishCooking");
 const exportData = document.querySelector("#exportData");
 const importData = document.querySelector("#importData");
 const deviceModeLinks = document.querySelectorAll("[data-device-mode]");
@@ -226,6 +253,24 @@ newRecipe.addEventListener("click", createRecipe);
 deleteRecipe.addEventListener("click", deleteSelectedRecipe);
 recipeForm.addEventListener("submit", saveSelectedRecipe);
 printMeal.addEventListener("click", printSelectedMeal);
+startCooking.addEventListener("click", openCookingMode);
+closeCooking.addEventListener("click", closeCookingMode);
+resetCooking.addEventListener("click", resetCookingProgress);
+previousCookingStep.addEventListener("click", () => changeCookingStep(-1));
+nextCookingStep.addEventListener("click", () => changeCookingStep(1));
+cookingStepDone.addEventListener("change", updateCookingStepCompletion);
+cookingIngredients.addEventListener("change", updateCookingIngredientCompletion);
+startCookingTimer.addEventListener("click", () => addCookingTimer());
+quickTimerButtons.forEach((button) => {
+  button.addEventListener("click", () => addCookingTimer(cleanNumber(button.dataset.quickTimer, 5)));
+});
+cookingTimers.addEventListener("click", handleCookingTimerAction);
+finishCooking.addEventListener("click", finishCookingSession);
+cookingMode.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeCookingMode();
+});
+document.addEventListener("visibilitychange", handleCookingVisibilityChange);
 recordMealCost.addEventListener("click", recordSelectedMealCost);
 previousCalendarMonth.addEventListener("click", () => changeCalendarMonth(-1));
 nextCalendarMonth.addEventListener("click", () => changeCalendarMonth(1));
@@ -820,6 +865,8 @@ mealCostHistory = planner.mealCostHistory;
 weeklyPlan = planner.weeklyPlan;
 inventorySettings = planner.inventorySettings;
 selectedRecipeId = recipes[0]?.id || null;
+cookingSession = loadCookingSession();
+updateCookingTimers();
 
 render();
 setAppView("home", { focus: false, persist: false });
@@ -1956,13 +2003,17 @@ function renderRecipeShowcase() {
     showcaseMealName.textContent = "";
     showcaseIngredients.innerHTML = "";
     showcaseInstructions.innerHTML = "";
+    startCooking.disabled = true;
     return;
   }
 
   const people = cleanNumber(targetServings.value, 1);
+  const steps = recipeSteps(recipe.notes);
   showcaseSummary.textContent = `${recipe.name} for ${people} people`;
   showcaseMealName.textContent = recipe.name;
   showcaseMealPhoto.hidden = false;
+  startCooking.disabled = !steps.length;
+  startCooking.textContent = cookingSession?.recipeId === recipe.id ? "Continue cooking" : "Start cooking";
   setRecipeImage(showcaseMealPhoto, recipe);
 
   showcaseIngredients.innerHTML = "";
@@ -1987,7 +2038,6 @@ function renderRecipeShowcase() {
   });
 
   showcaseInstructions.innerHTML = "";
-  const steps = recipeSteps(recipe.notes);
   if (!steps.length) {
     showcaseInstructions.innerHTML = '<p class="empty">Add cooking steps, times, and temperatures in the recipe notes.</p>';
     return;
@@ -2007,6 +2057,477 @@ function recipeSteps(notes) {
     .split(/\r?\n|(?<=\.)\s+(?=[A-Z0-9])/)
     .map((step) => step.trim())
     .filter(Boolean);
+}
+
+function loadCookingSession() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(cookingStorageKey));
+    return normalizeCookingSession(saved);
+  } catch {
+    return null;
+  }
+}
+
+function normalizeCookingSession(saved) {
+  if (!saved || typeof saved !== "object") return null;
+  const recipe = recipes.find((item) => item.id === saved.recipeId);
+  if (!recipe) return null;
+
+  const steps = recipeSteps(recipe.notes);
+  const ingredientCount = Array.isArray(recipe.ingredients) ? recipe.ingredients.length : 0;
+  const checkedIngredients = uniqueValidIndexes(saved.checkedIngredients, ingredientCount);
+  const completedSteps = uniqueValidIndexes(saved.completedSteps, steps.length);
+  const timers = Array.isArray(saved.timers)
+    ? saved.timers.map(normalizeCookingTimer).filter(Boolean).slice(0, 12)
+    : [];
+
+  return {
+    recipeId: recipe.id,
+    servings: cleanNumber(saved.servings, cleanNumber(recipe.baseServings, 1)),
+    activeStep: Math.min(Math.max(0, Math.floor(Number(saved.activeStep) || 0)), Math.max(0, steps.length - 1)),
+    checkedIngredients,
+    completedSteps,
+    timers
+  };
+}
+
+function uniqueValidIndexes(values, length) {
+  if (!Array.isArray(values) || !length) return [];
+  return [...new Set(values
+    .map((value) => Math.floor(Number(value)))
+    .filter((value) => Number.isInteger(value) && value >= 0 && value < length))]
+    .sort((a, b) => a - b);
+}
+
+function normalizeCookingTimer(saved) {
+  if (!saved || typeof saved !== "object") return null;
+  const savedDuration = Number(saved.durationMs);
+  if (!Number.isFinite(savedDuration) || savedDuration <= 0) return null;
+  const durationMs = Math.min(12 * 60 * 60 * 1000, Math.max(600, savedDuration));
+  const status = ["running", "paused", "done"].includes(saved.status) ? saved.status : "paused";
+  const remainingMs = Math.min(durationMs, Math.max(0, Number(saved.remainingMs) || durationMs));
+  const endAt = Number(saved.endAt) || Date.now() + remainingMs;
+  return {
+    id: saved.id || crypto.randomUUID(),
+    label: String(saved.label || "Kitchen timer").slice(0, 40),
+    durationMs,
+    status,
+    remainingMs: status === "done" ? 0 : remainingMs,
+    endAt,
+    announced: Boolean(saved.announced)
+  };
+}
+
+function createCookingSession(recipe, servings) {
+  return {
+    recipeId: recipe.id,
+    servings,
+    activeStep: 0,
+    checkedIngredients: [],
+    completedSteps: [],
+    timers: []
+  };
+}
+
+function saveCookingSession() {
+  try {
+    if (cookingSession) {
+      localStorage.setItem(cookingStorageKey, JSON.stringify(cookingSession));
+    } else {
+      localStorage.removeItem(cookingStorageKey);
+    }
+  } catch {
+    setSaveStatus("Cooking progress could not be saved", 3000);
+  }
+}
+
+function openCookingMode() {
+  const recipe = selectedRecipe();
+  const steps = recipeSteps(recipe?.notes);
+  if (!recipe || !steps.length) {
+    window.alert("Add cooking steps to this recipe before starting guided cooking.");
+    return;
+  }
+
+  const servings = cleanNumber(targetServings.value, 1);
+  const sameSession = cookingSession?.recipeId === recipe.id && cookingSession.servings === servings;
+  if (!sameSession) {
+    const hasProgress = cookingSession &&
+      (cookingSession.checkedIngredients.length || cookingSession.completedSteps.length || cookingSession.timers.length);
+    if (hasProgress && !window.confirm("Start a different cooking session? The current cooking progress and timers will be replaced.")) {
+      return;
+    }
+    cookingSession = createCookingSession(recipe, servings);
+    saveCookingSession();
+  } else {
+    cookingSession = normalizeCookingSession(cookingSession);
+  }
+
+  renderCookingMode();
+  cookingIngredientsPanel.open = !document.body.classList.contains("phone-layout");
+  if (typeof cookingMode.showModal === "function") {
+    if (!cookingMode.open) cookingMode.showModal();
+  } else {
+    cookingMode.setAttribute("open", "");
+  }
+  document.body.classList.add("cooking-open");
+  requestCookingWakeLock();
+  ensureCookingTimerTicker();
+  setTimeout(() => cookingStepDone.focus(), 0);
+  renderRecipeShowcase();
+}
+
+function closeCookingMode() {
+  if (cookingMode.open && typeof cookingMode.close === "function") {
+    cookingMode.close();
+  } else {
+    cookingMode.removeAttribute("open");
+  }
+  document.body.classList.remove("cooking-open");
+  releaseCookingWakeLock();
+  renderRecipeShowcase();
+}
+
+function renderCookingMode() {
+  if (!cookingSession) return;
+  const recipe = recipes.find((item) => item.id === cookingSession.recipeId);
+  if (!recipe) {
+    cookingSession = null;
+    saveCookingSession();
+    closeCookingMode();
+    return;
+  }
+
+  const steps = recipeSteps(recipe.notes);
+  if (!steps.length) {
+    closeCookingMode();
+    return;
+  }
+  cookingSession.activeStep = Math.min(cookingSession.activeStep, steps.length - 1);
+  const ingredients = scaleRecipeIngredients(recipe, cookingSession.servings);
+  const checkedIngredients = new Set(cookingSession.checkedIngredients);
+  const completedSteps = new Set(cookingSession.completedSteps);
+
+  cookingTitle.textContent = recipe.name;
+  cookingMeta.textContent = `Cooking for ${formatAmount(cookingSession.servings)} people`;
+  cookingIngredients.innerHTML = "";
+  ingredients.forEach((ingredient, index) => {
+    const label = document.createElement("label");
+    label.className = "cooking-ingredient";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.dataset.cookingIngredient = String(index);
+    checkbox.checked = checkedIngredients.has(index);
+    const image = document.createElement("img");
+    image.src = ingredientImageUrl(ingredient.name);
+    image.alt = "";
+    image.onerror = () => {
+      image.onerror = () => {
+        image.hidden = true;
+      };
+      image.src = ingredientRemoteImageUrl(ingredient.name);
+    };
+    const text = document.createElement("span");
+    const name = document.createElement("strong");
+    name.textContent = ingredient.name;
+    const amount = document.createElement("small");
+    amount.textContent = `${formatAmount(ingredient.amount)} ${ingredient.unit || ""}`.trim();
+    text.append(name, amount);
+    label.append(checkbox, image, text);
+    cookingIngredients.appendChild(label);
+  });
+
+  cookingStepCount.textContent = `Step ${cookingSession.activeStep + 1} of ${steps.length}`;
+  cookingProgress.max = steps.length;
+  cookingProgress.value = cookingSession.activeStep + 1;
+  cookingStepText.textContent = steps[cookingSession.activeStep];
+  cookingStepDone.checked = completedSteps.has(cookingSession.activeStep);
+  previousCookingStep.disabled = cookingSession.activeStep === 0;
+  nextCookingStep.disabled = cookingSession.activeStep >= steps.length - 1;
+  cookingIngredientCount.textContent = `${checkedIngredients.size} of ${ingredients.length}`;
+  renderCookingSessionStatus();
+  renderCookingTimers();
+}
+
+function renderCookingSessionStatus(message = "") {
+  if (!cookingSession) {
+    cookingSessionStatus.textContent = "";
+    return;
+  }
+  if (message) {
+    cookingSessionStatus.textContent = message;
+    return;
+  }
+  const recipe = recipes.find((item) => item.id === cookingSession.recipeId);
+  const ingredientTotal = recipe?.ingredients?.length || 0;
+  const stepTotal = recipeSteps(recipe?.notes).length;
+  cookingSessionStatus.textContent =
+    `${cookingSession.checkedIngredients.length} of ${ingredientTotal} ingredients ready | ` +
+    `${cookingSession.completedSteps.length} of ${stepTotal} steps complete`;
+}
+
+function updateCookingIngredientCompletion(event) {
+  const input = event.target.closest("[data-cooking-ingredient]");
+  if (!input || !cookingSession) return;
+  const checked = new Set(cookingSession.checkedIngredients);
+  const index = Number(input.dataset.cookingIngredient);
+  if (input.checked) checked.add(index);
+  else checked.delete(index);
+  cookingSession.checkedIngredients = [...checked].sort((a, b) => a - b);
+  saveCookingSession();
+  renderCookingMode();
+}
+
+function updateCookingStepCompletion() {
+  if (!cookingSession) return;
+  const completed = new Set(cookingSession.completedSteps);
+  if (cookingStepDone.checked) completed.add(cookingSession.activeStep);
+  else completed.delete(cookingSession.activeStep);
+  cookingSession.completedSteps = [...completed].sort((a, b) => a - b);
+  saveCookingSession();
+  renderCookingMode();
+}
+
+function changeCookingStep(delta) {
+  if (!cookingSession) return;
+  const recipe = recipes.find((item) => item.id === cookingSession.recipeId);
+  const steps = recipeSteps(recipe?.notes);
+  cookingSession.activeStep = Math.min(
+    Math.max(0, cookingSession.activeStep + delta),
+    Math.max(0, steps.length - 1)
+  );
+  saveCookingSession();
+  renderCookingMode();
+  cookingStepText.focus?.();
+}
+
+function resetCookingProgress() {
+  if (!cookingSession) return;
+  const hasProgress =
+    cookingSession.checkedIngredients.length ||
+    cookingSession.completedSteps.length ||
+    cookingSession.timers.length;
+  if (hasProgress && !window.confirm("Start this cooking session over and remove its timers?")) return;
+  const recipe = recipes.find((item) => item.id === cookingSession.recipeId);
+  if (!recipe) return;
+  cookingSession = createCookingSession(recipe, cookingSession.servings);
+  saveCookingSession();
+  updateCookingTimers();
+  renderCookingMode();
+}
+
+function addCookingTimer(quickMinutes = 0) {
+  if (!cookingSession) return;
+  const minutes = quickMinutes || Number(cookingTimerMinutes.value);
+  if (!Number.isFinite(minutes) || minutes < 0.01 || minutes > 720) {
+    window.alert("Enter a timer from 0.01 to 720 minutes.");
+    cookingTimerMinutes.focus();
+    return;
+  }
+  const durationMs = Math.round(minutes * 60 * 1000);
+  const defaultLabel = `Step ${cookingSession.activeStep + 1} timer`;
+  const label = cookingTimerName.value.trim() || defaultLabel;
+  cookingSession.timers.push({
+    id: crypto.randomUUID(),
+    label: label.slice(0, 40),
+    durationMs,
+    status: "running",
+    remainingMs: durationMs,
+    endAt: Date.now() + durationMs,
+    announced: false
+  });
+  cookingTimerName.value = "";
+  saveCookingSession();
+  ensureCookingTimerTicker();
+  renderCookingTimers();
+  renderCookingSessionStatus(`${label} started`);
+}
+
+function handleCookingTimerAction(event) {
+  const button = event.target.closest("[data-timer-action]");
+  if (!button || !cookingSession) return;
+  const timer = cookingSession.timers.find((item) => item.id === button.dataset.timerId);
+  if (!timer) return;
+  const action = button.dataset.timerAction;
+  if (action === "remove") {
+    cookingSession.timers = cookingSession.timers.filter((item) => item.id !== timer.id);
+  } else if (action === "pause" && timer.status === "running") {
+    timer.remainingMs = Math.max(0, timer.endAt - Date.now());
+    timer.status = "paused";
+  } else if (action === "resume" && timer.status === "paused") {
+    timer.endAt = Date.now() + timer.remainingMs;
+    timer.status = "running";
+  } else if (action === "restart" && timer.status === "done") {
+    timer.remainingMs = timer.durationMs;
+    timer.endAt = Date.now() + timer.durationMs;
+    timer.status = "running";
+    timer.announced = false;
+  }
+  saveCookingSession();
+  updateCookingTimers();
+  renderCookingTimers();
+}
+
+function cookingTimerRemaining(timer) {
+  if (timer.status === "running") return Math.max(0, timer.endAt - Date.now());
+  if (timer.status === "paused") return Math.max(0, timer.remainingMs);
+  return 0;
+}
+
+function renderCookingTimers() {
+  cookingTimers.innerHTML = "";
+  if (!cookingSession?.timers.length) {
+    cookingTimers.innerHTML = '<p class="empty">No timers running.</p>';
+    return;
+  }
+
+  cookingSession.timers.forEach((timer) => {
+    const row = document.createElement("article");
+    row.className = `cooking-timer ${timer.status}`;
+    row.dataset.timerId = timer.id;
+    const summary = document.createElement("span");
+    const label = document.createElement("strong");
+    label.textContent = timer.label;
+    const time = document.createElement("time");
+    time.textContent = timer.status === "done" ? "Finished" : formatCookingTimer(cookingTimerRemaining(timer));
+    summary.append(label, time);
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.dataset.timerId = timer.id;
+    toggle.dataset.timerAction = timer.status === "running" ? "pause" : timer.status === "paused" ? "resume" : "restart";
+    toggle.textContent = timer.status === "running" ? "Pause" : timer.status === "paused" ? "Resume" : "Restart";
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "remove";
+    remove.dataset.timerId = timer.id;
+    remove.dataset.timerAction = "remove";
+    remove.textContent = "Remove";
+    row.append(summary, toggle, remove);
+    cookingTimers.appendChild(row);
+  });
+}
+
+function formatCookingTimer(milliseconds) {
+  const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return hours
+    ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+    : `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function updateCookingTimers() {
+  if (!cookingSession) {
+    stopCookingTimerTicker();
+    return;
+  }
+  const finished = [];
+  let changed = false;
+  cookingSession.timers.forEach((timer) => {
+    if (timer.status !== "running") return;
+    const remaining = timer.endAt - Date.now();
+    if (remaining <= 0) {
+      timer.remainingMs = 0;
+      timer.status = "done";
+      changed = true;
+      if (!timer.announced) {
+        timer.announced = true;
+        finished.push(timer);
+      }
+    } else {
+      timer.remainingMs = remaining;
+    }
+  });
+  if (changed) saveCookingSession();
+  if (cookingMode.open) renderCookingTimers();
+  finished.forEach(announceCookingTimer);
+  ensureCookingTimerTicker();
+}
+
+function announceCookingTimer(timer) {
+  const message = `${timer.label} is finished`;
+  if (cookingMode.open) renderCookingSessionStatus(message);
+  else setSaveStatus(message, 6000);
+  try {
+    navigator.vibrate?.([250, 150, 250]);
+  } catch {
+    // Vibration is optional.
+  }
+}
+
+function ensureCookingTimerTicker() {
+  const hasRunningTimer = cookingSession?.timers.some((timer) => timer.status === "running");
+  if (hasRunningTimer && !cookingTimerTicker) {
+    cookingTimerTicker = window.setInterval(updateCookingTimers, 1000);
+  } else if (!hasRunningTimer) {
+    stopCookingTimerTicker();
+  }
+}
+
+function stopCookingTimerTicker() {
+  if (!cookingTimerTicker) return;
+  window.clearInterval(cookingTimerTicker);
+  cookingTimerTicker = null;
+}
+
+async function requestCookingWakeLock() {
+  if (!cookingMode.open || document.visibilityState !== "visible") return;
+  if (!navigator.wakeLock?.request) {
+    cookingWakeStatus.textContent = "Screen-awake control is not available here.";
+    return;
+  }
+  if (cookingWakeLock && !cookingWakeLock.released) return;
+  try {
+    cookingWakeLock = await navigator.wakeLock.request("screen");
+    cookingWakeStatus.textContent = "Screen will stay awake while cooking.";
+    cookingWakeLock.addEventListener("release", () => {
+      cookingWakeLock = null;
+      if (cookingMode.open) cookingWakeStatus.textContent = "Screen-awake control was released.";
+    });
+  } catch {
+    cookingWakeStatus.textContent = "Screen sleep setting was not changed.";
+  }
+}
+
+async function releaseCookingWakeLock() {
+  const activeLock = cookingWakeLock;
+  cookingWakeLock = null;
+  if (!activeLock || activeLock.released) return;
+  try {
+    await activeLock.release();
+  } catch {
+    // The browser may have already released it.
+  }
+}
+
+function handleCookingVisibilityChange() {
+  updateCookingTimers();
+  if (document.visibilityState === "visible" && cookingMode.open) {
+    requestCookingWakeLock();
+  }
+}
+
+function finishCookingSession() {
+  if (!cookingSession) return;
+  const recipe = recipes.find((item) => item.id === cookingSession.recipeId);
+  if (!recipe) return;
+  const ingredientTotal = recipe.ingredients?.length || 0;
+  const stepTotal = recipeSteps(recipe.notes).length;
+  const unfinished =
+    cookingSession.checkedIngredients.length < ingredientTotal ||
+    cookingSession.completedSteps.length < stepTotal;
+  if (unfinished && !window.confirm("Some ingredients or steps are not checked. Finish cooking anyway?")) return;
+
+  selectedRecipeId = recipe.id;
+  targetServings.value = cookingSession.servings;
+  if (!cookSelectedMeal()) return;
+
+  cookingSession = null;
+  saveCookingSession();
+  stopCookingTimerTicker();
+  closeCookingMode();
+  renderRecipeShowcase();
 }
 
 function ingredientImageUrl(name) {
@@ -3418,7 +3939,7 @@ function cookSelectedMeal() {
   const recipe = selectedRecipe();
   if (!recipe || !isRecipeComplete(recipe)) {
     window.alert("Choose a complete recipe before subtracting food.");
-    return;
+    return false;
   }
   const scaled = getScaledIngredients(recipe);
   const estimate = estimateSelectedMealCost();
@@ -3437,7 +3958,7 @@ function cookSelectedMeal() {
   const usageText = usageLines.length
     ? `\n\nFood to subtract:\n${usageLines.map((line) => `- ${line}`).join("\n")}`
     : "";
-  if (!window.confirm(`Mark "${recipe.name}" as cooked and subtract its ingredients?${missingText}${costText}${usageText}`)) return;
+  if (!window.confirm(`Mark "${recipe.name}" as cooked and subtract its ingredients?${missingText}${costText}${usageText}`)) return false;
 
   captureUndo("cook meal");
   const consumed = MealPlannerFood.consumeIngredients(foodStorage, scaled);
@@ -3458,6 +3979,7 @@ function cookSelectedMeal() {
   render();
   setAppView("inventory", { focus: false });
   setSaveStatus(`${recipe.name} cooked and inventory updated`, 2600);
+  return true;
 }
 
 function renderPrintSheet() {
