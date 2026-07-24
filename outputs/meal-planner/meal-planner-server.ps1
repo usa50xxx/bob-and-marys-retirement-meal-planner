@@ -70,13 +70,17 @@ $mimeTypes = @{
   ".html" = "text/html; charset=utf-8"
   ".css" = "text/css; charset=utf-8"
   ".js" = "application/javascript; charset=utf-8"
+  ".mjs" = "application/javascript; charset=utf-8"
   ".json" = "application/json; charset=utf-8"
   ".txt" = "text/plain; charset=utf-8"
   ".png" = "image/png"
+  ".webp" = "image/webp"
   ".jpg" = "image/jpeg"
   ".jpeg" = "image/jpeg"
   ".svg" = "image/svg+xml"
   ".ico" = "image/x-icon"
+  ".wasm" = "application/wasm"
+  ".gz" = "application/gzip"
 }
 
 function Get-RequestPath($requestLine) {
@@ -138,25 +142,53 @@ try {
           [int]::TryParse($headers["content-length"], [ref]$contentLength) | Out-Null
         }
 
+        if ($contentLength -le 0 -or $contentLength -gt 52428800) {
+          Send-Response $stream "413 Payload Too Large" "application/json; charset=utf-8" ([System.Text.Encoding]::UTF8.GetBytes("{""saved"":false,""error"":""Invalid data size""}"))
+          $client.Close()
+          continue
+        }
+
         $buffer = New-Object char[] $contentLength
         $read = 0
         while ($read -lt $contentLength) {
           $read += $reader.Read($buffer, $read, $contentLength - $read)
         }
 
-        $body = -join $buffer
-        $body | ConvertFrom-Json | Out-Null
-        if (Test-Path -LiteralPath $dataPath -PathType Leaf) {
+        $tempPath = Join-Path $root ("planner-data-{0}.tmp" -f [Guid]::NewGuid().ToString("N"))
+        try {
+          $body = -join $buffer
+          $parsedBody = $body | ConvertFrom-Json
+          if ($null -eq $parsedBody -or $null -eq $parsedBody.recipes -or $parsedBody.recipes.Count -lt 1) {
+            throw "Planner data must contain at least one recipe."
+          }
+
+          $utf8WithoutBom = [System.Text.UTF8Encoding]::new($false)
+          [System.IO.File]::WriteAllText($tempPath, $body, $utf8WithoutBom)
           New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
           $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-          Copy-Item -LiteralPath $dataPath -Destination (Join-Path $backupDir "planner-data-$stamp.json") -Force
+          $backupPath = Join-Path $backupDir "planner-data-$stamp.json"
+          if (Test-Path -LiteralPath $dataPath -PathType Leaf) {
+            Copy-Item -LiteralPath $dataPath -Destination $backupPath -Force
+            try {
+              [System.IO.File]::Replace($tempPath, $dataPath, $null, $true)
+            } catch {
+              Move-Item -LiteralPath $tempPath -Destination $dataPath -Force
+            }
+          } else {
+            Move-Item -LiteralPath $tempPath -Destination $dataPath
+          }
+
           Get-ChildItem -LiteralPath $backupDir -Filter "planner-data-*.json" |
             Sort-Object LastWriteTime -Descending |
             Select-Object -Skip 25 |
             Remove-Item -Force
+          Send-Response $stream "200 OK" "application/json; charset=utf-8" ([System.Text.Encoding]::UTF8.GetBytes("{""saved"":true}"))
+        } catch {
+          if (Test-Path -LiteralPath $tempPath -PathType Leaf) {
+            Remove-Item -LiteralPath $tempPath -Force
+          }
+          Send-Response $stream "400 Bad Request" "application/json; charset=utf-8" ([System.Text.Encoding]::UTF8.GetBytes("{""saved"":false,""error"":""Invalid planner data""}"))
         }
-        [System.IO.File]::WriteAllText($dataPath, $body, [System.Text.Encoding]::UTF8)
-        Send-Response $stream "200 OK" "application/json; charset=utf-8" ([System.Text.Encoding]::UTF8.GetBytes("{""saved"":true}"))
         $client.Close()
         continue
       }

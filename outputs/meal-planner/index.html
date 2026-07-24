@@ -7,6 +7,12 @@
     <script>
       (() => {
         try {
+          const nativeApp = window.Capacitor?.isNativePlatform?.()
+            || (window.location.protocol === "https:" && window.location.hostname === "localhost");
+          if (nativeApp) {
+            localStorage.setItem("bobMaryMealPlannerDeviceMode", "android");
+            return;
+          }
           const params = new URLSearchParams(window.location.search);
           const savedMode = localStorage.getItem("bobMaryMealPlannerDeviceMode");
           if (params.has("device") || savedMode) return;
@@ -80,14 +86,21 @@
       </section>
 
       <nav class="app-tabs" aria-label="Main areas">
-        <button type="button" data-jump="#weeklyPlannerCard">Plan</button>
-        <button type="button" data-jump="#recipeForm">Recipes</button>
-        <button type="button" data-jump="#pantryCard">Groceries</button>
-        <button type="button" data-jump="#mealSpendingCard">Calendar</button>
-        <button type="button" data-jump="#printSheet">Print</button>
+        <button type="button" data-app-view="home">Home</button>
+        <button type="button" data-app-view="plan">Plan</button>
+        <button type="button" data-app-view="recipes">Recipes</button>
+        <button type="button" data-app-view="groceries">Groceries</button>
+        <button type="button" data-app-view="inventory">Inventory</button>
+        <button type="button" data-app-view="spending">Spending</button>
+        <button type="button" data-print-view>Print</button>
       </nav>
 
-      <section class="command-center" aria-label="Command center">
+      <section class="status-strip" aria-label="Save and undo status">
+        <button type="button" id="undoChange" disabled>Undo</button>
+        <span id="saveStatus" class="status-line" role="status" aria-live="polite">Saved on this device</span>
+      </section>
+
+      <section class="command-center" aria-label="Command center" data-app-views="home">
         <article>
           <span>Tonight</span>
           <strong id="commandTonight">Pick a meal</strong>
@@ -110,7 +123,7 @@
         </article>
       </section>
 
-      <section class="food-ai-card" aria-label="Food AI helper">
+      <section class="food-ai-card" aria-label="Food AI helper" data-app-views="home">
         <div>
           <span>Small Food AI</span>
           <h2>Food, recipes, and house inventory only</h2>
@@ -125,8 +138,8 @@
         </div>
       </section>
 
-      <section class="layout">
-        <aside class="sidebar" aria-label="Recipe list">
+      <section class="layout" id="focusedLayout" hidden>
+        <aside class="sidebar" aria-label="Recipe list" data-app-views="recipes">
           <div class="section-title">
             <h2>Recipes</h2>
             <button type="button" id="newRecipe">New</button>
@@ -135,7 +148,7 @@
         </aside>
 
         <section class="workspace" aria-label="Recipe editor">
-          <section class="helper-card weekly-planner" id="weeklyPlannerCard" aria-label="Weekly meal planner">
+          <section class="helper-card weekly-planner" id="weeklyPlannerCard" aria-label="Weekly meal planner" data-app-views="plan">
             <div class="section-title">
               <div>
                 <h2>Plan this week</h2>
@@ -149,7 +162,7 @@
             <div id="weeklyPlanDays" class="weekly-plan-days"></div>
           </section>
 
-          <section class="scaled-card weekly-grocery-card" id="weeklyGroceryCard" aria-label="Weekly grocery list">
+          <section class="scaled-card weekly-grocery-card" id="weeklyGroceryCard" aria-label="Weekly grocery list" data-app-views="plan,groceries">
             <div class="section-title">
               <div>
                 <h2>Weekly grocery list</h2>
@@ -160,7 +173,7 @@
             <div id="weeklyGroceryGroups" class="weekly-grocery-groups"></div>
           </section>
 
-          <section class="helper-card meal-builder" id="mealBuilderCard" aria-label="Build a meal by choices">
+          <section class="helper-card meal-builder" id="mealBuilderCard" aria-label="Build a meal by choices" data-app-views="recipes">
             <div class="section-title">
               <div>
                 <h2>Build a meal by choices</h2>
@@ -197,7 +210,7 @@
             </div>
           </section>
 
-          <section class="helper-card" id="pasteRecipeCard" aria-label="Paste a copied recipe">
+          <section class="helper-card" id="pasteRecipeCard" aria-label="Paste a copied recipe" data-app-views="recipes">
             <div class="section-title">
               <div>
                 <h2>Paste a recipe</h2>
@@ -221,7 +234,7 @@ Mix everything, shape into a loaf, and bake at 350 for 1 hour."></textarea>
             </div>
           </section>
 
-          <form id="recipeForm" class="editor">
+          <form id="recipeForm" class="editor" data-app-views="recipes">
             <div class="editor-top">
               <label>
                 Recipe name
@@ -266,7 +279,7 @@ Mix everything, shape into a loaf, and bake at 350 for 1 hour."></textarea>
             </div>
           </form>
 
-          <section class="scaled-card recipe-showcase" aria-label="Recipe view">
+          <section class="scaled-card recipe-showcase" aria-label="Recipe view" data-app-views="recipes">
             <div class="section-title">
               <div>
                 <h2>Recipe view</h2>
@@ -289,7 +302,7 @@ Mix everything, shape into a loaf, and bake at 350 for 1 hour."></textarea>
             </div>
           </section>
 
-          <section class="scaled-card" aria-label="Scaled ingredients">
+          <section class="scaled-card" aria-label="Scaled ingredients" data-app-views="recipes">
             <div class="section-title">
               <div>
                 <h2>Scaled ingredients</h2>
@@ -300,7 +313,7 @@ Mix everything, shape into a loaf, and bake at 350 for 1 hour."></textarea>
             <ul id="scaledList" class="scaled-list"></ul>
           </section>
 
-          <section class="scaled-card" aria-label="Meal cost tally">
+          <section class="scaled-card" aria-label="Meal cost tally" data-app-views="spending">
             <div class="section-title">
               <div>
                 <h2>Meal cost tally</h2>
@@ -311,7 +324,7 @@ Mix everything, shape into a loaf, and bake at 350 for 1 hour."></textarea>
             <ul id="mealCostHistory" class="mini-list"></ul>
           </section>
 
-          <section class="scaled-card" id="mealSpendingCard" aria-label="Meal spending calendar">
+          <section class="scaled-card" id="mealSpendingCard" aria-label="Meal spending calendar" data-app-views="spending">
             <div class="section-title">
               <div>
                 <h2>Meal spending calendar</h2>
@@ -325,13 +338,12 @@ Mix everything, shape into a loaf, and bake at 350 for 1 hour."></textarea>
             <div id="mealCostCalendar" class="meal-calendar"></div>
           </section>
 
-          <section class="scaled-card pantry-card" id="pantryCard" aria-label="Grocery order and food storage">
+          <section class="scaled-card pantry-card" id="receiptImportCard" aria-label="Receipt and grocery import" data-app-views="groceries">
             <div class="section-title">
               <div>
-                <h2>Refrigerator and pantry</h2>
-                <p>Paste a grocery order here and the planner will sort foods into the right place.</p>
+                <h2>Add groceries</h2>
+                <p>Paste an order or upload a receipt, then check the items before adding them.</p>
               </div>
-              <button type="button" id="clearPantry">Clear food list</button>
             </div>
             <label>
               Grocery order paste box
@@ -340,15 +352,36 @@ Mix everything, shape into a loaf, and bake at 350 for 1 hour."></textarea>
 Tip: copy the item list from Walmart, Publix, Aldi, or another store, paste it here, then click Add groceries."></textarea>
             </label>
             <div class="actions">
-              <button type="button" id="addWalmartOrder" class="primary">Add groceries</button>
+              <button type="button" id="addWalmartOrder" class="primary">Review groceries</button>
               <label class="import-button">
-                Upload text or CSV
-                <input id="groceryFileInput" type="file" accept=".txt,.csv,.tsv,text/plain,text/csv" />
+                Upload receipt
+                <input id="groceryFileInput" type="file" accept=".pdf,.txt,.csv,.tsv,image/*,application/pdf,text/plain,text/csv" />
               </label>
             </div>
-            <p class="status-line">
-              For PDFs or photos, use the store page or phone to copy the receipt text first, then paste it here.
-            </p>
+            <p id="receiptReadStatus" class="status-line">PDFs, receipt photographs, text, CSV, and TSV files are supported.</p>
+            <div id="receiptReview" hidden>
+              <div class="section-title">
+                <div>
+                  <h3>Check receipt items</h3>
+                  <p>Correct anything the receipt reader did not understand before adding it.</p>
+                </div>
+              </div>
+              <div id="receiptReviewRows" class="receipt-review-rows"></div>
+              <div class="actions">
+                <button type="button" id="commitReceiptItems" class="primary">Add checked groceries</button>
+                <button type="button" id="cancelReceiptReview">Cancel</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="scaled-card pantry-card" id="pantryCard" aria-label="Grocery order and food storage" data-app-views="inventory">
+            <div class="section-title">
+              <div>
+                <h2>Refrigerator, freezer, and pantry</h2>
+                <p>Food on hand is compared with the selected recipe.</p>
+              </div>
+              <button type="button" id="clearPantry">Clear food list</button>
+            </div>
             <p id="foodSpendSummary" class="status-line"></p>
             <div class="pantry-grid">
               <div>
@@ -369,11 +402,12 @@ Tip: copy the item list from Walmart, Publix, Aldi, or another store, paste it h
                 <h3>For this meal</h3>
                 <p id="mealCostSummary" class="status-line"></p>
                 <ul id="needList" class="mini-list"></ul>
+                <button type="button" id="cookAndDeduct">Cook meal and subtract food</button>
               </div>
             </div>
           </section>
 
-          <section class="scaled-card online-card" aria-label="Online recipe suggestions">
+          <section class="scaled-card online-card" aria-label="Online recipe suggestions" data-app-views="recipes">
             <div class="section-title">
               <div>
                 <h2>Find recipes online</h2>
@@ -401,7 +435,7 @@ Tip: copy the item list from Walmart, Publix, Aldi, or another store, paste it h
         </section>
       </section>
 
-      <section class="portable">
+      <section class="portable" data-app-views="home">
         <div>
           <h2>Take it with you</h2>
           <p>
@@ -460,6 +494,9 @@ Tip: copy the item list from Walmart, Publix, Aldi, or another store, paste it h
       <div id="printNotes"></div>
     </section>
 
+    <script src="vendor/tesseract/tesseract.min.js"></script>
+    <script src="food-engine.js"></script>
+    <script src="receipt-reader.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

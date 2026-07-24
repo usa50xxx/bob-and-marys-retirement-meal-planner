@@ -2,6 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $source = "C:\Users\usa50\Documents\Codex\2026-07-23\i-want-to-create-a-new\outputs\meal-planner"
 $target = "E:\Meal Planner"
+$androidSource = "C:\Users\usa50\Documents\Codex\2026-07-23\i-want-to-create-a-new\outputs\android"
 
 if (-not (Test-Path -LiteralPath "E:\" -PathType Container)) {
   throw "Drive E: is not available."
@@ -22,9 +23,11 @@ New-Item -ItemType Directory -Force -Path $backup | Out-Null
 
 $topLevelFiles = @(
   "app.js",
+  "food-engine.js",
   "index.html",
   "iphone.html",
   "android.html",
+  "receipt-reader.js",
   "styles.css",
   "meal-planner-server.ps1",
   "README.txt",
@@ -69,7 +72,28 @@ foreach ($file in $rootStarterFiles) {
 
 $sourceImages = Join-Path $source "images"
 $targetImages = Join-Path $target "images"
+$sourceIngredientImages = Join-Path $sourceImages "ingredients"
+$targetIngredientImages = Join-Path $targetImages "ingredients"
+$sourceWebpCount = (Get-ChildItem -LiteralPath $sourceIngredientImages -Filter "*.webp" -File | Measure-Object).Count
+if ($sourceWebpCount -lt 300) {
+  throw "The optimized ingredient picture set is incomplete, so the old pictures were left alone."
+}
 Copy-Item -Path (Join-Path $sourceImages "*") -Destination $targetImages -Recurse -Force
+Get-ChildItem -LiteralPath $targetIngredientImages -Filter "*.png" -File |
+  Remove-Item -Force
+
+$sourceVendor = Join-Path $source "vendor"
+$targetVendor = Join-Path $target "vendor"
+if (Test-Path -LiteralPath $sourceVendor -PathType Container) {
+  New-Item -ItemType Directory -Force -Path $targetVendor | Out-Null
+  Copy-Item -Path (Join-Path $sourceVendor "*") -Destination $targetVendor -Recurse -Force
+}
+
+$targetAndroid = Join-Path $target "Android"
+if (Test-Path -LiteralPath $androidSource -PathType Container) {
+  New-Item -ItemType Directory -Force -Path $targetAndroid | Out-Null
+  Copy-Item -Path (Join-Path $androidSource "*") -Destination $targetAndroid -Recurse -Force
+}
 
 $dataFile = Join-Path $target "planner-data.json"
 if (Test-Path -LiteralPath $dataFile -PathType Leaf) {
@@ -80,7 +104,9 @@ $summary = [ordered]@{
   target = $target
   backup = $backup
   targetAppLength = (Get-Item -LiteralPath (Join-Path $target "app.js")).Length
-  ingredientImageCount = (Get-ChildItem -LiteralPath (Join-Path $target "images\ingredients") -Filter "*.png" | Measure-Object).Count
+  ingredientImageCount = (Get-ChildItem -LiteralPath (Join-Path $target "images\ingredients") -Filter "*.webp" | Measure-Object).Count
+  oldPngImageCount = (Get-ChildItem -LiteralPath (Join-Path $target "images\ingredients") -Filter "*.png" | Measure-Object).Count
+  androidApkCopied = (Test-Path -LiteralPath (Join-Path $targetAndroid "Bob and Mary's Meal Planner.apk") -PathType Leaf)
   dataFilePreserved = (Test-Path -LiteralPath $dataFile -PathType Leaf)
   copiedAt = (Get-Date).ToString("s")
 }

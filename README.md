@@ -2,6 +2,23 @@
 
 A portable, dark-mode meal planner designed to run from a Windows thumb drive.
 
+The offline website is in `outputs/meal-planner`. The installable Android
+package is in `outputs/android`, and its native project is in `android`.
+
+## Android build
+
+The Android app uses Capacitor and supports Android 7.0 (API 24) and newer.
+Install dependencies, synchronize the web files, and build the private debug
+APK:
+
+```powershell
+pnpm install
+pnpm android:build
+```
+
+The generated APK is written to
+`android/app/build/outputs/apk/debug/app-debug.apk`.
+
 ## Main features
 
 - Scale recipe ingredients for any number of people
