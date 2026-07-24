@@ -53,6 +53,14 @@ Cooklist. Their strongest recurring patterns are:
    Store best-by dates, highlight food to use soon, and rank recipe ideas that
    prevent waste. Alerts should be optional and easy to understand.
 
+   **Implemented in the 0.9 prerelease:** groceries can receive an optional
+   best-by date during receipt review or directly in inventory; notices can be
+   turned off or set to 3, 7, or 14 days; food past its date is clearly marked
+   for checking rather than recommended; separate dated purchases remain
+   separate inventory lots; cooking consumes the earliest compatible lot
+   first; saved recipe ideas and the food helper prioritize usable food that is
+   due soon; and every date or notice change supports Undo.
+
 3. Add a guided cooking mode.
    Show one readable step at a time, allow ingredient and step checkoff, keep
    the screen awake while cooking, and provide simple multiple timers.
@@ -97,5 +105,7 @@ and a non-technical tester can complete these tasks without help:
 - [Mealime](https://www.mealime.com/)
 - [KitchenPal pantry and shopping features](https://kitchenpalapp.com/)
 - [Cooklist app](https://cooklist.com/cooklist-app)
+- [NoWaste inventory and expiration tracking](https://www.nowasteapp.com/)
+- [Samsung Food List and expiration tracking](https://www.samsung.com/us/support/answer/ANS10006842/)
 - [Android release build guidance](https://developer.android.com/build/build-for-release)
 - [Google Play target API requirements](https://developer.android.com/google/play/requirements/target-sdk)

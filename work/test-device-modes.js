@@ -1,11 +1,12 @@
 const http = require("http");
 const fs = require("fs");
 const fsp = require("fs/promises");
+const os = require("os");
 const path = require("path");
 const { chromium, devices } = require("playwright");
 
 const root = process.argv[2] || path.resolve("outputs/meal-planner");
-const screenshotPath = path.resolve("outputs/device-mode-test.png");
+const screenshotPath = process.env.DEVICE_MODE_SCREENSHOT || path.join(os.tmpdir(), "bob-mary-device-mode-test.png");
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -70,6 +71,7 @@ async function run() {
     await desktop.waitForFunction(() => document.body.dataset.deviceMode === "android");
     await desktop.locator("[data-device-mode='computer']").click();
     await desktop.waitForFunction(() => document.body.dataset.deviceMode === "computer");
+    await desktop.locator("[data-app-view='recipes']").click();
     await desktop.locator(".recipe-card").first().click();
     await desktop.waitForSelector(".recipe-showcase");
 
@@ -87,6 +89,8 @@ async function run() {
     const android = await browser.newPage({ ...devices["Pixel 7"], viewport: { width: 412, height: 915 } });
     await android.goto(`${baseUrl}/android.html`, { waitUntil: "networkidle" });
     await android.waitForFunction(() => location.search.includes("device=android") && document.body.dataset.deviceMode === "android");
+    await android.locator("[data-app-view='inventory']").click();
+    await android.waitForTimeout(900);
 
     const result = await desktop.evaluate(() => ({
       desktopMode: document.body.dataset.deviceMode,
@@ -110,7 +114,9 @@ async function run() {
       phoneLayout: document.body.classList.contains("phone-layout"),
       activeDevice: document.querySelector(".device-link.active")?.textContent?.trim() || "",
       buttonHeight: document.querySelector("button")?.getBoundingClientRect().height || 0,
-      mastheadColumns: getComputedStyle(document.querySelector(".masthead")).gridTemplateColumns
+      mastheadColumns: getComputedStyle(document.querySelector(".masthead")).gridTemplateColumns,
+      tabsBottom: Math.round(document.querySelector(".app-tabs")?.getBoundingClientRect().bottom || 0),
+      focusedTop: Math.round(document.querySelector("#focusedLayout")?.getBoundingClientRect().top || 0)
     }));
 
     const failures = [];
@@ -122,6 +128,7 @@ async function run() {
     if (iphoneResult.buttonHeight < 48 || androidResult.buttonHeight < 48) failures.push("Phone buttons are not large enough for touch use.");
     if (iphoneResult.mastheadColumns.split(" ").length > 1 || androidResult.mastheadColumns.split(" ").length > 1) failures.push("Phone masthead did not collapse to one column.");
     if (!iphoneResult.headingVisible || iphoneResult.bodyTextLength < 300) failures.push("iPhone screen did not show the planner content.");
+    if (androidResult.focusedTop < androidResult.tabsBottom - 2) failures.push("Sticky phone navigation covers the selected screen.");
 
     console.log(JSON.stringify({
       root,

@@ -8,7 +8,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "test": "node work/food-engine.test.js && node work/test-focused-meal-planner.js && node work/test-receipt-files.js",
+    "test": "node work/food-engine.test.js && node work/test-focused-meal-planner.js && node work/test-device-modes.js && node work/test-receipt-files.js",
     "fixtures:generate": "node work/generate-receipt-fixtures.mjs",
     "images:optimize": "node work/optimize-ingredient-images.mjs",
     "android:sync": "node work/sync-android.mjs",

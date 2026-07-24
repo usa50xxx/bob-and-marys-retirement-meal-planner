@@ -383,6 +383,24 @@ Tip: copy the item list from Walmart, Publix, Aldi, or another store, paste it h
               <button type="button" id="clearPantry">Clear food list</button>
             </div>
             <p id="foodSpendSummary" class="status-line"></p>
+            <div class="expiry-toolbar">
+              <label>
+                Use-soon notice
+                <select id="expiryReminderDays">
+                  <option value="0">Off</option>
+                  <option value="3">3 days</option>
+                  <option value="7">7 days</option>
+                  <option value="14">14 days</option>
+                </select>
+              </label>
+              <p id="expirySummary" class="status-line"></p>
+              <button type="button" id="suggestUseSoon">Recipe ideas</button>
+            </div>
+            <section id="useSoonPanel" class="use-soon-panel" aria-label="Food to use soon" hidden>
+              <h3>Food needing attention</h3>
+              <ul id="useSoonList" class="mini-list"></ul>
+              <div id="useSoonRecipeResults" class="online-results"></div>
+            </section>
             <div class="pantry-grid">
               <div>
                 <h3>Refrigerator</h3>
