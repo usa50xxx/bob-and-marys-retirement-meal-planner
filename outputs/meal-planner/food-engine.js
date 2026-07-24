@@ -86,6 +86,67 @@
     return Number.isFinite(number) && number >= 0 ? number : fallback;
   }
 
+  function normalizeDateValue(value) {
+    const match = String(value || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return "";
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const serial = Date.UTC(year, month - 1, day);
+    const parsed = new Date(serial);
+    if (
+      parsed.getUTCFullYear() !== year ||
+      parsed.getUTCMonth() !== month - 1 ||
+      parsed.getUTCDate() !== day
+    ) {
+      return "";
+    }
+    return `${match[1]}-${match[2]}-${match[3]}`;
+  }
+
+  function localDateValue(value = new Date()) {
+    const normalized = normalizeDateValue(value);
+    if (normalized) return normalized;
+
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return localDateValue(new Date());
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function dateSerial(value) {
+    const normalized = normalizeDateValue(value);
+    if (!normalized) return null;
+    const [year, month, day] = normalized.split("-").map(Number);
+    return Date.UTC(year, month - 1, day);
+  }
+
+  function daysUntilBestBy(value, today = new Date()) {
+    const target = dateSerial(value);
+    const current = dateSerial(localDateValue(today));
+    if (target === null || current === null) return null;
+    return Math.round((target - current) / 86400000);
+  }
+
+  function expiryState(item, options = {}) {
+    const bestBy = normalizeDateValue(item?.bestBy);
+    if (!bestBy) return { state: "undated", bestBy: "", days: null };
+
+    const days = daysUntilBestBy(bestBy, options.today);
+    const warningDays = Math.max(1, Math.round(cleanNumber(options.warningDays, 7)));
+    if (days < 0) return { state: "past", bestBy, days };
+    if (days === 0) return { state: "today", bestBy, days };
+    if (days <= warningDays) return { state: "soon", bestBy, days };
+    return { state: "later", bestBy, days };
+  }
+
+  function bestBySortValue(item) {
+    return dateSerial(item?.bestBy) ?? Number.POSITIVE_INFINITY;
+  }
+
   function normalizeUnit(unit) {
     const cleaned = String(unit || "")
       .toLowerCase()
@@ -161,7 +222,8 @@
       .filter((entry) => entry.score >= 55)
       .sort((a, b) => {
         if (a.compatible !== b.compatible) return a.compatible ? -1 : 1;
-        return b.score - a.score;
+        if (a.score !== b.score) return b.score - a.score;
+        return bestBySortValue(a.item) - bestBySortValue(b.item);
       });
   }
 
@@ -329,6 +391,59 @@
     };
   }
 
+  function rankRecipesByExpiry(recipes, storage, options = {}) {
+    const warningDays = Math.max(1, Math.round(cleanNumber(options.warningDays, 7)));
+    const today = options.today || new Date();
+    const itemsById = new Map(flattenStorage(storage).map((item) => [item.id, item]));
+
+    return (Array.isArray(recipes) ? recipes : [])
+      .map((recipe) => {
+        const analysis = analyzeRecipe(recipe?.ingredients || [], storage);
+        const expiringById = new Map();
+
+        analysis.rows.forEach((row) => {
+          row.allocations.forEach((allocation) => {
+            const item = itemsById.get(allocation.itemId);
+            const status = expiryState(item, { today, warningDays });
+            if (!item || status.days === null || status.days < 0 || status.days > warningDays) return;
+            expiringById.set(item.id, {
+              ...item,
+              section: item.section || allocation.section || findSectionForId(storage, item.id),
+              days: status.days
+            });
+          });
+        });
+
+        const expiringItems = [...expiringById.values()]
+          .sort((a, b) => a.days - b.days || String(a.name).localeCompare(String(b.name)));
+        const urgencyScore = expiringItems.reduce(
+          (sum, item) => sum + (warningDays - item.days + 1) * 100,
+          0
+        );
+        const score = urgencyScore +
+          expiringItems.length * 25 +
+          (analysis.ready ? 75 : 0) -
+          analysis.missingCount * 30;
+
+        return {
+          recipe,
+          analysis,
+          ready: analysis.ready,
+          missingCount: analysis.missingCount,
+          missing: analysis.rows.filter((row) => row.buy > 0.0001),
+          expiringItems,
+          score
+        };
+      })
+      .filter((idea) => idea.expiringItems.length)
+      .sort((a, b) =>
+        b.score - a.score ||
+        Number(b.ready) - Number(a.ready) ||
+        a.missingCount - b.missingCount ||
+        String(a.recipe?.name || "").localeCompare(String(b.recipe?.name || ""))
+      );
+  }
+
   function findSectionForId(storage, id) {
     return ["refrigerator", "freezer", "pantry"].find((section) =>
       (storage?.[section] || []).some((item) => item.id === id)
@@ -341,12 +456,17 @@
     cleanNumber,
     consumeIngredients,
     convertAmount,
+    daysUntilBestBy,
+    expiryState,
     findBestInventoryItem,
     findInventoryMatches,
     flattenStorage,
+    localDateValue,
     nameMatchScore,
+    normalizeDateValue,
     normalizeFoodName,
     normalizeUnit,
+    rankRecipesByExpiry,
     unitInfo
   };
 });

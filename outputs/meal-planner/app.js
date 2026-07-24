@@ -48,6 +48,7 @@ let builderStyles;
 let builderTemplates;
 let mealCostHistory;
 let weeklyPlan;
+let inventorySettings;
 let selectedRecipeId = null;
 let visualRecipeIndex = 0;
 let lastRecipeSpinAt = 0;
@@ -65,6 +66,7 @@ const quickPrint = document.querySelector("#quickPrint");
 const viewButtons = document.querySelectorAll("[data-app-view]");
 const printViewButton = document.querySelector("[data-print-view]");
 const focusedLayout = document.querySelector("#focusedLayout");
+const appTabs = document.querySelector(".app-tabs");
 const appViewSections = document.querySelectorAll("[data-app-views]");
 const undoChange = document.querySelector("#undoChange");
 const saveStatus = document.querySelector("#saveStatus");
@@ -131,6 +133,12 @@ const receiptReviewRows = document.querySelector("#receiptReviewRows");
 const commitReceiptItems = document.querySelector("#commitReceiptItems");
 const cancelReceiptReview = document.querySelector("#cancelReceiptReview");
 const clearPantry = document.querySelector("#clearPantry");
+const expiryReminderDays = document.querySelector("#expiryReminderDays");
+const expirySummary = document.querySelector("#expirySummary");
+const useSoonPanel = document.querySelector("#useSoonPanel");
+const useSoonList = document.querySelector("#useSoonList");
+const suggestUseSoon = document.querySelector("#suggestUseSoon");
+const useSoonRecipeResults = document.querySelector("#useSoonRecipeResults");
 const refrigeratorList = document.querySelector("#refrigeratorList");
 const freezerList = document.querySelector("#freezerList");
 const pantryList = document.querySelector("#pantryList");
@@ -229,6 +237,8 @@ groceryFileInput.addEventListener("change", importGroceryFile);
 commitReceiptItems.addEventListener("click", addReviewedReceiptItems);
 cancelReceiptReview.addEventListener("click", clearReceiptReview);
 clearPantry.addEventListener("click", clearPantryTally);
+expiryReminderDays.addEventListener("change", updateExpiryReminder);
+suggestUseSoon.addEventListener("click", renderUseSoonRecipeIdeas);
 cookAndDeduct.addEventListener("click", cookSelectedMeal);
 searchOnlineRecipes.addEventListener("click", searchRecipesByName);
 suggestFromPantry.addEventListener("click", suggestRecipesFromPantry);
@@ -268,7 +278,8 @@ function loadPlanner() {
         builderStyles: normalizeBuilderStyles(parsed.builderStyles),
         builderTemplates: normalizeBuilderTemplates(parsed.builderTemplates),
         mealCostHistory: normalizeMealCostHistory(parsed.mealCostHistory),
-        weeklyPlan: normalizeWeeklyPlan(parsed.weeklyPlan)
+        weeklyPlan: normalizeWeeklyPlan(parsed.weeklyPlan),
+        inventorySettings: normalizeInventorySettings(parsed.inventorySettings)
       };
     } catch {
       return defaultPlannerData();
@@ -284,7 +295,8 @@ function loadPlanner() {
       builderStyles: normalizeBuilderStyles(),
       builderTemplates: {},
       mealCostHistory: [],
-      weeklyPlan: normalizeWeeklyPlan()
+      weeklyPlan: normalizeWeeklyPlan(),
+      inventorySettings: normalizeInventorySettings()
     };
   } catch {
     return defaultPlannerData();
@@ -390,7 +402,13 @@ function setAppView(view, options = {}) {
     localStorage.setItem(appViewStorageKey, currentAppView);
   }
   if (options.focus !== false) {
-    focusedLayout.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (document.body.classList.contains("phone-layout")) {
+      const layoutTop = focusedLayout.getBoundingClientRect().top + window.scrollY;
+      const tabsHeight = appTabs?.getBoundingClientRect().height || 0;
+      window.scrollTo({ top: Math.max(0, layoutTop - tabsHeight - 12), behavior: "smooth" });
+    } else {
+      focusedLayout.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
 }
 
@@ -439,6 +457,7 @@ function applyPlannerData(data) {
   builderTemplates = normalizeBuilderTemplates(source.builderTemplates);
   mealCostHistory = normalizeMealCostHistory(source.mealCostHistory);
   weeklyPlan = normalizeWeeklyPlan(source.weeklyPlan);
+  inventorySettings = normalizeInventorySettings(source.inventorySettings);
 }
 
 function setSaveStatus(message, resetAfter = 0) {
@@ -472,7 +491,7 @@ function persistRecipes() {
 
 function currentPlannerData() {
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     recipes,
     foodStorage,
     builderOptions,
@@ -480,6 +499,7 @@ function currentPlannerData() {
     builderTemplates,
     mealCostHistory,
     weeklyPlan,
+    inventorySettings,
     savedAt: new Date().toISOString()
   };
 }
@@ -564,7 +584,15 @@ function normalizeFoodItem(item) {
     name: item.name || "Unknown item",
     price: cleanNumber(item.price, 0),
     itemNumber: item.itemNumber || "",
-    store: item.store || ""
+    store: item.store || "",
+    bestBy: MealPlannerFood.normalizeDateValue(item.bestBy || item.expirationDate || item.expires)
+  };
+}
+
+function normalizeInventorySettings(saved) {
+  const value = Number(saved?.reminderDays);
+  return {
+    reminderDays: [0, 3, 7, 14].includes(value) ? value : 7
   };
 }
 
@@ -576,7 +604,8 @@ function defaultPlannerData() {
     builderStyles: normalizeBuilderStyles(),
     builderTemplates: {},
     mealCostHistory: [],
-    weeklyPlan: normalizeWeeklyPlan()
+    weeklyPlan: normalizeWeeklyPlan(),
+    inventorySettings: normalizeInventorySettings()
   };
 }
 
@@ -789,6 +818,7 @@ builderStyles = planner.builderStyles;
 builderTemplates = planner.builderTemplates;
 mealCostHistory = planner.mealCostHistory;
 weeklyPlan = planner.weeklyPlan;
+inventorySettings = planner.inventorySettings;
 selectedRecipeId = recipes[0]?.id || null;
 
 render();
@@ -1026,6 +1056,7 @@ function answerFoodAi() {
   const selected = selectedRecipe();
   const possible = stockRecipeIdeas();
   const inventoryWords = ["have", "inventory", "stock", "house", "fridge", "refrigerator", "freezer", "pantry", "own"];
+  const expiryWords = ["expire", "expired", "expiration", "best by", "use soon", "going bad", "oldest"];
 
   if (question && !foodAiCanAnswer(question)) {
     foodAiAnswer.innerHTML = "I only help with food, recipes, and the inventory in your house.";
@@ -1034,6 +1065,34 @@ function answerFoodAi() {
 
   if (!allItems.length) {
     foodAiAnswer.innerHTML = "Add groceries first, then I can suggest meals from your refrigerator, freezer, and pantry.";
+    return;
+  }
+
+  if (expiryWords.some((word) => question.includes(word))) {
+    const warningDays = cleanNumber(inventorySettings.reminderDays, 7) || 7;
+    const attention = allItems
+      .map((item) => ({ item, expiry: MealPlannerFood.expiryState(item, { warningDays }) }))
+      .filter(({ expiry }) => ["past", "today", "soon"].includes(expiry.state))
+      .sort((a, b) => a.expiry.days - b.expiry.days);
+    const ideas = MealPlannerFood.rankRecipesByExpiry(recipes, foodStorage, { warningDays }).slice(0, 3);
+
+    if (!attention.length) {
+      foodAiAnswer.innerHTML = `Nothing with a best-by date is due within ${warningDays} days.`;
+      return;
+    }
+
+    foodAiAnswer.innerHTML = `
+      <strong>Food needing attention:</strong>
+      <ul>${attention.slice(0, 8).map(({ item, expiry }) =>
+        `<li>${escapeHtml(item.name)} - ${escapeHtml(expiryNoticeText(expiry))}</li>`
+      ).join("")}</ul>
+      ${ideas.length
+        ? `<strong>Recipes to consider:</strong><ul>${ideas.map((idea) =>
+          `<li>${escapeHtml(idea.recipe.name)}${idea.ready ? " - ready now" : ` - ${idea.missingCount} item${idea.missingCount === 1 ? "" : "s"} to buy`}</li>`
+        ).join("")}</ul>`
+        : "<small>No saved recipe uses the food due soon yet.</small>"
+      }
+    `;
     return;
   }
 
@@ -1110,13 +1169,19 @@ function answerFoodAi() {
 }
 
 function stockRecipeIdeas() {
+  const expiryRanks = new Map(
+    MealPlannerFood.rankRecipesByExpiry(recipes, foodStorage, {
+      warningDays: cleanNumber(inventorySettings.reminderDays, 7) || 7
+    }).map((idea) => [idea.recipe.id, idea.score])
+  );
   return recipes
     .map((recipe) => {
       const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
       const missing = missingIngredientsForRecipe(recipe);
-      return { recipe, ingredients, missing };
+      return { recipe, ingredients, missing, expiryScore: cleanNumber(expiryRanks.get(recipe.id), 0) };
     })
-    .filter((idea) => idea.ingredients.length && !idea.missing.length);
+    .filter((idea) => idea.ingredients.length && !idea.missing.length)
+    .sort((a, b) => b.expiryScore - a.expiryScore || a.recipe.name.localeCompare(b.recipe.name));
 }
 
 function missingIngredientsForRecipe(recipe) {
@@ -1218,7 +1283,8 @@ function foodAiCanAnswer(question) {
     "food", "meal", "recipe", "cook", "make", "eat", "dinner", "lunch", "breakfast",
     "ingredient", "ingredients", "missing", "need", "buy", "shopping", "cost", "price",
     "spend", "inventory", "stock", "house", "fridge", "refrigerator", "freezer", "pantry",
-    "have", "own", "beef", "chicken", "pork", "fish", "seafood", "spice", "condiment"
+    "have", "own", "beef", "chicken", "pork", "fish", "seafood", "spice", "condiment",
+    "expire", "expired", "expiration", "best by", "use soon", "going bad", "oldest"
   ];
   return allowed.some((word) => question.includes(word));
 }
@@ -2774,6 +2840,7 @@ function importRecipes(event) {
       builderStyles = normalizeBuilderStyles(imported.builderStyles || builderStyles);
       builderTemplates = normalizeBuilderTemplates(imported.builderTemplates || builderTemplates);
       mealCostHistory = normalizeMealCostHistory(imported.mealCostHistory || mealCostHistory);
+      inventorySettings = normalizeInventorySettings(imported.inventorySettings || inventorySettings);
       selectedRecipeId = recipes[0].id;
       persistRecipes();
       render();
@@ -2820,7 +2887,7 @@ function parseWalmartText(text) {
         .replace(/\s{2,}/g, " ")
         .trim();
 
-      return { amount, unit: "item", name: cleaned, price, itemNumber, store, storage: "" };
+      return { amount, unit: "item", name: cleaned, price, itemNumber, store, storage: "", bestBy: "" };
     })
     .filter((item) => item.name.length > 1);
 }
@@ -2854,7 +2921,8 @@ function showReceiptReview(items) {
     price: cleanNumber(item.price, 0),
     itemNumber: item.itemNumber || "",
     store: item.store || "",
-    storage: item.storage || foodStorageSection(item.name)
+    storage: item.storage || foodStorageSection(item.name),
+    bestBy: MealPlannerFood.normalizeDateValue(item.bestBy)
   }));
   renderReceiptReview();
   receiptReview.hidden = false;
@@ -2870,15 +2938,16 @@ function renderReceiptReview() {
     row.innerHTML = `
       <label>Amount<input class="receipt-amount" type="number" min="0.01" step="0.01" value="${escapeHtml(item.amount)}"></label>
       <label>Unit<input class="receipt-unit" type="text" value="${escapeHtml(item.unit)}"></label>
-      <label class="receipt-name">Item<input type="text" value="${escapeHtml(item.name)}"></label>
+      <label class="receipt-name">Item<input class="receipt-item-name" type="text" value="${escapeHtml(item.name)}"></label>
       <label>Price<input class="receipt-price" type="number" min="0" step="0.01" value="${escapeHtml(item.price)}"></label>
-      <label class="receipt-store">Store<input type="text" value="${escapeHtml(item.store)}"></label>
-      <label class="receipt-item-number">Item number<input type="text" value="${escapeHtml(item.itemNumber)}"></label>
+      <label class="receipt-store">Store<input class="receipt-store-name" type="text" value="${escapeHtml(item.store)}"></label>
+      <label class="receipt-item-number">Item number<input class="receipt-item-code" type="text" value="${escapeHtml(item.itemNumber)}"></label>
       <label class="receipt-storage">Put in<select>
         <option value="refrigerator" ${item.storage === "refrigerator" ? "selected" : ""}>Refrigerator</option>
         <option value="freezer" ${item.storage === "freezer" ? "selected" : ""}>Freezer</option>
         <option value="pantry" ${item.storage === "pantry" ? "selected" : ""}>Pantry</option>
       </select></label>
+      <label class="receipt-best-by">Best by<input class="receipt-best-by-date" type="date" value="${escapeHtml(item.bestBy)}"></label>
       <button type="button" class="remove">Remove</button>
     `;
     const inputs = row.querySelectorAll("input, select");
@@ -2894,15 +2963,15 @@ function renderReceiptReview() {
 
 function updateReceiptItemFromRow(row) {
   const index = Number(row.dataset.receiptIndex);
-  const inputs = row.querySelectorAll("input");
   pendingReceiptItems[index] = {
-    amount: cleanNumber(inputs[0].value, 0),
-    unit: inputs[1].value.trim(),
-    name: inputs[2].value.trim(),
-    price: cleanNumber(inputs[3].value, 0),
-    store: inputs[4].value.trim(),
-    itemNumber: inputs[5].value.trim(),
-    storage: row.querySelector("select").value
+    amount: cleanNumber(row.querySelector(".receipt-amount").value, 0),
+    unit: row.querySelector(".receipt-unit").value.trim(),
+    name: row.querySelector(".receipt-item-name").value.trim(),
+    price: cleanNumber(row.querySelector(".receipt-price").value, 0),
+    store: row.querySelector(".receipt-store-name").value.trim(),
+    itemNumber: row.querySelector(".receipt-item-code").value.trim(),
+    storage: row.querySelector("select").value,
+    bestBy: MealPlannerFood.normalizeDateValue(row.querySelector(".receipt-best-by-date").value)
   };
 }
 
@@ -2933,8 +3002,10 @@ function addFoodStorageItem(item) {
     : foodStorageSection(item.name);
   const list = foodStorage[section];
   const key = normalizeName(item.name);
+  const bestBy = MealPlannerFood.normalizeDateValue(item.bestBy);
   const existing = list.find((stored) => {
     if (normalizeName(stored.name) !== key) return false;
+    if (MealPlannerFood.normalizeDateValue(stored.bestBy) !== bestBy) return false;
     return MealPlannerFood.convertAmount(1, item.unit || "", stored.unit || "") !== null;
   });
   if (existing) {
@@ -2957,7 +3028,8 @@ function addFoodStorageItem(item) {
     name: item.name,
     price: cleanNumber(item.price, 0),
     itemNumber: item.itemNumber || "",
-    store: item.store || ""
+    store: item.store || "",
+    bestBy
   });
 }
 
@@ -2970,6 +3042,7 @@ function renderPantry() {
   renderFoodList(freezerList, foodStorage.freezer, "Frozen foods will show here.");
   renderFoodList(pantryList, foodStorage.pantry, "Shelf foods will show here.");
   foodSpendSummary.textContent = `Recorded grocery spending: ${formatMoney(totalFoodCost())}`;
+  renderExpirationPanel();
 }
 
 function renderFoodList(container, items, emptyText) {
@@ -2980,18 +3053,185 @@ function renderFoodList(container, items, emptyText) {
 
   items
     .slice()
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .sort(compareFoodByBestBy)
     .forEach((item) => {
       const li = document.createElement("li");
+      li.className = "inventory-food";
       const price = cleanNumber(item.price, 0) ? `<small>${formatMoney(item.price)} recorded</small>` : "<small>No price recorded</small>";
       const details = [
         item.store ? `Store: ${item.store}` : "",
         item.itemNumber ? `Item #: ${item.itemNumber}` : ""
       ].filter(Boolean).join(" | ");
       const detailLine = details ? `<small>${escapeHtml(details)}</small>` : "";
-      li.innerHTML = `<span>${escapeHtml(item.name)}</span><strong>${formatAmount(cleanNumber(item.amount, 0))} ${escapeHtml(item.unit || "")}</strong>${price}${detailLine}`;
+      const warningDays = cleanNumber(inventorySettings.reminderDays, 0);
+      const expiry = MealPlannerFood.expiryState(item, { warningDays: warningDays || 7 });
+      const showNotice = warningDays > 0 && ["past", "today", "soon"].includes(expiry.state);
+      if (showNotice) li.classList.add(expiry.state === "past" ? "past-date" : "use-soon");
+      const badge = showNotice
+        ? `<small class="expiry-badge">${escapeHtml(expiryNoticeText(expiry))}</small>`
+        : "";
+      li.innerHTML = `
+        <span>${escapeHtml(item.name)}</span>
+        <strong>${formatAmount(cleanNumber(item.amount, 0))} ${escapeHtml(item.unit || "")}</strong>
+        ${price}
+        ${detailLine}
+        ${badge}
+        <label class="inventory-date">
+          Best by
+          <input type="date" value="${escapeHtml(item.bestBy || "")}" aria-label="Best-by date for ${escapeHtml(item.name)}">
+        </label>
+        <button type="button" class="inventory-remove">Remove</button>
+      `;
+      li.querySelector(".inventory-date input").addEventListener("change", (event) => {
+        updateFoodBestBy(item.id, event.target.value);
+      });
+      li.querySelector(".inventory-remove").addEventListener("click", () => removeFoodItem(item.id));
       container.appendChild(li);
     });
+}
+
+function compareFoodByBestBy(left, right) {
+  const leftDate = MealPlannerFood.normalizeDateValue(left.bestBy) || "9999-12-31";
+  const rightDate = MealPlannerFood.normalizeDateValue(right.bestBy) || "9999-12-31";
+  return leftDate.localeCompare(rightDate) || left.name.localeCompare(right.name);
+}
+
+function expiryNoticeText(expiry) {
+  if (expiry.state === "past") {
+    const days = Math.abs(expiry.days);
+    return `Past best-by by ${days} day${days === 1 ? "" : "s"} - check before using`;
+  }
+  if (expiry.state === "today") return "Best by today";
+  if (expiry.days === 1) return "Best by tomorrow";
+  return `Best by in ${expiry.days} days`;
+}
+
+function findFoodItemLocation(id) {
+  for (const section of ["refrigerator", "freezer", "pantry"]) {
+    const index = foodStorage[section].findIndex((item) => item.id === id);
+    if (index >= 0) return { section, index, item: foodStorage[section][index] };
+  }
+  return null;
+}
+
+function updateFoodBestBy(id, value) {
+  const location = findFoodItemLocation(id);
+  if (!location) return;
+  const bestBy = MealPlannerFood.normalizeDateValue(value);
+  if (location.item.bestBy === bestBy) return;
+
+  captureUndo("change best-by date");
+  location.item.bestBy = bestBy;
+  persistRecipes();
+  renderMealViews();
+  setSaveStatus(bestBy ? "Best-by date saved" : "Best-by date removed", 1800);
+}
+
+function removeFoodItem(id) {
+  const location = findFoodItemLocation(id);
+  if (!location) return;
+  if (!window.confirm(`Remove "${location.item.name}" from your food inventory?`)) return;
+
+  captureUndo("remove food");
+  foodStorage[location.section].splice(location.index, 1);
+  persistRecipes();
+  renderMealViews();
+  setSaveStatus(`${location.item.name} removed`, 1800);
+}
+
+function updateExpiryReminder() {
+  const reminderDays = Number(expiryReminderDays.value);
+  if (![0, 3, 7, 14].includes(reminderDays) || reminderDays === inventorySettings.reminderDays) return;
+
+  captureUndo("change use-soon notice");
+  inventorySettings.reminderDays = reminderDays;
+  persistRecipes();
+  renderPantry();
+  setSaveStatus(reminderDays ? `Use-soon notice set to ${reminderDays} days` : "Use-soon notice turned off", 1800);
+}
+
+function renderExpirationPanel() {
+  const reminderDays = cleanNumber(inventorySettings.reminderDays, 0);
+  expiryReminderDays.value = String(reminderDays);
+  useSoonList.innerHTML = "";
+  useSoonRecipeResults.innerHTML = "";
+
+  if (!reminderDays) {
+    expirySummary.textContent = "Notices are off. Best-by dates are still saved.";
+    useSoonPanel.hidden = true;
+    suggestUseSoon.disabled = true;
+    return;
+  }
+
+  const attention = allFoodItems()
+    .map((item) => ({ item, expiry: MealPlannerFood.expiryState(item, { warningDays: reminderDays }) }))
+    .filter(({ expiry }) => ["past", "today", "soon"].includes(expiry.state))
+    .sort((a, b) => a.expiry.days - b.expiry.days || a.item.name.localeCompare(b.item.name));
+  const pastCount = attention.filter(({ expiry }) => expiry.state === "past").length;
+  const soonCount = attention.length - pastCount;
+
+  if (!attention.length) {
+    expirySummary.textContent = `Nothing is due within ${reminderDays} days.`;
+    useSoonPanel.hidden = true;
+    suggestUseSoon.disabled = true;
+    return;
+  }
+
+  const summaryParts = [];
+  if (pastCount) summaryParts.push(`${pastCount} past its best-by date`);
+  if (soonCount) summaryParts.push(`${soonCount} to use soon`);
+  expirySummary.textContent = summaryParts.join(" and ");
+  useSoonPanel.hidden = false;
+  suggestUseSoon.disabled = !attention.some(({ expiry }) => expiry.days >= 0);
+
+  attention.forEach(({ item, expiry }) => {
+    const li = document.createElement("li");
+    li.className = expiry.state === "past" ? "past-date" : "use-soon";
+    li.innerHTML = `
+      <span>${escapeHtml(item.name)}</span>
+      <strong>${escapeHtml(expiryNoticeText(expiry))}</strong>
+    `;
+    useSoonList.appendChild(li);
+  });
+}
+
+function renderUseSoonRecipeIdeas() {
+  const reminderDays = cleanNumber(inventorySettings.reminderDays, 7) || 7;
+  const ideas = MealPlannerFood.rankRecipesByExpiry(recipes, foodStorage, { warningDays: reminderDays });
+  useSoonRecipeResults.innerHTML = "";
+
+  if (!ideas.length) {
+    useSoonRecipeResults.innerHTML = `<p class="status-line">No saved recipe uses the food that is due soon yet.</p>`;
+    return;
+  }
+
+  ideas.slice(0, 6).forEach((idea) => {
+    const recipe = idea.recipe;
+    const card = document.createElement("article");
+    card.className = "online-result stock-result";
+    const image = recipe.photo
+      ? `<img src="${escapeHtml(recipe.photo)}" alt="" loading="lazy" decoding="async">`
+      : `<img src="${escapeHtml(ingredientImageUrl(recipe.ingredients[0]?.name || recipe.name))}" alt="" loading="lazy" decoding="async">`;
+    const foodNames = idea.expiringItems.map((item) => item.name).join(", ");
+    const readiness = idea.ready
+      ? "Ready now from food at home."
+      : `${idea.missingCount} ingredient${idea.missingCount === 1 ? "" : "s"} to buy.`;
+    card.innerHTML = `
+      ${image}
+      <div>
+        <h3>${escapeHtml(recipe.name)}</h3>
+        <p>Uses soon: ${escapeHtml(foodNames)}. ${escapeHtml(readiness)}</p>
+        <button type="button">Open recipe</button>
+      </div>
+    `;
+    card.querySelector("button").addEventListener("click", () => {
+      selectedRecipeId = recipe.id;
+      render();
+      setAppView("recipes", { focus: false });
+      focusSection(document.querySelector(".recipe-showcase"));
+    });
+    useSoonRecipeResults.appendChild(card);
+  });
 }
 
 function renderPantrySuggestionChoices() {
@@ -3338,13 +3578,22 @@ function suggestRecipesFromStock() {
     return;
   }
 
+  const expiryRanks = new Map(
+    MealPlannerFood.rankRecipesByExpiry(recipes, foodStorage, {
+      warningDays: cleanNumber(inventorySettings.reminderDays, 7) || 7
+    }).map((idea) => [idea.recipe.id, idea])
+  );
   const ideas = recipes
     .map((recipe) => {
       const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
       const missing = MealPlannerFood.analyzeRecipe(ingredients, foodStorage).rows.filter((row) => row.buy > 0.0001);
-      return { recipe, ingredients, missing };
+      return { recipe, ingredients, missing, expiry: expiryRanks.get(recipe.id) };
     })
-    .filter((idea) => idea.ingredients.length && !idea.missing.length);
+    .filter((idea) => idea.ingredients.length && !idea.missing.length)
+    .sort((a, b) =>
+      cleanNumber(b.expiry?.score, 0) - cleanNumber(a.expiry?.score, 0) ||
+      a.recipe.name.localeCompare(b.recipe.name)
+    );
 
   if (!ideas.length) {
     onlineStatus.textContent = "No saved recipes match only the food you have yet. Add more groceries or save more recipes, then try again.";
@@ -3352,7 +3601,7 @@ function suggestRecipesFromStock() {
   }
 
   onlineStatus.textContent = `${ideas.length} meal idea${ideas.length === 1 ? "" : "s"} using only refrigerator, freezer, and pantry items.`;
-  ideas.slice(0, 12).forEach(({ recipe }) => {
+  ideas.slice(0, 12).forEach(({ recipe, expiry }) => {
     const card = document.createElement("article");
     card.className = "online-result stock-result";
     const image = recipe.photo
@@ -3362,7 +3611,11 @@ function suggestRecipesFromStock() {
       ${image}
       <div>
         <h3>${escapeHtml(recipe.name)}</h3>
-        <p>You have all ${recipe.ingredients.length} listed ingredient${recipe.ingredients.length === 1 ? "" : "s"}.</p>
+        <p>You have all ${recipe.ingredients.length} listed ingredient${recipe.ingredients.length === 1 ? "" : "s"}.${
+          expiry?.expiringItems?.length
+            ? ` Uses soon: ${escapeHtml(expiry.expiringItems.map((item) => item.name).join(", "))}.`
+            : ""
+        }</p>
         <button type="button">Open recipe</button>
       </div>
     `;

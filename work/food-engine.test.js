@@ -76,6 +76,65 @@ assert.equal(duplicateAnalysis.rows[1].buy, 4);
 assert.equal(duplicateAnalysis.ready, false);
 assert.equal(duplicateAnalysis.missingCount, 1);
 
+assert.equal(food.normalizeDateValue("2026-02-29"), "");
+assert.equal(food.normalizeDateValue("2028-02-29"), "2028-02-29");
+assert.equal(food.daysUntilBestBy("2026-07-25", "2026-07-24"), 1);
+assert.equal(food.daysUntilBestBy("2026-07-20", "2026-07-24"), -4);
+assert.equal(food.expiryState({ bestBy: "2026-07-27" }, { today: "2026-07-24", warningDays: 7 }).state, "soon");
+
+const datedLots = {
+  refrigerator: [
+    { id: "milk-later", name: "Whole Milk", amount: 1, unit: "item", price: 4, bestBy: "2026-08-10" },
+    { id: "milk-first", name: "Whole Milk", amount: 1, unit: "item", price: 3, bestBy: "2026-07-25" }
+  ],
+  freezer: [],
+  pantry: []
+};
+const datedConsumption = food.consumeIngredients(datedLots, [
+  { name: "whole milk", amount: 1, unit: "item" }
+]);
+assert.equal(datedConsumption.consumed[0].id, "milk-first");
+assert.deepEqual(datedConsumption.storage.refrigerator.map((item) => item.id), ["milk-later"]);
+
+const expiryStorage = {
+  refrigerator: [
+    { id: "spinach", name: "spinach", amount: 1, unit: "item", bestBy: "2026-07-25" },
+    { id: "chicken", name: "chicken breast", amount: 1, unit: "item", bestBy: "2026-07-29" },
+    { id: "eggs-past", name: "eggs", amount: 2, unit: "item", bestBy: "2026-07-23" }
+  ],
+  freezer: [],
+  pantry: [
+    { id: "pasta", name: "pasta", amount: 2, unit: "item" },
+    { id: "rice", name: "rice", amount: 2, unit: "item" }
+  ]
+};
+const expiryIdeas = food.rankRecipesByExpiry([
+  {
+    id: "chicken-rice",
+    name: "Chicken and Rice",
+    ingredients: [
+      { name: "chicken breast", amount: 1, unit: "item" },
+      { name: "rice", amount: 1, unit: "item" }
+    ]
+  },
+  {
+    id: "spinach-pasta",
+    name: "Spinach Pasta",
+    ingredients: [
+      { name: "spinach", amount: 1, unit: "item" },
+      { name: "pasta", amount: 1, unit: "item" }
+    ]
+  },
+  {
+    id: "past-eggs",
+    name: "Past Eggs",
+    ingredients: [{ name: "eggs", amount: 2, unit: "item" }]
+  }
+], expiryStorage, { today: "2026-07-24", warningDays: 7 });
+assert.deepEqual(expiryIdeas.map((idea) => idea.recipe.id), ["spinach-pasta", "chicken-rice"]);
+assert.equal(expiryIdeas[0].ready, true);
+assert.equal(expiryIdeas[0].expiringItems[0].id, "spinach");
+
 const receiptRows = receipts.parseReceiptText(`
 Walmart
 Great Value Ketchup $2.48

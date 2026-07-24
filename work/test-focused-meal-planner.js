@@ -4,6 +4,15 @@ const fsp = require("fs/promises");
 const path = require("path");
 const { chromium } = require("playwright");
 
+function dateFromToday(days) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 const root = path.resolve(process.env.MEAL_PLANNER_ROOT || "outputs/meal-planner");
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -41,7 +50,16 @@ let plannerData = {
     ]
   }],
   foodStorage: {
-    refrigerator: [{ id: "eggs", amount: 6, unit: "count", name: "eggs", price: 2.4, store: "Walmart", itemNumber: "111" }],
+    refrigerator: [{
+      id: "eggs",
+      amount: 6,
+      unit: "count",
+      name: "eggs",
+      price: 2.4,
+      store: "Walmart",
+      itemNumber: "111",
+      bestBy: dateFromToday(1)
+    }],
     freezer: [{ id: "beef", amount: 8, unit: "oz", name: "ground beef", price: 3, store: "Aldi", itemNumber: "222" }],
     pantry: [{ id: "ketchup", amount: 1, unit: "cup", name: "ketchup", price: 1.2, store: "Publix", itemNumber: "333" }]
   },
@@ -212,6 +230,7 @@ async function run() {
     const rows = page.locator(".receipt-review-row");
     await rows.first().waitFor();
     check(await rows.count() === 3, "Pasted receipt opens an editable review", `${await rows.count()} items`);
+    await rows.first().locator(".receipt-best-by-date").fill(dateFromToday(2));
     await page.locator("#commitReceiptItems").click();
     await page.waitForTimeout(400);
     console.error("CHECKPOINT receipt");
@@ -224,11 +243,66 @@ async function run() {
     ].join(" ");
     check(/Whole Milk/i.test(inventoryText) && /Frozen Shrimp/i.test(inventoryText) && /Spaghetti/i.test(inventoryText),
       "Reviewed groceries enter refrigerator, freezer, and pantry", inventoryText.replace(/\s+/g, " "));
+    check(
+      await page.locator("#refrigeratorList .inventory-food", { hasText: "Whole Milk" })
+        .locator("input[type='date']").inputValue() === dateFromToday(2),
+      "Receipt review saves an optional best-by date"
+    );
+    const expirySummaryText = await page.locator("#expirySummary").innerText();
+    const useSoonText = await page.locator("#useSoonList").innerText();
+    check(
+      /2 to use soon/i.test(expirySummaryText) && /eggs/i.test(useSoonText) && /tomorrow/i.test(useSoonText),
+      "Inventory highlights food approaching its best-by date",
+      `${expirySummaryText} | ${useSoonText.replace(/\s+/g, " ")}`
+    );
+    await page.locator("#suggestUseSoon").click();
+    const useSoonRecipeText = await page.locator("#useSoonRecipeResults").innerText();
+    check(
+      /Test Meatloaf/i.test(useSoonRecipeText) && /Uses soon:\s*eggs/i.test(useSoonRecipeText),
+      "Use-soon recipes prioritize dated food",
+      useSoonRecipeText.replace(/\s+/g, " ")
+    );
     check(await page.locator("#undoChange").isEnabled(), "Undo is available after a change");
     await page.locator("#undoChange").click();
     await page.waitForTimeout(350);
     const undoneInventory = await page.locator("#pantryCard").innerText();
     check(!/Whole Milk|Frozen Shrimp|Spaghetti/i.test(undoneInventory), "Undo restores the prior inventory");
+    await clickView(page, "inventory");
+
+    const changedBestBy = dateFromToday(5);
+    await page.locator("#refrigeratorList .inventory-food", { hasText: "eggs" })
+      .locator("input[type='date']")
+      .evaluate((input, value) => {
+        input.value = value;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      }, changedBestBy);
+    await page.waitForTimeout(400);
+    check(
+      await page.locator("#refrigeratorList .inventory-food", { hasText: "eggs" })
+        .locator("input[type='date']").inputValue() === changedBestBy,
+      "Best-by dates can be edited directly in inventory"
+    );
+    await page.locator("#undoChange").click();
+    await page.waitForTimeout(350);
+    check(
+      await page.locator("#refrigeratorList .inventory-food", { hasText: "eggs" })
+        .locator("input[type='date']").inputValue() === dateFromToday(1),
+      "Undo restores the previous best-by date"
+    );
+    await page.locator("#expiryReminderDays").selectOption("0");
+    await page.waitForTimeout(350);
+    check(
+      /Notices are off/i.test(await page.locator("#expirySummary").innerText()) &&
+        await page.locator("#useSoonPanel").isHidden(),
+      "Use-soon notices can be turned off"
+    );
+    await page.locator("#undoChange").click();
+    await page.waitForTimeout(350);
+    check(
+      await page.locator("#expiryReminderDays").inputValue() === "7" &&
+        await page.locator("#useSoonPanel").isVisible(),
+      "Undo restores the use-soon notice setting"
+    );
     console.error("CHECKPOINT inventory");
 
     await clickView(page, "spending");
@@ -271,7 +345,7 @@ async function run() {
 
     check(errors.length === 0, "No browser JavaScript errors", errors.join(" | "));
     check(badResponses.length === 0, "No failed local asset requests", badResponses.join(" | "));
-    check(plannerData.schemaVersion === 3, "Planner data saves with the current schema");
+    check(plannerData.schemaVersion === 4, "Planner data saves with the current schema");
     console.error("CHECKPOINT complete");
 
     console.log(JSON.stringify({ passed: results.length, results }, null, 2));

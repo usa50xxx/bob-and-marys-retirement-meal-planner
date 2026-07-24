@@ -853,7 +853,7 @@ textarea {
 
 .receipt-review-row {
   display: grid;
-  grid-template-columns: 90px 90px minmax(180px, 1fr) 110px 120px minmax(120px, 160px) 120px 92px;
+  grid-template-columns: 80px 80px minmax(160px, 1fr) 100px 110px 130px 110px 130px 84px;
   gap: 10px;
   align-items: end;
   padding: 12px;
@@ -1197,6 +1197,49 @@ textarea {
   gap: 14px;
 }
 
+.expiry-toolbar {
+  display: grid;
+  grid-template-columns: minmax(150px, 190px) 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin: 14px 0;
+}
+
+.expiry-toolbar label {
+  margin: 0;
+}
+
+.expiry-toolbar select {
+  width: 100%;
+}
+
+.expiry-toolbar .status-line {
+  align-self: center;
+}
+
+.use-soon-panel {
+  margin: 0 0 16px;
+  padding: 14px 0 16px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.use-soon-panel .online-results {
+  margin-top: 12px;
+}
+
+.use-soon-panel .use-soon strong {
+  color: var(--sun);
+}
+
+.use-soon-panel .past-date {
+  border-color: #86544c;
+}
+
+.use-soon-panel .past-date strong {
+  color: var(--warn);
+}
+
 .status-line {
   margin: 0;
   color: var(--muted);
@@ -1328,6 +1371,65 @@ h3 {
   color: var(--muted);
 }
 
+.mini-list li.inventory-food {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 10px;
+}
+
+.inventory-food > span,
+.inventory-food > strong,
+.inventory-food > small {
+  grid-column: 1;
+}
+
+.inventory-food .inventory-date {
+  grid-column: 1;
+  display: grid;
+  grid-template-columns: auto minmax(135px, 170px);
+  gap: 8px;
+  align-items: center;
+  width: fit-content;
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.inventory-food .inventory-date input {
+  min-height: 36px;
+  padding: 6px 9px;
+}
+
+.inventory-food .inventory-remove {
+  grid-column: 2;
+  grid-row: 1 / span 5;
+  min-height: 36px;
+  padding: 0 10px;
+  align-self: center;
+}
+
+.inventory-food.use-soon {
+  border-color: #8f7a45;
+}
+
+.inventory-food.past-date {
+  border-color: #86544c;
+}
+
+.expiry-badge {
+  display: inline-block;
+  width: fit-content;
+  padding: 3px 7px;
+  border: 1px solid #8f7a45;
+  border-radius: 6px;
+  color: var(--sun) !important;
+}
+
+.past-date .expiry-badge {
+  border-color: #86544c;
+  color: var(--warn) !important;
+}
+
 .print-sheet {
   display: none;
 }
@@ -1454,6 +1556,7 @@ body.phone-layout .app-tabs {
   position: sticky;
   top: 0;
   z-index: 20;
+  background: var(--panel);
 }
 
 body.phone-layout .masthead-rolodex .recipe-rolodex-window {
@@ -1491,9 +1594,14 @@ body[data-device-mode="computer"] .device-link[data-device-mode="computer"] {
   .portable,
   .showcase-layout,
   .pantry-grid,
+  .expiry-toolbar,
   .online-search,
   .online-results {
     grid-template-columns: 1fr;
+  }
+
+  .expiry-toolbar button {
+    width: 100%;
   }
 
   .portable {
