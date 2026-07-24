@@ -1,0 +1,15 @@
+.agents/
+.codex/
+
+# Personal meal-planner data stays on the thumb drive.
+outputs/meal-planner/planner-data.json
+outputs/meal-planner/backups/
+
+# Generated test output and temporary review artifacts.
+work/**/*.png
+work/*-images.txt
+work/*-out.txt
+work/*-err.txt
+work/beef-cut-fullpage/
+work/beef-cut-screens/
+

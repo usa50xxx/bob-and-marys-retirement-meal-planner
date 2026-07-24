@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bob and Mary's Retirement Meal Planner</title>
+    <script>
+      (() => {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const savedMode = localStorage.getItem("bobMaryMealPlannerDeviceMode");
+          if (params.has("device") || savedMode) return;
+
+          const agent = navigator.userAgent || "";
+          const isIpad = /Macintosh/i.test(agent) && navigator.maxTouchPoints > 1;
+          if (/iPhone|iPad|iPod/i.test(agent) || isIpad) {
+            window.location.replace("iphone.html");
+          } else if (/Android/i.test(agent)) {
+            window.location.replace("android.html");
+          }
+        } catch {
+          // The main app still loads if the browser blocks this early check.
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="masthead">
+        <div>
+          <p class="eyebrow">Bob and Mary's kitchen helper</p>
+          <h1>Bob and Mary's Retirement Meal Planner</h1>
+          <p class="lede">
+            Pick a meal, choose how many people are eating, and print a simple cooking page.
+          </p>
+          <div class="device-selector" aria-label="Device view choices">
+            <span>Use on</span>
+            <div class="device-options">
+              <a href="index.html?device=computer" class="device-link" data-device-mode="computer">Computer</a>
+              <a href="iphone.html" class="device-link" data-device-mode="iphone">iPhone</a>
+              <a href="android.html" class="device-link" data-device-mode="android">Android</a>
+            </div>
+            <small id="deviceModeNote">Computer view is selected.</small>
+          </div>
+        </div>
+        <div class="visual-picker masthead-rolodex">
+          <h2>Recipe Rolodex</h2>
+          <div id="visualRecipeList" class="visual-recipe-list"></div>
+        </div>
+        <div class="serving-panel" aria-label="Serving controls">
+          <label for="targetServings">How many people?</label>
+          <div class="stepper">
+            <button type="button" id="minusPerson" aria-label="Remove one person">-</button>
+            <input id="targetServings" type="number" min="1" step="1" value="2" />
+            <button type="button" id="plusPerson" aria-label="Add one person">+</button>
+          </div>
+          <label for="mealDate">Meal date</label>
+          <input id="mealDate" type="date" />
+        </div>
+      </section>
+
+      <section class="quick-start" aria-label="Quick start choices">
+        <button type="button" class="quick-card" id="quickBuildMeal">
+          <strong>Plan this week</strong>
+          <span>Pick meals and build one grocery list</span>
+        </button>
+        <button type="button" class="quick-card" id="quickAddRecipe">
+          <strong>Pick a meal</strong>
+          <span>Browse recipes by picture</span>
+        </button>
+        <button type="button" class="quick-card" id="quickShopping">
+          <strong>Add groceries</strong>
+          <span>Paste an order or receipt</span>
+        </button>
+        <button type="button" class="quick-card" id="quickPrint">
+          <strong>Print meal</strong>
+          <span>Ingredients and prep on one page</span>
+        </button>
+      </section>
+
+      <nav class="app-tabs" aria-label="Main areas">
+        <button type="button" data-jump="#weeklyPlannerCard">Plan</button>
+        <button type="button" data-jump="#recipeForm">Recipes</button>
+        <button type="button" data-jump="#pantryCard">Groceries</button>
+        <button type="button" data-jump="#mealSpendingCard">Calendar</button>
+        <button type="button" data-jump="#printSheet">Print</button>
+      </nav>
+
+      <section class="command-center" aria-label="Command center">
+        <article>
+          <span>Tonight</span>
+          <strong id="commandTonight">Pick a meal</strong>
+          <small id="commandTonightMeta">Choose servings, date, and recipe.</small>
+        </article>
+        <article>
+          <span>This week</span>
+          <strong id="commandWeek">0 meals planned</strong>
+          <small id="commandWeekMeta">Use the weekly planner below.</small>
+        </article>
+        <article>
+          <span>Grocery list</span>
+          <strong id="commandGroceries">No weekly list yet</strong>
+          <small id="commandGroceriesMeta">It builds as you plan meals.</small>
+        </article>
+        <article>
+          <span>Spending</span>
+          <strong id="commandSpend">$0.00</strong>
+          <small id="commandSpendMeta">Recorded meal history.</small>
+        </article>
+      </section>
+
+      <section class="food-ai-card" aria-label="Food AI helper">
+        <div>
+          <span>Small Food AI</span>
+          <h2>Food, recipes, and house inventory only</h2>
+          <p>Ask what meals you can make, what is missing, or what food is already in the house.</p>
+        </div>
+        <div class="food-ai-controls">
+          <input id="foodAiQuestion" type="text" placeholder="Ask: What can I make tonight?" />
+          <button type="button" id="askFoodAi" class="primary">Ask</button>
+        </div>
+        <div id="foodAiAnswer" class="food-ai-answer">
+          Try asking what you can make, what is missing, or how much tonight's meal may cost.
+        </div>
+      </section>
+
+      <section class="layout">
+        <aside class="sidebar" aria-label="Recipe list">
+          <div class="section-title">
+            <h2>Recipes</h2>
+            <button type="button" id="newRecipe">New</button>
+          </div>
+          <div id="recipeList" class="recipe-list"></div>
+        </aside>
+
+        <section class="workspace" aria-label="Recipe editor">
+          <section class="helper-card weekly-planner" id="weeklyPlannerCard" aria-label="Weekly meal planner">
+            <div class="section-title">
+              <div>
+                <h2>Plan this week</h2>
+                <p>Pick a meal for each day. The planner combines the ingredients into one grocery list.</p>
+              </div>
+              <div class="actions">
+                <button type="button" id="clearWeeklyPlan">Clear week</button>
+                <button type="button" id="printWeeklyList" class="primary">Print weekly list</button>
+              </div>
+            </div>
+            <div id="weeklyPlanDays" class="weekly-plan-days"></div>
+          </section>
+
+          <section class="scaled-card weekly-grocery-card" id="weeklyGroceryCard" aria-label="Weekly grocery list">
+            <div class="section-title">
+              <div>
+                <h2>Weekly grocery list</h2>
+                <p id="weeklyGrocerySummary">Plan meals above to build a grocery list.</p>
+              </div>
+              <button type="button" id="copyWeeklyList">Copy weekly list</button>
+            </div>
+            <div id="weeklyGroceryGroups" class="weekly-grocery-groups"></div>
+          </section>
+
+          <section class="helper-card meal-builder" id="mealBuilderCard" aria-label="Build a meal by choices">
+            <div class="section-title">
+              <div>
+                <h2>Build a meal by choices</h2>
+                <p>Click through the choices and the planner will make a recipe you can save.</p>
+              </div>
+            </div>
+            <div class="builder-steps">
+              <p id="builderTrail" class="builder-trail"></p>
+              <h3 id="builderQuestion">Pick the main food</h3>
+              <div id="mainChoiceButtons" class="choice-grid"></div>
+              <details class="builder-editor">
+                <summary>Change these choices</summary>
+                <h3 id="builderEditTitle">Change this list</h3>
+                <label>
+                  Pick an item to rename
+                  <select id="builderChoiceSelect"></select>
+                </label>
+                <label>
+                  New item name
+                  <input id="builderChoiceName" type="text" placeholder="Type a new choice here" />
+                </label>
+                <div class="actions">
+                  <button type="button" id="addBuilderChoice">Add to this list</button>
+                  <button type="button" id="renameBuilderChoice">Rename selected</button>
+                  <button type="button" id="deleteBuilderChoice" class="danger">Delete selected</button>
+                </div>
+              </details>
+            </div>
+            <div id="builderPreview" class="builder-preview"></div>
+            <div class="actions">
+              <button type="button" id="saveBuiltMeal" class="primary">Save this meal</button>
+              <button type="button" id="backBuiltMeal">Back one step</button>
+              <button type="button" id="resetBuiltMeal">Start over</button>
+            </div>
+          </section>
+
+          <section class="helper-card" id="pasteRecipeCard" aria-label="Paste a copied recipe">
+            <div class="section-title">
+              <div>
+                <h2>Paste a recipe</h2>
+                <p>Copy a recipe from a website, email, or note, then paste it here.</p>
+              </div>
+            </div>
+            <label>
+              Recipe paste box
+              <textarea id="recipePasteBox" rows="7" placeholder="Example:
+Grandma's Meatloaf
+Serves 4
+1 lb ground beef
+1 egg
+1 cup breadcrumbs
+
+Mix everything, shape into a loaf, and bake at 350 for 1 hour."></textarea>
+            </label>
+            <div class="actions">
+              <button type="button" id="savePastedRecipe" class="primary">Save pasted recipe</button>
+              <button type="button" id="clearPastedRecipe">Clear box</button>
+            </div>
+          </section>
+
+          <form id="recipeForm" class="editor">
+            <div class="editor-top">
+              <label>
+                Recipe name
+                <input id="recipeName" type="text" required />
+              </label>
+              <label>
+                Original serves
+                <input id="baseServings" type="number" min="1" step="1" required />
+              </label>
+            </div>
+
+            <div class="photo-box">
+              <div>
+                <h2>Recipe photo</h2>
+                <p>Add a picture after you make it, so you can pick it by sight later.</p>
+              </div>
+              <img id="recipePhotoPreview" alt="" />
+              <div class="actions">
+                <label class="import-button">
+                  Add photo
+                  <input id="recipePhotoInput" type="file" accept="image/*" />
+                </label>
+                <button type="button" id="removeRecipePhoto">Remove photo</button>
+              </div>
+            </div>
+
+            <div class="section-title">
+              <h2>Ingredients</h2>
+              <button type="button" id="addIngredient">Add ingredient</button>
+            </div>
+            <div id="ingredientRows" class="ingredient-rows"></div>
+
+            <label>
+              How to prep it
+              <textarea id="recipeNotes" rows="5" placeholder="Cooking steps, timing, oven temperature, prep reminders..."></textarea>
+            </label>
+
+            <div class="actions">
+              <button type="submit" class="primary">Save recipe</button>
+              <button type="button" id="printMeal">Print meal page</button>
+              <button type="button" id="deleteRecipe" class="danger">Delete</button>
+            </div>
+          </form>
+
+          <section class="scaled-card recipe-showcase" aria-label="Recipe view">
+            <div class="section-title">
+              <div>
+                <h2>Recipe view</h2>
+                <p id="showcaseSummary">Meal photo, ingredient pictures, and cooking instructions.</p>
+              </div>
+            </div>
+            <div class="showcase-layout">
+              <figure class="showcase-photo">
+                <img id="showcaseMealPhoto" alt="" />
+                <figcaption id="showcaseMealName"></figcaption>
+              </figure>
+              <div>
+                <h3>Ingredients</h3>
+                <div id="showcaseIngredients" class="showcase-ingredients"></div>
+              </div>
+            </div>
+            <div class="showcase-instructions">
+              <h3>Instructions</h3>
+              <div id="showcaseInstructions"></div>
+            </div>
+          </section>
+
+          <section class="scaled-card" aria-label="Scaled ingredients">
+            <div class="section-title">
+              <div>
+                <h2>Scaled ingredients</h2>
+                <p id="scaleSummary"></p>
+              </div>
+              <button type="button" id="copyList">Copy list</button>
+            </div>
+            <ul id="scaledList" class="scaled-list"></ul>
+          </section>
+
+          <section class="scaled-card" aria-label="Meal cost tally">
+            <div class="section-title">
+              <div>
+                <h2>Meal cost tally</h2>
+                <p id="currentMealCost">No matched grocery prices yet.</p>
+              </div>
+              <button type="button" id="recordMealCost">Add to tally</button>
+            </div>
+            <ul id="mealCostHistory" class="mini-list"></ul>
+          </section>
+
+          <section class="scaled-card" id="mealSpendingCard" aria-label="Meal spending calendar">
+            <div class="section-title">
+              <div>
+                <h2>Meal spending calendar</h2>
+                <p id="calendarSummary">Recorded meal costs by day.</p>
+              </div>
+              <div class="calendar-actions">
+                <button type="button" id="previousCalendarMonth">Previous</button>
+                <button type="button" id="nextCalendarMonth">Next</button>
+              </div>
+            </div>
+            <div id="mealCostCalendar" class="meal-calendar"></div>
+          </section>
+
+          <section class="scaled-card pantry-card" id="pantryCard" aria-label="Grocery order and food storage">
+            <div class="section-title">
+              <div>
+                <h2>Refrigerator and pantry</h2>
+                <p>Paste a grocery order here and the planner will sort foods into the right place.</p>
+              </div>
+              <button type="button" id="clearPantry">Clear food list</button>
+            </div>
+            <label>
+              Grocery order paste box
+              <textarea id="walmartPaste" rows="7" placeholder="Paste your grocery order text here.
+
+Tip: copy the item list from Walmart, Publix, Aldi, or another store, paste it here, then click Add groceries."></textarea>
+            </label>
+            <div class="actions">
+              <button type="button" id="addWalmartOrder" class="primary">Add groceries</button>
+              <label class="import-button">
+                Upload text or CSV
+                <input id="groceryFileInput" type="file" accept=".txt,.csv,.tsv,text/plain,text/csv" />
+              </label>
+            </div>
+            <p class="status-line">
+              For PDFs or photos, use the store page or phone to copy the receipt text first, then paste it here.
+            </p>
+            <p id="foodSpendSummary" class="status-line"></p>
+            <div class="pantry-grid">
+              <div>
+                <h3>Refrigerator</h3>
+                <ul id="refrigeratorList" class="mini-list"></ul>
+              </div>
+              <div>
+                <h3>Freezer</h3>
+                <ul id="freezerList" class="mini-list"></ul>
+              </div>
+              <div>
+                <h3>Pantry</h3>
+                <ul id="pantryList" class="mini-list"></ul>
+              </div>
+            </div>
+            <div class="pantry-grid">
+              <div>
+                <h3>For this meal</h3>
+                <p id="mealCostSummary" class="status-line"></p>
+                <ul id="needList" class="mini-list"></ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="scaled-card online-card" aria-label="Online recipe suggestions">
+            <div class="section-title">
+              <div>
+                <h2>Find recipes online</h2>
+                <p>Search by meal name, or show meals you can make from food you already have.</p>
+              </div>
+            </div>
+            <div class="online-search">
+              <label>
+                Search for
+                <input id="onlineRecipeSearch" type="text" placeholder="chicken pasta, tacos, soup..." />
+              </label>
+              <label>
+                Pantry item
+                <select id="pantrySuggestionSelect"></select>
+              </label>
+            </div>
+            <div class="actions">
+              <button type="button" id="searchOnlineRecipes" class="primary">Search recipes</button>
+              <button type="button" id="suggestFromPantry">Suggest from pantry</button>
+              <button type="button" id="suggestFromStock">Ideas from my food only</button>
+            </div>
+            <p id="onlineStatus" class="status-line"></p>
+            <div id="onlineResults" class="online-results"></div>
+          </section>
+        </section>
+      </section>
+
+      <section class="portable">
+        <div>
+          <h2>Take it with you</h2>
+          <p>
+            Your recipes are saved in this browser. Export a backup file to keep recipe data with the thumb drive,
+            then import it on another computer.
+          </p>
+        </div>
+        <div class="portable-actions">
+          <button type="button" id="exportData">Export recipes</button>
+          <label class="import-button">
+            Import recipes
+            <input id="importData" type="file" accept="application/json" />
+          </label>
+        </div>
+      </section>
+    </main>
+
+    <section id="devicePrompt" class="device-prompt" hidden role="dialog" aria-modal="true" aria-labelledby="devicePromptTitle">
+      <div class="device-prompt-card">
+        <p class="eyebrow">First time setup</p>
+        <h2 id="devicePromptTitle">What are you using today?</h2>
+        <p>Pick the screen style that feels easiest. You can change it later from the top of the page.</p>
+        <div class="device-prompt-actions">
+          <button type="button" class="primary" data-device-choice="computer">Computer</button>
+          <button type="button" data-device-choice="iphone">iPhone</button>
+          <button type="button" data-device-choice="android">Android</button>
+        </div>
+        <button type="button" class="quiet-button" id="devicePromptDismiss">Keep computer view</button>
+      </div>
+    </section>
+
+    <template id="ingredientTemplate">
+      <div class="ingredient-row">
+        <label>
+          Amount
+          <input class="amount" type="number" min="0" step="0.01" placeholder="1.5" />
+        </label>
+        <label>
+          Unit
+          <input class="unit" type="text" placeholder="cups" />
+        </label>
+        <label>
+          Ingredient
+          <input class="name" type="text" placeholder="rice" />
+        </label>
+        <button type="button" class="remove" aria-label="Remove ingredient">Remove</button>
+      </div>
+    </template>
+
+    <section id="printSheet" class="print-sheet" aria-label="Printable meal plan">
+      <h1 id="printTitle"></h1>
+      <p id="printMeta"></p>
+      <h2>Ingredients</h2>
+      <ul id="printIngredients"></ul>
+      <h2>How to prep it</h2>
+      <div id="printNotes"></div>
+    </section>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,73 @@
+Beef cut image sources
+
+These ingredient thumbnails were made from Wikimedia Commons image files and cropped/resized for Bob and Mary's Retirement Meal Planner.
+For license and author details, open the matching Wikimedia Commons file page.
+
+ground_beef.png - Ground beef USDA.jpg
+https://commons.wikimedia.org/wiki/File:Ground_beef_USDA.jpg
+
+ribeye.png - Rib-steak-raw-MCB.jpg
+https://commons.wikimedia.org/wiki/File:Rib-steak-raw-MCB.jpg
+
+sirloin.png - Beef Striploin steaksF.jpg
+https://commons.wikimedia.org/wiki/File:Beef_Striploin_steaksF.jpg
+
+t_bone_steak.png - T-bone-raw-MCB.jpg
+https://commons.wikimedia.org/wiki/File:T-bone-raw-MCB.jpg
+
+porterhouse.png - Porterhouse Steak roh 161114 AW.jpg
+https://commons.wikimedia.org/wiki/File:Porterhouse_Steak_roh_161114_AW.jpg
+
+filet_mignon.png - Filetmignon.jpg
+https://commons.wikimedia.org/wiki/File:Filetmignon.jpg
+
+new_york_strip.png - StripSteak.jpg
+https://commons.wikimedia.org/wiki/File:StripSteak.jpg
+
+flank_steak.png - Flank Steak piece of meat.jpg
+https://commons.wikimedia.org/wiki/File:Flank_Steak_piece_of_meat.jpg
+
+beef_ribs.png - Beef ribs 1 2017-02-04.jpg
+https://commons.wikimedia.org/wiki/File:Beef_ribs_1_2017-02-04.jpg
+
+chuck_roast.png - Chuck steaks.jpg
+https://commons.wikimedia.org/wiki/File:Chuck_steaks.jpg
+
+brisket.png - Fresh beef brisket.jpg
+https://commons.wikimedia.org/wiki/File:Fresh_beef_brisket.jpg
+
+stew_meat.png - Stewed beef (1).jpg
+https://commons.wikimedia.org/wiki/File:Stewed_beef_(1).jpg
+
+pot_roast.png - American pot roast.jpg
+https://commons.wikimedia.org/wiki/File:American_pot_roast.jpg
+
+beef_roast.png - Beef roast.jpg
+https://commons.wikimedia.org/wiki/File:Beef_roast.jpg
+
+beef.png - Slab of raw beef.JPG
+https://commons.wikimedia.org/wiki/File:Slab_of_raw_beef.JPG
+
+beef_steak.png - Steak 03 bg 040306.jpg
+https://commons.wikimedia.org/wiki/File:Steak_03_bg_040306.jpg
+
+short_ribs.png - Raw Beef Short Ribs Slices.jpg
+https://commons.wikimedia.org/wiki/File:Raw_Beef_Short_Ribs_Slices.jpg
+
+skirt_steak.png - DoubleCutSkirtSteak (8325602302).jpg
+https://commons.wikimedia.org/wiki/File:DoubleCutSkirtSteak_(8325602302).jpg
+
+hanger_steak.png - Hanger-steak-raw-MCB.jpg
+https://commons.wikimedia.org/wiki/File:Hanger-steak-raw-MCB.jpg
+
+beef_shank.png - Beef shank.jpg
+https://commons.wikimedia.org/wiki/File:Beef_shank.jpg
+
+top_round.png - Beef round top round steak in pan, raw.jpg
+https://commons.wikimedia.org/wiki/File:Beef_round_top_round_steak_in_pan,_raw.jpg
+
+bottom_round.png - Whole Top.jpg
+https://commons.wikimedia.org/wiki/File:Whole_Top.jpg
+
+prime_rib_roast.png - Standing-rib-roast.jpg
+https://commons.wikimedia.org/wiki/File:Standing-rib-roast.jpg

@@ -1,0 +1,5 @@
+[AutoRun]
+label=Bob and Mary's Meal Planner
+open=Start Meal Planner.bat
+action=Start Bob and Mary's Meal Planner
+shellexecute=Start Meal Planner.bat
