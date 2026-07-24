@@ -83,6 +83,10 @@ jobs:
       - name: Test meal planner
         run: pnpm test
 
+      - name: Test thumb-drive backup and recovery
+        shell: pwsh
+        run: ./work/test-server-recovery.ps1
+
       - name: Synchronize Android project
         run: pnpm android:sync
 

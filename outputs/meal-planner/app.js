@@ -3,6 +3,10 @@ const oldStorageKey = "thumb-drive-meal-planner-v1";
 const deviceStorageKey = "bobMaryMealPlannerDeviceMode";
 const appViewStorageKey = "bobMaryMealPlannerView";
 const cookingStorageKey = "bobMaryMealPlannerCookingSession";
+const pendingStorageKey = "bobMaryMealPlannerPendingSave";
+const previousStorageKey = "bobMaryMealPlannerPreviousGoodSave";
+const backupStorageKey = "bobMaryMealPlannerBackups";
+const saveReceiptStorageKey = "bobMaryMealPlannerLastSave";
 let saveTimer = null;
 let saveStatusTimer = null;
 let undoStack = [];
@@ -13,6 +17,9 @@ let cookingSession = null;
 let cookingTimerTicker = null;
 let cookingWakeLock = null;
 let pendingRecipeDraft = null;
+let startupRecoveryMessage = "";
+let lastSaveReceipt = null;
+let availableBackups = [];
 
 const sampleRecipes = [
   {
@@ -75,6 +82,7 @@ const appTabs = document.querySelector(".app-tabs");
 const appViewSections = document.querySelectorAll("[data-app-views]");
 const undoChange = document.querySelector("#undoChange");
 const saveStatus = document.querySelector("#saveStatus");
+const lastSaveDetail = document.querySelector("#lastSaveDetail");
 const commandTonight = document.querySelector("#commandTonight");
 const commandTonightMeta = document.querySelector("#commandTonightMeta");
 const commandWeek = document.querySelector("#commandWeek");
@@ -223,6 +231,12 @@ const cookingSessionStatus = document.querySelector("#cookingSessionStatus");
 const finishCooking = document.querySelector("#finishCooking");
 const exportData = document.querySelector("#exportData");
 const importData = document.querySelector("#importData");
+const recoveryPanel = document.querySelector("#recoveryPanel");
+const backupSelect = document.querySelector("#backupSelect");
+const restoreBackup = document.querySelector("#restoreBackup");
+const createBackup = document.querySelector("#createBackup");
+const refreshBackups = document.querySelector("#refreshBackups");
+const recoveryStatus = document.querySelector("#recoveryStatus");
 const deviceModeLinks = document.querySelectorAll("[data-device-mode]");
 const deviceModeNote = document.querySelector("#deviceModeNote");
 const devicePrompt = document.querySelector("#devicePrompt");
@@ -323,6 +337,12 @@ suggestFromPantry.addEventListener("click", suggestRecipesFromPantry);
 suggestFromStock.addEventListener("click", suggestRecipesFromStock);
 exportData.addEventListener("click", exportRecipes);
 importData.addEventListener("change", importRecipes);
+recoveryPanel.addEventListener("toggle", () => {
+  if (recoveryPanel.open) loadBackupChoices();
+});
+restoreBackup.addEventListener("click", restoreSelectedBackup);
+createBackup.addEventListener("click", createRecoveryBackup);
+refreshBackups.addEventListener("click", loadBackupChoices);
 deviceModeLinks.forEach((link) => {
   link.addEventListener("click", (event) => {
     event.preventDefault();
@@ -346,23 +366,23 @@ devicePromptDismiss.addEventListener("click", () => setDeviceMode("computer", { 
 
 function loadPlanner() {
   const saved = localStorage.getItem(storageKey);
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      return {
-        recipes: normalizeRecipes(parsed.recipes),
-        foodStorage: normalizeFoodStorage(parsed.foodStorage || parsed.pantry),
-        builderOptions: normalizeBuilderOptions(parsed.builderOptions),
-        builderStyles: normalizeBuilderStyles(parsed.builderStyles),
-        builderTemplates: normalizeBuilderTemplates(parsed.builderTemplates),
-        mealCostHistory: normalizeMealCostHistory(parsed.mealCostHistory),
-        weeklyPlan: normalizeWeeklyPlan(parsed.weeklyPlan),
-        inventorySettings: normalizeInventorySettings(parsed.inventorySettings)
-      };
-    } catch {
-      return defaultPlannerData();
+  const pending = localStorage.getItem(pendingStorageKey);
+  const previous = localStorage.getItem(previousStorageKey);
+  const recovery = MealPlannerRecovery.chooseLocalRecovery({ current: saved, pending, previous });
+  if (recovery.data) {
+    if (recovery.recovered) {
+      startupRecoveryMessage = recovery.message;
+      try {
+        if (MealPlannerRecovery.parsePlanner(saved)) localStorage.setItem(previousStorageKey, saved);
+        localStorage.setItem(storageKey, JSON.stringify(recovery.data));
+      } catch {
+        startupRecoveryMessage += " Keep the app open and export a backup.";
+      }
     }
+    localStorage.removeItem(pendingStorageKey);
+    return plannerDataFromSource(recovery.data);
   }
+  if (recovery.message) startupRecoveryMessage = recovery.message;
 
   try {
     const oldRecipes = JSON.parse(localStorage.getItem(oldStorageKey));
@@ -379,6 +399,20 @@ function loadPlanner() {
   } catch {
     return defaultPlannerData();
   }
+}
+
+function plannerDataFromSource(parsed) {
+  return {
+    recipes: normalizeRecipes(parsed.recipes),
+    foodStorage: normalizeFoodStorage(parsed.foodStorage || parsed.pantry),
+    builderOptions: normalizeBuilderOptions(parsed.builderOptions),
+    builderStyles: normalizeBuilderStyles(parsed.builderStyles),
+    builderTemplates: normalizeBuilderTemplates(parsed.builderTemplates),
+    mealCostHistory: normalizeMealCostHistory(parsed.mealCostHistory),
+    weeklyPlan: normalizeWeeklyPlan(parsed.weeklyPlan),
+    inventorySettings: normalizeInventorySettings(parsed.inventorySettings),
+    savedAt: String(parsed.savedAt || "")
+  };
 }
 
 function initDeviceMode() {
@@ -543,9 +577,41 @@ function setSaveStatus(message, resetAfter = 0) {
   saveStatus.textContent = message;
   if (resetAfter > 0) {
     saveStatusTimer = setTimeout(() => {
-      saveStatus.textContent = isNativeApp() ? "Saved on this phone" : "Saved to thumb drive";
+      saveStatus.textContent = lastSaveReceipt
+        ? `Saved to ${lastSaveReceipt.destination}`
+        : "Saved on this device";
     }, resetAfter);
   }
+}
+
+function loadSaveReceipt() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(saveReceiptStorageKey));
+    if (parsed?.at && parsed?.destination) return parsed;
+  } catch {}
+  return null;
+}
+
+function recordSuccessfulSave(destination, at = new Date().toISOString()) {
+  const timestamp = Number.isFinite(Date.parse(at)) ? at : new Date().toISOString();
+  lastSaveReceipt = { destination, at: timestamp };
+  try {
+    localStorage.setItem(saveReceiptStorageKey, JSON.stringify(lastSaveReceipt));
+  } catch {}
+  renderLastSaveDetail();
+}
+
+function renderLastSaveDetail() {
+  if (!lastSaveReceipt) {
+    lastSaveDetail.textContent = "No confirmed save yet";
+    return;
+  }
+  const date = new Date(lastSaveReceipt.at);
+  const today = new Date();
+  const sameDay = date.toDateString() === today.toDateString();
+  const time = date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const day = sameDay ? "today" : date.toLocaleDateString();
+  lastSaveDetail.textContent = `Last confirmed ${day} at ${time} on ${lastSaveReceipt.destination}`;
 }
 
 function isNativeApp() {
@@ -555,16 +621,32 @@ function isNativeApp() {
 function persistRecipes() {
   const data = currentPlannerData();
   setSaveStatus("Saving...");
+  let localSaved = false;
   try {
-    localStorage.setItem(storageKey, JSON.stringify(data));
+    writePlannerLocally(data);
+    localSaved = true;
+    recordSuccessfulSave(isNativeApp() ? "this phone" : "this browser", data.savedAt);
   } catch {
-    setSaveStatus("Could not save in this browser");
+    setSaveStatus("Local save needs attention");
   }
   if (isNativeApp()) {
-    setSaveStatus("Saved on this phone");
+    if (localSaved) setSaveStatus("Saved on this phone");
     return;
   }
+  setSaveStatus(localSaved ? "Saved in browser; saving to thumb drive..." : "Saving to thumb drive...");
   scheduleDriveSave(data);
+}
+
+function writePlannerLocally(data, options = {}) {
+  const serialized = typeof data === "string" ? data : JSON.stringify(data);
+  if (!MealPlannerRecovery.parsePlanner(serialized)) throw new Error("Invalid planner data");
+  const current = localStorage.getItem(storageKey);
+  if (options.keepPrevious !== false && current && current !== serialized && MealPlannerRecovery.parsePlanner(current)) {
+    localStorage.setItem(previousStorageKey, current);
+  }
+  localStorage.setItem(pendingStorageKey, serialized);
+  localStorage.setItem(storageKey, serialized);
+  localStorage.removeItem(pendingStorageKey);
 }
 
 function currentPlannerData() {
@@ -595,7 +677,10 @@ async function saveToDrive(data = currentPlannerData()) {
       body: asciiJson(data)
     });
     if (!response.ok) throw new Error("Drive save failed");
+    const result = await response.json().catch(() => ({}));
+    recordSuccessfulSave("the thumb drive", result.savedAt || data.savedAt);
     setSaveStatus("Saved to thumb drive");
+    if (recoveryPanel.open) loadBackupChoices({ quiet: true });
   } catch {
     setSaveStatus("Saved in this browser only");
   }
@@ -609,7 +694,13 @@ function asciiJson(value) {
 
 async function loadDriveData() {
   if (isNativeApp()) {
-    setSaveStatus("Saved on this phone");
+    if (startupRecoveryMessage) {
+      setSaveStatus(startupRecoveryMessage);
+      recoveryStatus.textContent = startupRecoveryMessage;
+      recoveryPanel.open = true;
+    } else {
+      setSaveStatus("Saved on this phone");
+    }
     return;
   }
   try {
@@ -621,10 +712,22 @@ async function loadDriveData() {
 
     applyPlannerData(data);
     selectedRecipeId = recipes[0]?.id || null;
-    localStorage.setItem(storageKey, JSON.stringify(currentPlannerData()));
+    writePlannerLocally(data);
+    recordSuccessfulSave("the thumb drive", data.savedAt || new Date().toISOString());
     render();
     setAppView(currentAppView, { focus: false, persist: false });
-    setSaveStatus("Loaded from thumb drive");
+    if (response.headers.get("X-Meal-Planner-Recovered") === "true") {
+      startupRecoveryMessage = "The thumb drive recovered its newest good automatic backup.";
+      setSaveStatus(startupRecoveryMessage);
+      recoveryStatus.textContent = startupRecoveryMessage;
+      recoveryPanel.open = true;
+    } else if (startupRecoveryMessage) {
+      setSaveStatus(startupRecoveryMessage);
+      recoveryStatus.textContent = startupRecoveryMessage;
+      recoveryPanel.open = true;
+    } else {
+      setSaveStatus("Loaded from thumb drive");
+    }
   } catch {
     setSaveStatus(isNativeApp() ? "Saved on this phone" : "Saved in this browser only");
   }
@@ -927,9 +1030,17 @@ weeklyPlan = planner.weeklyPlan;
 inventorySettings = planner.inventorySettings;
 selectedRecipeId = recipes[0]?.id || null;
 cookingSession = loadCookingSession();
+lastSaveReceipt = loadSaveReceipt();
+if (!lastSaveReceipt && planner.savedAt) {
+  lastSaveReceipt = {
+    destination: isNativeApp() ? "this phone" : "this browser",
+    at: planner.savedAt
+  };
+}
 updateCookingTimers();
 
 render();
+renderLastSaveDetail();
 setAppView("home", { focus: false, persist: false });
 loadDriveData();
 
@@ -3555,44 +3666,268 @@ async function copyScaledIngredients() {
 
 function exportRecipes() {
   saveCurrentFieldsQuietly();
-  const blob = new Blob([JSON.stringify(currentPlannerData(), null, 2)], { type: "application/json" });
+  const data = currentPlannerData();
+  storeLocalSnapshot("Exported backup", JSON.stringify(data));
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "meal-planner-recipes.json";
+  link.download = `Bob-and-Marys-Meal-Planner-backup-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  recoveryStatus.textContent = "Backup file created. Keep it with the thumb drive or in another safe place.";
+  setSaveStatus("Backup exported", 2200);
 }
 
-function importRecipes(event) {
+async function importRecipes(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const imported = JSON.parse(reader.result);
-      const importedRecipes = Array.isArray(imported) ? imported : imported.recipes;
-      if (!Array.isArray(importedRecipes) || !importedRecipes.length) throw new Error("Invalid recipe file");
-      if (!window.confirm("Import this backup and replace the current recipes and planner data?")) return;
-      captureUndo("import backup");
+  try {
+    const prepared = prepareImportedPlanner(await file.text());
+    const issueText = prepared.issues.length
+      ? `\n\nI found ${prepared.issues.length} item${prepared.issues.length === 1 ? "" : "s"} to correct:\n- ${prepared.issues.slice(0, 6).join("\n- ")}${prepared.issues.length > 6 ? "\n- More items will be listed after import." : ""}`
+      : "";
+    if (!window.confirm(`Import this backup and replace the current planner data?${issueText}`)) return;
+    storeLocalSnapshot("Before imported backup");
+    captureUndo("import backup");
+    applyPlannerData(prepared.data);
+    selectedRecipeId = recipes[0]?.id || null;
+    persistRecipes();
+    render();
+    setAppView("home", { focus: false });
+    recoveryPanel.open = true;
+    recoveryStatus.textContent = prepared.issues.length
+      ? `Backup imported. ${prepared.issues.length} problem${prepared.issues.length === 1 ? "" : "s"}: ${prepared.issues.join(" ")}`
+      : `Backup imported from ${file.name}.`;
+    loadBackupChoices({ quiet: true });
+  } catch (error) {
+    const message = error?.message || "That file is not a meal-planner backup.";
+    recoveryPanel.open = true;
+    recoveryStatus.textContent = `Import stopped: ${message}`;
+    alert(`That backup was not imported. ${message}`);
+  } finally {
+    event.target.value = "";
+  }
+}
 
-      recipes = importedRecipes.map(normalizeRecipe);
-      foodStorage = normalizeFoodStorage(imported.foodStorage || imported.pantry || foodStorage);
-      builderOptions = normalizeBuilderOptions(imported.builderOptions || builderOptions);
-      builderStyles = normalizeBuilderStyles(imported.builderStyles || builderStyles);
-      builderTemplates = normalizeBuilderTemplates(imported.builderTemplates || builderTemplates);
-      mealCostHistory = normalizeMealCostHistory(imported.mealCostHistory || mealCostHistory);
-      inventorySettings = normalizeInventorySettings(imported.inventorySettings || inventorySettings);
-      selectedRecipeId = recipes[0].id;
-      persistRecipes();
-      render();
-    } catch {
-      alert("That file could not be imported. Please choose a meal-planner recipe export.");
+function prepareImportedPlanner(value) {
+  let imported;
+  try {
+    imported = typeof value === "string" ? JSON.parse(value) : value;
+  } catch {
+    throw new Error("The file is not valid JSON.");
+  }
+  const current = currentPlannerData();
+  if (Array.isArray(imported)) {
+    imported = { ...current, recipes: imported };
+  } else if (imported && typeof imported === "object") {
+    const hasOwn = (key) => Object.prototype.hasOwnProperty.call(imported, key);
+    const importedPantryOnly = !hasOwn("foodStorage") && hasOwn("pantry");
+    imported = { ...current, ...imported };
+    if (importedPantryOnly) delete imported.foodStorage;
+  }
+  if (!imported || typeof imported !== "object" || !Array.isArray(imported.recipes)) {
+    throw new Error("The file does not contain a recipes list.");
+  }
+
+  const issues = [];
+  const importedRecipes = [];
+  imported.recipes.forEach((recipe, recipeIndex) => {
+    if (!recipe || typeof recipe !== "object") {
+      issues.push(`Recipe row ${recipeIndex + 1} was not readable and was skipped.`);
+      return;
     }
+    const name = String(recipe.name || "").trim() || `Imported recipe ${recipeIndex + 1}`;
+    if (!String(recipe.name || "").trim()) issues.push(`Recipe row ${recipeIndex + 1} had no name and was renamed "${name}".`);
+    const ingredientSource = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
+    const ingredients = ingredientSource
+      .map((ingredient, ingredientIndex) => {
+        const ingredientName = String(ingredient?.name || "").trim();
+        const amount = Number(ingredient?.amount);
+        if (!ingredientName || !Number.isFinite(amount) || amount <= 0) {
+          issues.push(`${name}: ingredient row ${ingredientIndex + 1} was incomplete and was skipped.`);
+          return null;
+        }
+        return { amount, unit: String(ingredient.unit || ""), name: ingredientName };
+      })
+      .filter(Boolean);
+    if (!ingredients.length) {
+      issues.push(`${name} had no usable ingredients and was skipped.`);
+      return;
+    }
+    importedRecipes.push(normalizeRecipe({ ...recipe, name, ingredients }));
+  });
+  if (!importedRecipes.length) throw new Error(`No complete recipes could be read. ${issues.join(" ")}`.trim());
+
+  const storageSource = imported.foodStorage || imported.pantry;
+  if (Array.isArray(storageSource)) {
+    imported.foodStorage = {
+      refrigerator: [],
+      freezer: [],
+      pantry: reviewImportedFoodRows(storageSource, "Pantry", issues)
+    };
+  } else if (storageSource && typeof storageSource === "object") {
+    imported.foodStorage = {
+      refrigerator: reviewImportedFoodRows(storageSource.refrigerator, "Refrigerator", issues),
+      freezer: reviewImportedFoodRows(storageSource.freezer, "Freezer", issues),
+      pantry: reviewImportedFoodRows(storageSource.pantry, "Pantry", issues)
+    };
+  }
+  delete imported.pantry;
+
+  return {
+    data: { ...imported, recipes: importedRecipes },
+    issues
   };
-  reader.readAsText(file);
-  event.target.value = "";
+}
+
+function reviewImportedFoodRows(value, location, issues) {
+  if (!Array.isArray(value)) {
+    if (value !== undefined) issues.push(`${location} items were not a readable list and were skipped.`);
+    return [];
+  }
+  return value
+    .map((item, index) => {
+      const name = String(item?.name || "").trim();
+      const amount = Number(item?.amount);
+      if (!item || typeof item !== "object" || !name || !Number.isFinite(amount) || amount <= 0) {
+        issues.push(`${location} row ${index + 1} was incomplete and was skipped.`);
+        return null;
+      }
+      return { ...item, name, amount };
+    })
+    .filter(Boolean);
+}
+
+function storeLocalSnapshot(label, serialized = localStorage.getItem(storageKey) || JSON.stringify(currentPlannerData())) {
+  try {
+    const snapshots = MealPlannerRecovery.addSnapshot(
+      localStorage.getItem(backupStorageKey),
+      serialized,
+      { id: crypto.randomUUID(), label }
+    );
+    localStorage.setItem(backupStorageKey, JSON.stringify(snapshots));
+    return true;
+  } catch {
+    recoveryStatus.textContent = "The local backup could not be stored. Export a backup file instead.";
+    return false;
+  }
+}
+
+function backupLabel(prefix, timestamp, extra = "") {
+  const date = new Date(timestamp);
+  const label = Number.isFinite(date.getTime())
+    ? date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" })
+    : "Unknown time";
+  return `${prefix} - ${label}${extra ? ` - ${extra}` : ""}`;
+}
+
+async function loadBackupChoices(options = {}) {
+  const choices = [];
+  const previous = localStorage.getItem(previousStorageKey);
+  const previousData = MealPlannerRecovery.parsePlanner(previous);
+  if (previousData) {
+    choices.push({
+      id: "local:previous",
+      type: "local",
+      data: previous,
+      createdAt: previousData.savedAt || "",
+      label: backupLabel("Previous good save", previousData.savedAt)
+    });
+  }
+  MealPlannerRecovery.normalizeSnapshots(localStorage.getItem(backupStorageKey)).forEach((snapshot) => {
+    choices.push({
+      id: `local:${snapshot.id}`,
+      type: "local",
+      data: snapshot.data,
+      createdAt: snapshot.createdAt,
+      label: backupLabel(snapshot.label, snapshot.createdAt)
+    });
+  });
+
+  if (!isNativeApp()) {
+    try {
+      const response = await fetch(`/api/backups?time=${Date.now()}`);
+      if (response.ok) {
+        const payload = await response.json();
+        (payload.backups || []).forEach((backup) => {
+          choices.push({
+            id: `server:${backup.name}`,
+            type: "server",
+            name: backup.name,
+            createdAt: backup.createdAt,
+            label: backupLabel("Thumb drive automatic", backup.createdAt, `${backup.recipes} recipes`)
+          });
+        });
+      }
+    } catch {}
+  }
+
+  availableBackups = choices.sort((a, b) => Date.parse(b.createdAt || "") - Date.parse(a.createdAt || ""));
+  backupSelect.innerHTML = availableBackups.length
+    ? availableBackups.map((backup) => `<option value="${escapeHtml(backup.id)}">${escapeHtml(backup.label)}</option>`).join("")
+    : '<option value="">No backups available yet</option>';
+  restoreBackup.disabled = !availableBackups.length;
+  if (!options.quiet) {
+    recoveryStatus.textContent = availableBackups.length
+      ? `${availableBackups.length} backup${availableBackups.length === 1 ? "" : "s"} available.`
+      : "No recovery backups exist yet. Choose Create backup now.";
+  }
+}
+
+async function createRecoveryBackup() {
+  saveCurrentFieldsQuietly();
+  const localCreated = storeLocalSnapshot("Manual backup");
+  let driveCreated = false;
+  if (!isNativeApp()) {
+    try {
+      const response = await fetch("/api/backups", { method: "POST" });
+      driveCreated = response.ok;
+    } catch {}
+  }
+  await loadBackupChoices({ quiet: true });
+  recoveryStatus.textContent = driveCreated
+    ? "A new backup was saved on the thumb drive."
+    : localCreated
+      ? `A new backup was saved on ${isNativeApp() ? "this phone" : "this browser"}.`
+      : "A backup could not be created. Export a backup file instead.";
+}
+
+async function restoreSelectedBackup() {
+  const selected = availableBackups.find((backup) => backup.id === backupSelect.value);
+  if (!selected) return;
+  if (!window.confirm(`Restore "${selected.label}"? The current planner will be backed up first.`)) return;
+
+  try {
+    storeLocalSnapshot("Before restore");
+    captureUndo("restore backup");
+    let data;
+    if (selected.type === "server") {
+      const response = await fetch("/api/restore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: selected.name })
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload?.data) throw new Error(payload?.error || "The thumb-drive backup could not be restored.");
+      data = payload.data;
+    } else {
+      data = MealPlannerRecovery.parsePlanner(selected.data);
+    }
+    if (!data) throw new Error("That backup could not be read.");
+
+    applyPlannerData(data);
+    selectedRecipeId = recipes[0]?.id || null;
+    persistRecipes();
+    render();
+    setAppView("home", { focus: false });
+    recoveryPanel.open = true;
+    recoveryStatus.textContent = `Restored ${selected.label}. The planner you had before restoring is also backed up.`;
+    await loadBackupChoices({ quiet: true });
+  } catch (error) {
+    recoveryStatus.textContent = `Restore stopped: ${error?.message || "That backup could not be restored."}`;
+  }
 }
 
 function addWalmartOrderToPantry() {

@@ -97,7 +97,10 @@
 
       <section class="status-strip" aria-label="Save and undo status">
         <button type="button" id="undoChange" disabled>Undo</button>
-        <span id="saveStatus" class="status-line" role="status" aria-live="polite">Saved on this device</span>
+        <div>
+          <span id="saveStatus" class="status-line" role="status" aria-live="polite">Saved on this device</span>
+          <small id="lastSaveDetail">No confirmed save yet</small>
+        </div>
       </section>
 
       <section class="command-center" aria-label="Command center" data-app-views="home">
@@ -550,17 +553,30 @@ Tip: copy the item list from Walmart, Publix, Aldi, or another store, paste it h
         <div>
           <h2>Take it with you</h2>
           <p>
-            Your recipes are saved in this browser. Export a backup file to keep recipe data with the thumb drive,
-            then import it on another computer.
+            Export one backup file to move the entire planner to another computer or phone.
           </p>
         </div>
         <div class="portable-actions">
-          <button type="button" id="exportData">Export recipes</button>
+          <button type="button" id="exportData">Export backup</button>
           <label class="import-button">
-            Import recipes
+            Import backup
             <input id="importData" type="file" accept="application/json" />
           </label>
         </div>
+        <details id="recoveryPanel" class="recovery-panel">
+          <summary>Backups and recovery</summary>
+          <p>The planner keeps a previous good save. The thumb drive also keeps automatic backups while its server is running.</p>
+          <div class="recovery-controls">
+            <label>
+              Available backup
+              <select id="backupSelect"></select>
+            </label>
+            <button type="button" id="restoreBackup">Restore selected</button>
+            <button type="button" id="createBackup">Create backup now</button>
+            <button type="button" id="refreshBackups">Refresh list</button>
+          </div>
+          <p id="recoveryStatus" class="status-line" role="status" aria-live="polite"></p>
+        </details>
       </section>
     </main>
 
@@ -687,6 +703,7 @@ Tip: copy the item list from Walmart, Publix, Aldi, or another store, paste it h
     <script src="food-engine.js"></script>
     <script src="receipt-reader.js"></script>
     <script src="recipe-reader.js"></script>
+    <script src="recovery.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

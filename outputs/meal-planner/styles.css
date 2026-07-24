@@ -287,6 +287,16 @@ h2 {
   margin-top: 10px;
 }
 
+.status-strip > div {
+  display: grid;
+  gap: 2px;
+}
+
+.status-strip small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
 .command-center {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1298,7 +1308,8 @@ body.cooking-open {
 }
 
 .portable {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   justify-content: space-between;
   gap: 20px;
   align-items: center;
@@ -1311,6 +1322,30 @@ body.cooking-open {
   margin-bottom: 0;
   color: var(--muted);
   line-height: 1.45;
+}
+
+.recovery-panel {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.recovery-panel summary {
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.recovery-panel > p {
+  margin: 10px 0 14px;
+}
+
+.recovery-controls {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) repeat(3, auto);
+  gap: 10px;
+  align-items: end;
 }
 
 .pantry-card {
@@ -1905,6 +1940,7 @@ body[data-device-mode="computer"] .device-link[data-device-mode="computer"] {
   .layout,
   .editor-top,
   .portable,
+  .recovery-controls,
   .showcase-layout,
   .pantry-grid,
   .expiry-toolbar,

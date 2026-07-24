@@ -92,6 +92,15 @@ Cooklist. Their strongest recurring patterns are:
    Keep Undo visible, make automatic backups easy to restore, show the last
    successful save time, and explain any import row that could not be read.
 
+   **Implemented in the 0.9 prerelease:** every successful save shows when and
+   where it was confirmed; interrupted phone or browser saves recover from a
+   pending or previous-good copy; the thumb-drive server keeps automatic
+   backups and can repair a damaged main file from the newest valid temporary
+   save or backup; manual, previous-good, exported, and thumb-drive backups are
+   listed in one restore panel; the current planner is backed up before an
+   import or restore; and incomplete import rows are explained before the user
+   decides whether to continue.
+
 ### P2: useful after v1.0
 
 - Shared household sync with conflict handling.
