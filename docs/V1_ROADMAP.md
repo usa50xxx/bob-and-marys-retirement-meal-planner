@@ -1,0 +1,93 @@
+# Roadmap to v1.0
+
+Bob and Mary's Meal Planner is currently a `0.9.x` prerelease. The goal for
+v1.0 is a dependable, private, offline-first planner that is comfortable for
+people who do not use computers often.
+
+## What leading apps do well
+
+The review focused on Paprika, AnyList, Samsung Food, Mealime, KitchenPal, and
+Cooklist. Their strongest recurring patterns are:
+
+| Product pattern | Examples | Decision for this planner |
+| --- | --- | --- |
+| Turn planned recipes into one consolidated grocery list | AnyList, Samsung Food, Paprika | Keep and harden |
+| Scale servings before calculating the shopping list | AnyList, Mealime | Keep and add quantity validation |
+| Compare the grocery list with pantry stock | Paprika, KitchenPal, Cooklist | Make this the core v1.0 calculator |
+| Suggest recipes using food already at home | KitchenPal, Cooklist | Keep, then rank by match and expiration |
+| Import recipes from links, text, or photos | Paprika, AnyList, Samsung Food | Add a review-before-save importer |
+| Provide a focused cooking view | AnyList, Mealime | Add step checkoff, large text, and timers |
+| Track expiration dates and leftovers | KitchenPal | Add after quantity matching is reliable |
+| Share live household data across devices | AnyList, Cooklist | Defer to v1.1; it requires accounts and a secure sync service |
+| Nutrition scoring and retailer checkout | Samsung Food, Mealime | Defer; valuable but not central to the private offline promise |
+
+## v1.0 priorities
+
+### P0: release blockers
+
+- Keep every existing automated browser and receipt test passing.
+- Add automated debug APK builds for every push.
+- Produce signed APK and AAB files from protected GitHub secrets.
+- Test Android 7, a current Android phone, and a tablet-sized screen.
+- Complete a backup, restore, upgrade, and interrupted-save recovery test.
+- Audit every bundled food image for source and redistribution permission.
+- Publish a privacy policy and choose a repository license.
+- Remove all example or personal shopping data from release packages.
+
+### P1: highest-value product work
+
+1. Finish the food calculator.
+   Normalize pounds, ounces, cups, cans, packages, and counts. Show Have, Need,
+   and Buy consistently. After cooking, ask the user to confirm what was used
+   before subtracting it from inventory.
+
+2. Add expiration-aware inventory.
+   Store best-by dates, highlight food to use soon, and rank recipe ideas that
+   prevent waste. Alerts should be optional and easy to understand.
+
+3. Add a guided cooking mode.
+   Show one readable step at a time, allow ingredient and step checkoff, keep
+   the screen awake while cooking, and provide simple multiple timers.
+
+4. Add reviewed recipe capture.
+   Accept a recipe link, pasted text, PDF, or photograph. Extract the title,
+   servings, ingredients, time, temperature, and steps into an editable review
+   screen before saving.
+
+5. Add confidence and recovery.
+   Keep Undo visible, make automatic backups easy to restore, show the last
+   successful save time, and explain any import row that could not be read.
+
+### P2: useful after v1.0
+
+- Shared household sync with conflict handling.
+- Barcode scanning and product lookup.
+- Nutrition and allergy profiles.
+- Home-screen grocery and "tonight's meal" widgets.
+- Store aisle customization and price comparison.
+- Cloud recipe discovery beyond the existing optional provider.
+
+## v1.0 release gates
+
+v1.0 is ready only when all P0 items are complete, P1 quantity and recovery
+work is covered by tests, the signed release installs as an upgrade over 0.9,
+and a non-technical tester can complete these tasks without help:
+
+1. Import a grocery receipt and correct a mistaken row.
+2. Find the imported food in the refrigerator, freezer, or pantry.
+3. Choose a recipe based only on food in the house.
+4. Change the serving count and see accurate Have, Need, and Buy amounts.
+5. Plan a meal, print its recipe, and print the combined grocery list.
+6. Mark a meal cooked and confirm inventory and meal cost.
+7. Back up the data and restore it on another device.
+
+## Research sources
+
+- [Paprika user guide](https://www.paprikaapp.com/help/windows/)
+- [AnyList meal planning](https://www.anylist.com/meal-planning)
+- [Samsung Food](https://samsungfood.com/)
+- [Mealime](https://www.mealime.com/)
+- [KitchenPal pantry and shopping features](https://kitchenpalapp.com/)
+- [Cooklist app](https://cooklist.com/cooklist-app)
+- [Android release build guidance](https://developer.android.com/build/build-for-release)
+- [Google Play target API requirements](https://developer.android.com/google/play/requirements/target-sdk)

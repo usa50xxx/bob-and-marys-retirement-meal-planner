@@ -5,11 +5,14 @@ A portable, dark-mode meal planner designed to run from a Windows thumb drive.
 The offline website is in `outputs/meal-planner`. The installable Android
 package is in `outputs/android`, and its native project is in `android`.
 
+The current application version is `0.9.0`. Release work and product priorities
+are tracked in [docs/V1_ROADMAP.md](docs/V1_ROADMAP.md).
+
 ## Android build
 
 The Android app uses Capacitor and supports Android 7.0 (API 24) and newer.
-Install dependencies, synchronize the web files, and build the private debug
-APK:
+It requires Node.js 22 or newer and Java 21. Install dependencies, synchronize
+the web files, and build the private debug APK:
 
 ```powershell
 pnpm install
@@ -18,6 +21,10 @@ pnpm android:build
 
 The generated APK is written to
 `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+Every GitHub push runs the full browser and receipt tests, Android lint, and an
+APK build. Tagged releases also support protected Android signing and draft
+GitHub releases. See [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md).
 
 ## Main features
 

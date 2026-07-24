@@ -149,7 +149,14 @@ async function run() {
     await clickView(page, "recipes");
     await page.locator("#resetBuiltMeal").click();
     await page.locator("#mainChoiceButtons .choice-button").filter({ hasText: /^Beef$/ }).click();
-    await page.waitForTimeout(300);
+    await page.waitForFunction(() => {
+      const cards = [...document.querySelectorAll("#mainChoiceButtons .choice-button")];
+      return cards.length >= 18 &&
+        cards.every((card) => {
+          const image = card.querySelector("img");
+          return image?.complete && image.naturalWidth > 0;
+        });
+    }, null, { timeout: 15_000 });
     const beefCards = await page.locator("#mainChoiceButtons .choice-button").evaluateAll((buttons) =>
       buttons.map((button) => ({
         name: button.textContent.trim().replace(/\s+/g, " "),

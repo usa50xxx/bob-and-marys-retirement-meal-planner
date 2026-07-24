@@ -15,6 +15,7 @@ work/*-out.txt
 work/*-err.txt
 work/beef-cut-fullpage/
 work/beef-cut-screens/
+work/android-web/
 
 # Native Android build dependencies and generated intermediates.
 node_modules/
@@ -22,3 +23,6 @@ android/.gradle/
 android/.idea/
 android/local.properties
 android/**/build/
+android/*.jks
+android/*.keystore
+dist/

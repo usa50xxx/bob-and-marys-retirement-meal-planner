@@ -1,0 +1,92 @@
+name: Build and test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Web tests and Android APK
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.9.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle caching
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Install JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install test browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Test meal planner
+        run: pnpm test
+
+      - name: Synchronize Android project
+        run: pnpm android:sync
+
+      - name: Lint and build debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon lintDebug assembleDebug
+
+      - name: Prepare APK artifact
+        run: |
+          mkdir -p dist
+          short_sha="${GITHUB_SHA::7}"
+          cp android/app/build/outputs/apk/debug/app-debug.apk \
+            "dist/Bob-and-Marys-Meal-Planner-debug-${short_sha}.apk"
+          cd dist
+          sha256sum *.apk > SHA256SUMS.txt
+
+      - name: Upload installable APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: bob-and-marys-meal-planner-debug-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Upload Android lint report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-lint-${{ github.sha }}
+          path: android/app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
+          retention-days: 7
