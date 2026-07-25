@@ -11,7 +11,8 @@ The `Build and test` workflow runs on every push. It:
 5. Runs Android lint.
 6. Builds an installable debug APK.
 7. Uploads the APK, checksum, and lint report to the workflow run.
-8. Reuses that exact APK on Android 7 and Android 15 emulators.
+8. Reuses that exact APK on Android 7 and Android 15 phone emulators plus an
+   Android 15 Pixel C tablet emulator.
 9. Tests live recipe search, airplane-mode behavior, offline recipe-photo
    reading, recovery, touch sizing, and phone layout.
 10. Upgrades a lower-version installation and verifies saved recipes and inventory survive.
@@ -84,7 +85,8 @@ stated requirement for new apps and updates beginning August 31, 2026.
 - [x] All automated tests and Android lint pass in hosted CI.
 - [ ] Signed APK upgrades an existing 0.9 installation without data loss.
 - [ ] Signed AAB passes Play Console pre-launch checks.
-- [ ] Core tasks pass on Android 7, current Android, and tablet layouts.
+- [x] Core recipe, inventory, recovery, and layout tasks pass on Android 7,
+  Android 15, and an Android 15 Pixel C tablet.
 - [x] Native CI passes on Android 7 and Android 15, including offline recipe-photo OCR.
 - [x] The installed-app upgrade test preserves and migrates a saved recipe and inventory item.
 - [x] Android 15 CI verifies real TheMealDB search, the airplane-mode failure
