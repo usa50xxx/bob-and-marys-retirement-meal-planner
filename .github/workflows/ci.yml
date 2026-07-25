@@ -68,10 +68,7 @@ jobs:
         run: pnpm android:sync
 
       - name: Lint and build debug APK
-        working-directory: android
-        run: |
-          chmod +x gradlew
-          ./gradlew --no-daemon lintDebug assembleDebug
+        run: node work/run-gradle.mjs lintDebug assembleDebug
 
       - name: Prepare APK artifact
         run: |

@@ -17,6 +17,10 @@ The `Build and test` workflow runs on every push. It:
    reading, recovery, touch sizing, phone layout, and Android 200% text scaling.
 10. Upgrades a lower-version installation and verifies saved recipes and inventory survive.
 
+Gradle commands stream their normal output and retry at most twice only when a
+recognized transient network failure interrupts a dependency or distribution
+download. Lint, compilation, signing, and test failures are never retried.
+
 The `Draft Android release` workflow runs for semantic version tags such as
 `v0.9.1`. It repeats the tests, builds a signed APK and Android App Bundle,
 verifies both signatures, upgrades a signed lower-version installation on

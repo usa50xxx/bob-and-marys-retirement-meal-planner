@@ -30,10 +30,22 @@ const release = fs.readFileSync(
   path.join(workflowsDirectory, "release.yml"),
   "utf8",
 );
+const continuousIntegration = fs.readFileSync(
+  path.join(workflowsDirectory, "ci.yml"),
+  "utf8",
+);
 assert.match(release, /^\s*id-token:\s*write\s*$/m);
 assert.match(release, /^\s*attestations:\s*write\s*$/m);
 assert.match(release, /--draft/);
 assert.match(release, /Refusing to replace an already published release/);
+assert.match(
+  release,
+  /node work\/run-gradle\.mjs lintRelease assembleRelease bundleRelease/,
+);
+assert.match(
+  continuousIntegration,
+  /node work\/run-gradle\.mjs lintDebug assembleDebug/,
+);
 assert.match(
   release,
   /actions\/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6/,

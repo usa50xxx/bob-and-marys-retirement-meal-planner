@@ -100,15 +100,12 @@ jobs:
         run: pnpm android:sync
 
       - name: Build signed release files
-        working-directory: android
         env:
           ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/release-keystore.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          chmod +x gradlew
-          ./gradlew --no-daemon lintRelease assembleRelease bundleRelease
+        run: node work/run-gradle.mjs lintRelease assembleRelease bundleRelease
 
       - name: Preserve candidate and build signed upgrade baseline
         env:
