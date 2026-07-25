@@ -638,6 +638,7 @@ h2 {
 
 .visual-recipe.rolodex-card {
   position: absolute;
+  height: max-content;
   top: 88px;
   left: 8px;
   right: 8px;

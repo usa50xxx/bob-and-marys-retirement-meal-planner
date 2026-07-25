@@ -51,9 +51,9 @@ const fallbackRecipes = [
     ]
   }
 ];
-const sampleRecipes = Array.isArray(globalThis.SUPPERLOOM_STARTER_RECIPES)
-  && globalThis.SUPPERLOOM_STARTER_RECIPES.length >= 50
-  ? globalThis.SUPPERLOOM_STARTER_RECIPES
+const sampleRecipes = Array.isArray(window.SUPPERLOOM_STARTER_RECIPES)
+  && window.SUPPERLOOM_STARTER_RECIPES.length >= 50
+  ? window.SUPPERLOOM_STARTER_RECIPES
   : fallbackRecipes;
 const STARTER_CATALOG_VERSION = 1;
 

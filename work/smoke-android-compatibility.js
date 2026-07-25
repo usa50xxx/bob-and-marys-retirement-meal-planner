@@ -136,10 +136,21 @@ async function run() {
       document.querySelector('[data-app-view="recipes"]').click();
       var firstRecipe = document.querySelector(".recipe-card");
       firstRecipe.click();
-      var buttonHeights = Array.prototype.map.call(
+      var buttonHeights = Array.prototype.filter.call(
         document.querySelectorAll("button"),
-        function (button) { return Math.round(button.getBoundingClientRect().height); }
-      ).filter(function (height) { return height > 0; });
+        function (button) {
+          var style = window.getComputedStyle(button);
+          var rect = button.getBoundingClientRect();
+          return style.display !== "none"
+            && style.visibility !== "hidden"
+            && style.opacity !== "0"
+            && style.pointerEvents !== "none"
+            && rect.width > 0
+            && rect.height > 0;
+        }
+      ).map(function (button) {
+        return Math.round(button.getBoundingClientRect().height);
+      });
       return {
         activeView: document.body.getAttribute("data-active-view"),
         selectedName: document.querySelector("#recipeName").value,

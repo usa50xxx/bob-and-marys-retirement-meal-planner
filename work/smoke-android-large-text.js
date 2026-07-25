@@ -32,6 +32,8 @@ try {
       var rect = element.getBoundingClientRect();
       return style.display !== "none"
         && style.visibility !== "hidden"
+        && style.opacity !== "0"
+        && style.pointerEvents !== "none"
         && rect.width > 0
         && rect.height > 0;
     }
