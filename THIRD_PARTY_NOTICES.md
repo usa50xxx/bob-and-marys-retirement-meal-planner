@@ -1,6 +1,6 @@
 # Third-party notices
 
-Bob and Mary's Retirement Meal Planner includes open-source software. The full
+Supperloom includes open-source software. The full
 license texts shipped with the browser components remain in the `vendor`
 directory of each release package.
 

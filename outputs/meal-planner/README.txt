@@ -1,4 +1,4 @@
-Bob and Mary's Retirement Meal Planner
+Supperloom Meal Planner
 
 Double-click "Start Meal Planner.bat" to run it as a small local website.
 This is the best way to use it because it saves your recipes and food lists

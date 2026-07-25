@@ -1,4 +1,4 @@
-# Bob and Mary's Retirement Meal Planner
+# Supperloom Meal Planner
 
 A portable, dark-mode meal planner designed to run from a Windows thumb drive.
 

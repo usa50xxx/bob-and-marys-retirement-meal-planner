@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Bob and Mary's Retirement Meal Planner is still preparing its first stable
+Supperloom is still preparing its first stable
 release. Security fixes are made on the current development branch until
 version 1.0 is published. This policy will be updated with supported release
 versions after that point.

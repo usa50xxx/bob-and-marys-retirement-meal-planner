@@ -3797,7 +3797,7 @@ function exportRecipes() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `Bob-and-Marys-Meal-Planner-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = `Supperloom-backup-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   recoveryStatus.textContent = "Backup file created. Keep it with the thumb drive or in another safe place.";

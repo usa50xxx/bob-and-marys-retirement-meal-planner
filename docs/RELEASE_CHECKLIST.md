@@ -98,7 +98,7 @@ pnpm release:verify v0.9.1
 Then commit the version change and create the matching tag:
 
 ```powershell
-git tag -a v0.9.1 -m "Bob and Mary's Meal Planner v0.9.1"
+git tag -a v0.9.1 -m "Supperloom v0.9.1"
 git push origin v0.9.1
 ```
 
@@ -108,7 +108,7 @@ downloaded asset:
 
 ```powershell
 gh release verify v0.9.1 -R usa50xxx/bob-and-marys-retirement-meal-planner
-gh release verify-asset v0.9.1 Bob-and-Marys-Meal-Planner-v0.9.1.apk -R usa50xxx/bob-and-marys-retirement-meal-planner
+gh release verify-asset v0.9.1 Supperloom-v0.9.1.apk -R usa50xxx/bob-and-marys-retirement-meal-planner
 ```
 
 The Android project already targets API level 36, which meets Google Play's

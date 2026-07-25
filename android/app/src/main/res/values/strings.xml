@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Bob and Mary\'s Meal Planner</string>
-    <string name="title_activity_main">Bob and Mary\'s Meal Planner</string>
+    <string name="app_name">Supperloom</string>
+    <string name="title_activity_main">Supperloom</string>
     <string name="package_name">com.bobandmary.mealplanner</string>
     <string name="custom_url_scheme">com.bobandmary.mealplanner</string>
 </resources>

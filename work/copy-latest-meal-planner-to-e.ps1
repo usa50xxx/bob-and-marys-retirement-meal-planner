@@ -23,19 +23,23 @@ New-Item -ItemType Directory -Force -Path $backup | Out-Null
 
 $topLevelFiles = @(
   "app.js",
+  "compatibility.js",
   "food-engine.js",
+  "ingredient-image-aliases.js",
   "index.html",
   "iphone.html",
   "android.html",
   "receipt-reader.js",
+  "recipe-reader.js",
+  "recovery.js",
   "styles.css",
   "meal-planner-server.ps1",
   "README.txt",
   "Start Meal Planner.bat",
   "Start Meal Planner for Phones.bat",
   "Start Meal Planner From Drive.bat",
-  "Start Bob and Mary's Meal Planner.bat",
-  "Start Bob and Mary's Meal Planner for Phones.bat",
+  "Start Supperloom.bat",
+  "Start Supperloom for Phones.bat",
   "autorun.inf",
   "favicon.ico"
 )
@@ -54,9 +58,23 @@ foreach ($file in $topLevelFiles) {
   }
 }
 
-$rootStarterFiles = @(
+$legacyStarterFiles = @(
   "Start Bob and Mary's Meal Planner.bat",
   "Start Bob and Mary's Meal Planner for Phones.bat"
+)
+
+foreach ($file in $legacyStarterFiles) {
+  foreach ($legacyFile in @((Join-Path "E:\" $file), (Join-Path $target $file))) {
+    if (Test-Path -LiteralPath $legacyFile -PathType Leaf) {
+      Copy-Item -LiteralPath $legacyFile -Destination (Join-Path $backup $file) -Force
+      Remove-Item -LiteralPath $legacyFile -Force
+    }
+  }
+}
+
+$rootStarterFiles = @(
+  "Start Supperloom.bat",
+  "Start Supperloom for Phones.bat"
 )
 
 foreach ($file in $rootStarterFiles) {
@@ -75,7 +93,7 @@ $targetImages = Join-Path $target "images"
 $sourceIngredientImages = Join-Path $sourceImages "ingredients"
 $targetIngredientImages = Join-Path $targetImages "ingredients"
 $sourceWebpCount = (Get-ChildItem -LiteralPath $sourceIngredientImages -Filter "*.webp" -File | Measure-Object).Count
-if ($sourceWebpCount -lt 300) {
+if ($sourceWebpCount -lt 298) {
   throw "The optimized ingredient picture set is incomplete, so the old pictures were left alone."
 }
 Copy-Item -Path (Join-Path $sourceImages "*") -Destination $targetImages -Recurse -Force
@@ -106,7 +124,7 @@ $summary = [ordered]@{
   targetAppLength = (Get-Item -LiteralPath (Join-Path $target "app.js")).Length
   ingredientImageCount = (Get-ChildItem -LiteralPath (Join-Path $target "images\ingredients") -Filter "*.webp" | Measure-Object).Count
   oldPngImageCount = (Get-ChildItem -LiteralPath (Join-Path $target "images\ingredients") -Filter "*.png" | Measure-Object).Count
-  androidApkCopied = (Test-Path -LiteralPath (Join-Path $targetAndroid "Bob and Mary's Meal Planner.apk") -PathType Leaf)
+  androidApkCopied = (Test-Path -LiteralPath (Join-Path $targetAndroid "Supperloom.apk") -PathType Leaf)
   dataFilePreserved = (Test-Path -LiteralPath $dataFile -PathType Leaf)
   copiedAt = (Get-Date).ToString("s")
 }

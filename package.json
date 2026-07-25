@@ -1,8 +1,8 @@
 {
-  "name": "bob-and-marys-retirement-meal-planner",
+  "name": "supperloom",
   "version": "0.9.0",
   "private": true,
-  "description": "Offline meal planning, inventory, grocery, receipt, and spending tools for Bob and Mary.",
+  "description": "Offline meal planning, inventory, grocery, receipt, and spending tools for every household.",
   "packageManager": "pnpm@11.9.0",
   "engines": {
     "node": ">=22.0.0"

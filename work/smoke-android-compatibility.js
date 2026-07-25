@@ -103,7 +103,7 @@ async function run() {
     })()`);
 
     if (initial.readyState !== "complete") throw new Error("The Android page did not finish loading.");
-    if (!initial.title.includes("Bob and Mary")) throw new Error(`Unexpected title: ${initial.title}`);
+    if (!initial.title.includes("Supperloom")) throw new Error(`Unexpected title: ${initial.title}`);
     if (!initial.native) throw new Error("The Android app did not identify itself as native.");
     if (!initial.recovery) throw new Error("The recovery module was not loaded.");
     if (!initial.uuid || !initial.matchAll) throw new Error("Android compatibility helpers are missing.");

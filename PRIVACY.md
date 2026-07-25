@@ -2,7 +2,7 @@
 
 Effective date: July 24, 2026
 
-Bob and Mary's Retirement Meal Planner is designed to work locally without an
+Supperloom is designed to work locally without an
 account. It does not contain advertising, analytics, tracking, or a developer
 operated cloud synchronization service.
 

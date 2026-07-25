@@ -116,7 +116,7 @@ async function run() {
     await page.waitForFunction(() => document.querySelector("#devicePrompt")?.hidden === true);
     failures.push(...await audit(page, "home"));
     const homeNodes = await accessibilityNodes(page);
-    if (!hasAccessibleNode(homeNodes, "heading", "Bob and Mary's Retirement Meal Planner")) {
+    if (!hasAccessibleNode(homeNodes, "heading", "Supperloom Meal Planner")) {
       failures.push("screen reader: the page title heading is missing from the accessibility tree");
     }
     if (!hasAccessibleNode(homeNodes, "navigation", "Main areas")) {

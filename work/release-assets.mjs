@@ -8,8 +8,8 @@ const APP_SOURCE = "outputs/meal-planner";
 const STATIC_DIRECTORIES = new Set(["images", "vendor"]);
 const PUBLIC_ROOT_FILES = new Set([
   "README.txt",
-  "Start Bob and Mary's Meal Planner for Phones.bat",
-  "Start Bob and Mary's Meal Planner.bat",
+  "Start Supperloom for Phones.bat",
+  "Start Supperloom.bat",
   "Start Meal Planner From Drive.bat",
   "Start Meal Planner for Phones.bat",
   "Start Meal Planner.bat",

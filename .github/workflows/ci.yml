@@ -75,14 +75,14 @@ jobs:
           mkdir -p dist
           short_sha="${GITHUB_SHA::7}"
           cp android/app/build/outputs/apk/debug/app-debug.apk \
-            "dist/Bob-and-Marys-Meal-Planner-debug-${short_sha}.apk"
+            "dist/Supperloom-debug-${short_sha}.apk"
           cd dist
           sha256sum *.apk > SHA256SUMS.txt
 
       - name: Build matching APK for upgrade testing
         run: |
           node work/build-android-upgrade-baseline.mjs \
-            --output upgrade-dist/Bob-and-Marys-Meal-Planner-baseline.apk
+            --output upgrade-dist/Supperloom-baseline.apk
           cd upgrade-dist
           sha256sum *.apk > SHA256SUMS.txt
 

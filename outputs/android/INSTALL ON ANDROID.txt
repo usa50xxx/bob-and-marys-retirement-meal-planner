@@ -1,11 +1,11 @@
-BOB AND MARY'S MEAL PLANNER - ANDROID INSTALL
+SUPPERLOOM - ANDROID INSTALL
 
 File to install:
-Bob and Mary's Meal Planner.apk
+Supperloom.apk
 
 1. Move the APK file onto the Android phone.
 2. On the phone, open Files or My Files.
-3. Tap "Bob and Mary's Meal Planner.apk".
+3. Tap "Supperloom.apk".
 4. If Android asks, allow installation from this source.
 5. Tap Install, then Open.
 

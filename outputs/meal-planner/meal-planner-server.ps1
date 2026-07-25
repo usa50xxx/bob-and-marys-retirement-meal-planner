@@ -259,7 +259,7 @@ function Read-RecipePage([string]$url) {
   $handler.AutomaticDecompression = [System.Net.DecompressionMethods]::GZip -bor [System.Net.DecompressionMethods]::Deflate
   $client = [System.Net.Http.HttpClient]::new($handler)
   $client.Timeout = [TimeSpan]::FromSeconds(18)
-  $client.DefaultRequestHeaders.UserAgent.ParseAdd("BobAndMaryMealPlanner/0.9")
+  $client.DefaultRequestHeaders.UserAgent.ParseAdd("Supperloom/0.9")
   $current = [Uri]$url
 
   try {

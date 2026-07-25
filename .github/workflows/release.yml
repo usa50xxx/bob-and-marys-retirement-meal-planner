@@ -186,12 +186,12 @@ jobs:
           pnpm release:stage
           mkdir -p dist
           cp signed-test-dist/candidate.apk \
-            "dist/Bob-and-Marys-Meal-Planner-${RELEASE_TAG}.apk"
+            "dist/Supperloom-${RELEASE_TAG}.apk"
           cp signed-test-dist/candidate.aab \
-            "dist/Bob-and-Marys-Meal-Planner-${RELEASE_TAG}.aab"
+            "dist/Supperloom-${RELEASE_TAG}.aab"
           (
             cd work/release-web
-            zip -9 -r "../../dist/Bob-and-Marys-Meal-Planner-Thumb-Drive-${RELEASE_TAG}.zip" \
+            zip -9 -r "../../dist/Supperloom-Thumb-Drive-${RELEASE_TAG}.zip" \
               meal-planner
           )
           cd dist
@@ -229,7 +229,7 @@ jobs:
             gh release upload "$RELEASE_TAG" dist/* --clobber
             if [ -f "$notes_file" ]; then
               gh release edit "$RELEASE_TAG" \
-                --title "Bob and Mary's Meal Planner ${RELEASE_TAG}" \
+                --title "Supperloom ${RELEASE_TAG}" \
                 --notes-file "$notes_file"
             fi
           elif [ -f "$notes_file" ]; then
@@ -237,13 +237,13 @@ jobs:
               --draft \
               --notes-file "$notes_file" \
               --verify-tag \
-              --title "Bob and Mary's Meal Planner ${RELEASE_TAG}"
+              --title "Supperloom ${RELEASE_TAG}"
           else
             gh release create "$RELEASE_TAG" dist/* \
               --draft \
               --generate-notes \
               --verify-tag \
-              --title "Bob and Mary's Meal Planner ${RELEASE_TAG}"
+              --title "Supperloom ${RELEASE_TAG}"
           fi
 
       - name: Remove signing key

@@ -171,7 +171,7 @@ for (let index = 0; index < items.length; index += 1) {
     file: `${item.key}.webp`,
     sourceUrl,
     author: manifest.author
-      || "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+      || "Supperloom project with OpenAI image generation",
     license: manifest.license || "Project ingredient image license",
     licenseUrl,
     sourceType: "project-original-generated",

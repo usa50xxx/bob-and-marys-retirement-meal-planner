@@ -1,6 +1,6 @@
 # Roadmap to v1.0
 
-Bob and Mary's Meal Planner is currently a `0.9.x` prerelease. The goal for
+Supperloom is currently a `0.9.x` prerelease. The goal for
 v1.0 is a dependable, private, offline-first planner that is comfortable for
 people who do not use computers often.
 

@@ -1,6 +1,6 @@
 # Play Console Data safety worksheet
 
-This worksheet records the verified behavior of Bob and Mary's Retirement Meal
+This worksheet records the verified behavior of the Supperloom meal
 Planner and provides conservative draft answers for Google Play Console. Review
 the final release build and TheMealDB's current data handling before submitting
 the form.

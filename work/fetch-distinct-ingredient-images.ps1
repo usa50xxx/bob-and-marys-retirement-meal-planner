@@ -57,7 +57,7 @@ foreach ($entry in $ingredients.GetEnumerator()) {
   Write-Host ("Downloading {0}..." -f $entry.Key)
   try {
     Invoke-WebRequest -Uri $url -OutFile $destination -Headers @{
-      "User-Agent" = "BobAndMaryMealPlanner/1.0"
+      "User-Agent" = "Supperloom/1.0"
     }
   } catch {
     Write-Warning ("TheMealDB has no downloadable photo for {0}" -f $entry.Key)
