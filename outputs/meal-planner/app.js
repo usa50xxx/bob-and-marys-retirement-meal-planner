@@ -7,6 +7,7 @@ const pendingStorageKey = "bobMaryMealPlannerPendingSave";
 const previousStorageKey = "bobMaryMealPlannerPreviousGoodSave";
 const backupStorageKey = "bobMaryMealPlannerBackups";
 const saveReceiptStorageKey = "bobMaryMealPlannerLastSave";
+const machineSoundStorageKey = "supperloomMachineSounds";
 const appViewOrder = ["home", "recipes", "plan", "groceries", "inventory", "spending"];
 let saveTimer = null;
 let saveStatusTimer = null;
@@ -22,6 +23,10 @@ let startupRecoveryMessage = "";
 let lastSaveReceipt = null;
 let availableBackups = [];
 let swipeStart = null;
+let machineSoundsEnabled = true;
+let machineAudioContext = null;
+let machineMasterGain = null;
+let lastMachineSoundAt = {};
 
 const fallbackRecipes = [
   {
@@ -90,6 +95,8 @@ const swipeSurface = document.querySelector(".shell");
 const appViewAnnouncement = document.querySelector("#appViewAnnouncement");
 const appViewSections = document.querySelectorAll("[data-app-views]");
 const undoChange = document.querySelector("#undoChange");
+const machineSoundToggle = document.querySelector("#machineSoundToggle");
+const statusStrip = document.querySelector(".status-strip");
 const saveStatus = document.querySelector("#saveStatus");
 const lastSaveDetail = document.querySelector("#lastSaveDetail");
 const commandTonight = document.querySelector("#commandTonight");
@@ -167,6 +174,7 @@ const addIngredient = document.querySelector("#addIngredient");
 const newRecipe = document.querySelector("#newRecipe");
 const deleteRecipe = document.querySelector("#deleteRecipe");
 const printMeal = document.querySelector("#printMeal");
+const textRecipe = document.querySelector("#textRecipe");
 const scaledList = document.querySelector("#scaledList");
 const scaleSummary = document.querySelector("#scaleSummary");
 const copyList = document.querySelector("#copyList");
@@ -253,6 +261,7 @@ const devicePromptDismiss = document.querySelector("#devicePromptDismiss");
 const devicePromptChoices = document.querySelectorAll("[data-device-choice]");
 
 initDeviceMode();
+initMachineSounds();
 mealDate.valueAsDate = new Date();
 
 targetServings.addEventListener("input", renderMealViews);
@@ -312,6 +321,7 @@ newRecipe.addEventListener("click", createRecipe);
 deleteRecipe.addEventListener("click", deleteSelectedRecipe);
 recipeForm.addEventListener("submit", saveSelectedRecipe);
 printMeal.addEventListener("click", printSelectedMeal);
+textRecipe.addEventListener("click", textSelectedRecipe);
 startCooking.addEventListener("click", openCookingMode);
 closeCooking.addEventListener("click", closeCookingMode);
 resetCooking.addEventListener("click", resetCookingProgress);
@@ -330,6 +340,7 @@ cookingMode.addEventListener("cancel", (event) => {
   closeCookingMode();
 });
 document.addEventListener("visibilitychange", handleCookingVisibilityChange);
+document.addEventListener("visibilitychange", recoverMachineAudio);
 recordMealCost.addEventListener("click", recordSelectedMealCost);
 previousCalendarMonth.addEventListener("click", () => changeCalendarMonth(-1));
 nextCalendarMonth.addEventListener("click", () => changeCalendarMonth(1));
@@ -365,6 +376,8 @@ devicePromptChoices.forEach((button) => {
   button.addEventListener("click", () => setDeviceMode(button.dataset.deviceChoice, { persist: true, updateUrl: true, announce: true, hidePrompt: true }));
 });
 devicePromptDismiss.addEventListener("click", () => setDeviceMode("computer", { persist: true, updateUrl: false, announce: true, hidePrompt: true }));
+machineSoundToggle.addEventListener("click", toggleMachineSounds);
+document.addEventListener("click", handleMachineSoundInteraction, true);
 [recipeName, baseServings, recipeNotes, recipePrepTime, recipeCookTime, recipeTotalTime, recipeTemperature, recipeSourceUrl].forEach((field) => {
   field.addEventListener("input", () => {
     captureEditorUndoOnce();
@@ -503,6 +516,193 @@ function normalizedDeviceMode(value) {
   return ["computer", "iphone", "android"].includes(mode) ? mode : "";
 }
 
+function initMachineSounds() {
+  try {
+    machineSoundsEnabled = localStorage.getItem(machineSoundStorageKey) !== "off";
+  } catch {
+    machineSoundsEnabled = true;
+  }
+  renderMachineSoundToggle();
+}
+
+function renderMachineSoundToggle() {
+  machineSoundToggle.setAttribute("aria-pressed", String(machineSoundsEnabled));
+  machineSoundToggle.textContent = `Machine sounds: ${machineSoundsEnabled ? "On" : "Off"}`;
+  machineSoundToggle.setAttribute("aria-label", "Machine sounds");
+}
+
+function toggleMachineSounds() {
+  if (machineSoundsEnabled) playMachineSound("tap");
+  machineSoundsEnabled = !machineSoundsEnabled;
+  try {
+    localStorage.setItem(machineSoundStorageKey, machineSoundsEnabled ? "on" : "off");
+  } catch {}
+  renderMachineSoundToggle();
+  if (machineSoundsEnabled) playMachineSound("success");
+}
+
+function handleMachineSoundInteraction(event) {
+  if (!machineSoundsEnabled) return;
+  const control = event.target instanceof Element
+    ? event.target.closest("button, a.device-link, label.import-button")
+    : null;
+  if (!control || control === machineSoundToggle || control.matches(":disabled")) return;
+  if (
+    [
+      "saveBuiltMeal",
+      "saveReviewedRecipe",
+      "commitReceiptItems",
+      "recordMealCost",
+      "cookAndDeduct",
+      "createBackup",
+      "restoreBackup"
+    ].includes(control.id)
+    || control.matches("#recipeForm button[type='submit']")
+  ) {
+    return;
+  }
+
+  if (
+    control.classList.contains("rolodex-spin")
+    || control.classList.contains("rolodex-letter")
+    || control.classList.contains("visual-recipe")
+  ) {
+    playMachineSound("crank");
+    return;
+  }
+  if (
+    control.matches("[data-app-view], [data-device-mode]")
+    || control.classList.contains("quick-card")
+  ) {
+    playMachineSound("zip");
+    return;
+  }
+  if (
+    [
+      "askFoodAi",
+      "savePastedRecipe",
+      "readRecipeUrl",
+      "searchOnlineRecipes",
+      "suggestFromPantry",
+      "suggestFromStock",
+      "suggestUseSoon",
+      "addWalmartOrder"
+    ].includes(control.id)
+    || control.classList.contains("import-button")
+  ) {
+    playMachineSound("process");
+    return;
+  }
+  playMachineSound("tap");
+}
+
+function playMachineSound(kind = "tap") {
+  if (!machineSoundsEnabled) return;
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+
+  try {
+    const nowMilliseconds = Date.now();
+    const cooldown = { tap: 35, zip: 100, crank: 90, process: 220, success: 180, complete: 420 };
+    if (nowMilliseconds - (lastMachineSoundAt[kind] || 0) < (cooldown[kind] || cooldown.tap)) return;
+    lastMachineSoundAt[kind] = nowMilliseconds;
+    if (!machineAudioContext || machineAudioContext.state === "closed") {
+      machineAudioContext = new AudioContextClass();
+      machineMasterGain = machineAudioContext.createGain();
+      machineMasterGain.gain.setValueAtTime(0.72, machineAudioContext.currentTime);
+      machineMasterGain.connect(machineAudioContext.destination);
+    }
+    if (machineAudioContext.state !== "running") {
+      machineAudioContext.resume().catch(() => {
+        machineAudioContext = null;
+        machineMasterGain = null;
+      });
+    }
+    const now = machineAudioContext.currentTime + 0.006;
+    const patterns = {
+      tap: [
+        { at: 0, frequency: 155, endFrequency: 105, duration: 0.045, gain: 0.035, type: "square" }
+      ],
+      zip: [
+        { at: 0, frequency: 180, endFrequency: 520, duration: 0.13, gain: 0.028, type: "sawtooth" },
+        { at: 0.035, frequency: 720, endFrequency: 420, duration: 0.09, gain: 0.012, type: "triangle" }
+      ],
+      crank: [
+        { at: 0, frequency: 115, endFrequency: 82, duration: 0.045, gain: 0.04, type: "square" },
+        { at: 0.055, frequency: 145, endFrequency: 96, duration: 0.04, gain: 0.034, type: "square" },
+        { at: 0.11, frequency: 175, endFrequency: 110, duration: 0.04, gain: 0.03, type: "square" },
+        { at: 0.16, frequency: 680, endFrequency: 440, duration: 0.055, gain: 0.016, type: "triangle" }
+      ],
+      process: [
+        { at: 0, frequency: 92, endFrequency: 76, duration: 0.07, gain: 0.036, type: "square" },
+        { at: 0.085, frequency: 110, endFrequency: 82, duration: 0.07, gain: 0.034, type: "square" },
+        { at: 0.17, frequency: 92, endFrequency: 76, duration: 0.07, gain: 0.032, type: "square" },
+        { at: 0.255, frequency: 130, endFrequency: 92, duration: 0.08, gain: 0.03, type: "square" }
+      ],
+      success: [
+        { at: 0, frequency: 440, endFrequency: 520, duration: 0.11, gain: 0.025, type: "triangle" },
+        { at: 0.11, frequency: 660, endFrequency: 590, duration: 0.2, gain: 0.028, type: "sine" }
+      ],
+      complete: [
+        { at: 0, frequency: 105, endFrequency: 55, duration: 0.09, gain: 0.052, type: "square" },
+        { at: 0.065, frequency: 185, endFrequency: 115, duration: 0.045, gain: 0.032, type: "square" },
+        { at: 0.115, frequency: 230, endFrequency: 145, duration: 0.045, gain: 0.028, type: "square" },
+        { at: 0.16, frequency: 523, endFrequency: 570, duration: 0.16, gain: 0.028, type: "triangle" },
+        { at: 0.25, frequency: 784, endFrequency: 700, duration: 0.32, gain: 0.036, type: "sine" }
+      ]
+    };
+    (patterns[kind] || patterns.tap).forEach((tone) => scheduleMachineTone(now, tone));
+  } catch {
+    // Sound is optional; every planner action still works without audio support.
+  }
+}
+
+function scheduleMachineTone(start, tone) {
+  const oscillator = machineAudioContext.createOscillator();
+  const volume = machineAudioContext.createGain();
+  const toneStart = start + tone.at;
+  const toneEnd = toneStart + tone.duration;
+  oscillator.type = tone.type;
+  oscillator.frequency.setValueAtTime(tone.frequency, toneStart);
+  oscillator.frequency.exponentialRampToValueAtTime(Math.max(20, tone.endFrequency), toneEnd);
+  volume.gain.setValueAtTime(0.0001, toneStart);
+  volume.gain.exponentialRampToValueAtTime(tone.gain, toneStart + 0.008);
+  volume.gain.exponentialRampToValueAtTime(0.0001, toneEnd);
+  oscillator.connect(volume);
+  volume.connect(machineMasterGain || machineAudioContext.destination);
+  oscillator.start(toneStart);
+  oscillator.stop(toneEnd + 0.01);
+}
+
+function recoverMachineAudio() {
+  if (
+    document.visibilityState !== "visible"
+    || !machineSoundsEnabled
+    || !machineAudioContext
+    || machineAudioContext.state === "running"
+  ) {
+    return;
+  }
+  machineAudioContext.resume().catch(() => {
+    machineAudioContext = null;
+    machineMasterGain = null;
+  });
+}
+
+function celebrateMachineSuccess() {
+  playMachineSound("complete");
+  requestPersistentPhoneStorage();
+  statusStrip.classList.remove("machine-complete");
+  void statusStrip.offsetWidth;
+  statusStrip.classList.add("machine-complete");
+  window.setTimeout(() => statusStrip.classList.remove("machine-complete"), 760);
+}
+
+function requestPersistentPhoneStorage() {
+  if (!navigator.storage || typeof navigator.storage.persist !== "function") return;
+  navigator.storage.persist().catch(() => {});
+}
+
 function detectDeviceMode() {
   const agent = navigator.userAgent || "";
   const isIpad = /Macintosh/i.test(agent) && navigator.maxTouchPoints > 1;
@@ -610,6 +810,7 @@ function finishAppViewSwipe(event) {
   const currentIndex = appViewOrder.indexOf(currentAppView);
   const nextIndex = distanceX < 0 ? currentIndex + 1 : currentIndex - 1;
   if (nextIndex < 0 || nextIndex >= appViewOrder.length) return;
+  playMachineSound("zip");
   setAppView(appViewOrder[nextIndex]);
 }
 
@@ -3416,6 +3617,7 @@ function saveSelectedRecipe(event) {
   editorUndoArmed = true;
   render();
   setSaveStatus("Recipe saved", 1800);
+  celebrateMachineSuccess();
 }
 
 function saveCurrentFieldsQuietly() {
@@ -3677,6 +3879,7 @@ function saveBuilderMeal() {
   persistRecipes();
   render();
   focusSection(recipeForm, recipeName);
+  celebrateMachineSuccess();
 }
 
 function resetBuilder() {
@@ -3906,6 +4109,7 @@ function commitReviewedRecipe() {
   setAppView("recipes", { focus: false });
   recipeReadStatus.textContent = `${recipe.name} was saved after review.`;
   focusSection(recipeForm, recipeName);
+  celebrateMachineSuccess();
 }
 
 function clearRecipeReview(options = {}) {
@@ -3987,6 +4191,7 @@ async function importRecipes(event) {
       ? `Backup imported. ${prepared.issues.length} problem${prepared.issues.length === 1 ? "" : "s"}: ${prepared.issues.join(" ")}`
       : `Backup imported from ${file.name}.`;
     loadBackupChoices({ quiet: true });
+    celebrateMachineSuccess();
   } catch (error) {
     const message = error?.message || "That file is not a meal-planner backup.";
     recoveryPanel.open = true;
@@ -4178,6 +4383,7 @@ async function createRecoveryBackup() {
     : localCreated
       ? `A new backup was saved on ${isNativeApp() ? "this phone" : "this browser"}.`
       : "A backup could not be created. Export a backup file instead.";
+  if (driveCreated || localCreated) celebrateMachineSuccess();
 }
 
 async function restoreSelectedBackup() {
@@ -4211,6 +4417,7 @@ async function restoreSelectedBackup() {
     recoveryPanel.open = true;
     recoveryStatus.textContent = `Restored ${selected.label}. The planner you had before restoring is also backed up.`;
     await loadBackupChoices({ quiet: true });
+    celebrateMachineSuccess();
   } catch (error) {
     recoveryStatus.textContent = `Restore stopped: ${error?.message || "That backup could not be restored."}`;
   }
@@ -4384,6 +4591,7 @@ function addReviewedReceiptItems() {
   persistRecipes();
   renderMealViews();
   setSaveStatus(`${validItems.length} grocery item${validItems.length === 1 ? "" : "s"} added`, 2200);
+  celebrateMachineSuccess();
 }
 
 function clearReceiptReview() {
@@ -4852,6 +5060,7 @@ function recordSelectedMealCost() {
   persistRecipes();
   renderMealCostTally();
   renderMealCostCalendar();
+  celebrateMachineSuccess();
 }
 
 function cookSelectedMeal() {
@@ -4898,7 +5107,62 @@ function cookSelectedMeal() {
   render();
   setAppView("inventory", { focus: false });
   setSaveStatus(`${recipe.name} cooked and inventory updated`, 2600);
+  celebrateMachineSuccess();
   return true;
+}
+
+async function textSelectedRecipe() {
+  const recipe = selectedRecipe();
+  if (!recipe) return;
+  const message = recipeTextMessage(recipe);
+  const phoneMode =
+    document.body.classList.contains("phone-layout")
+    || ["iphone", "android"].includes(document.body.dataset.deviceMode);
+
+  if (phoneMode) {
+    const separator = document.body.dataset.deviceMode === "iphone" ? "&" : "?";
+    const link = document.createElement("a");
+    link.href = `sms:${separator}body=${encodeURIComponent(message)}`;
+    link.hidden = true;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setSaveStatus("Opening a new text message", 2200);
+    playMachineSound("zip");
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(message);
+    setSaveStatus("Recipe copied and ready to text", 2400);
+    celebrateMachineSuccess();
+  } catch {
+    setSaveStatus("Could not copy the recipe. Try Copy list instead.", 2600);
+  }
+}
+
+function recipeTextMessage(recipe = selectedRecipe()) {
+  if (!recipe) return "";
+  const people = cleanNumber(targetServings.value, recipe.baseServings || 1);
+  const timing = recipeTimingText(recipe);
+  const ingredients = getScaledIngredients(recipe)
+    .map((ingredient) =>
+      `- ${formatAmount(ingredient.amount)} ${ingredient.unit || "item"} ${ingredient.name}`.replace(/\s+/g, " ")
+    )
+    .join("\n");
+  const instructions = recipe.notes?.trim() || "No cooking instructions were saved.";
+  return [
+    recipe.name,
+    `Serves ${people}${timing ? ` | ${timing}` : ""}${recipe.temperature ? ` | ${recipe.temperature}` : ""}`,
+    "",
+    "Ingredients",
+    ingredients,
+    "",
+    "Instructions",
+    instructions,
+    "",
+    "Shared from Supperloom Meal Planner"
+  ].join("\n");
 }
 
 function renderPrintSheet() {

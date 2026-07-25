@@ -181,6 +181,57 @@ async function run() {
     localStorage.setItem("bobMaryMealPlannerDeviceMode", "computer");
     localStorage.setItem("bobMaryMealPlannerView", "home");
     window.__wakeLockRequests = 0;
+    window.__machineToneStarts = 0;
+    window.__lastClipboardText = "";
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (value) => {
+          window.__lastClipboardText = value;
+        }
+      }
+    });
+    class FakeAudioParam {
+      setValueAtTime() {}
+      exponentialRampToValueAtTime() {}
+    }
+    class FakeOscillator {
+      constructor() {
+        this.frequency = new FakeAudioParam();
+        this.type = "sine";
+      }
+      connect() {
+        return this;
+      }
+      start() {
+        window.__machineToneStarts += 1;
+      }
+      stop() {}
+    }
+    class FakeGain {
+      constructor() {
+        this.gain = new FakeAudioParam();
+      }
+      connect() {
+        return this;
+      }
+    }
+    window.AudioContext = class {
+      constructor() {
+        this.currentTime = 0;
+        this.state = "running";
+        this.destination = {};
+      }
+      createOscillator() {
+        return new FakeOscillator();
+      }
+      createGain() {
+        return new FakeGain();
+      }
+      resume() {
+        return Promise.resolve();
+      }
+    };
     Object.defineProperty(navigator, "wakeLock", {
       configurable: true,
       value: {
@@ -219,7 +270,31 @@ async function run() {
 
     check(await page.locator("#focusedLayout").isHidden(), "Home starts focused and uncluttered");
     check(await page.locator(".command-center").isVisible(), "Home summary is visible");
+    check(
+      await page.locator("#machineSoundToggle").getAttribute("aria-pressed") === "true",
+      "Machine sounds start on with an accessible control"
+    );
+    await page.locator("#machineSoundToggle").click();
+    const tonesAfterTurningOff = await page.evaluate(() => window.__machineToneStarts);
+    check(
+      await page.locator("#machineSoundToggle").getAttribute("aria-pressed") === "false"
+        && await page.evaluate(() => localStorage.getItem("supperloomMachineSounds")) === "off",
+      "Machine sound preference can be turned off and is remembered"
+    );
 
+    await clickView(page, "plan");
+    check(
+      await page.evaluate(() => window.__machineToneStarts) === tonesAfterTurningOff,
+      "Muted machine sounds stay silent during navigation"
+    );
+    await page.locator("#machineSoundToggle").click();
+    const tonesAfterTurningOn = await page.evaluate(() => window.__machineToneStarts);
+    await clickView(page, "home");
+    check(
+      await page.locator("#machineSoundToggle").getAttribute("aria-pressed") === "true"
+        && await page.evaluate(() => window.__machineToneStarts) > tonesAfterTurningOn,
+      "Machine sounds return for page movement when turned on"
+    );
     await clickView(page, "plan");
     check(await page.locator("#weeklyPlannerCard").isVisible(), "Plan screen opens");
     check(await page.locator("#receiptImportCard").isHidden(), "Unrelated receipt screen stays hidden");
@@ -264,6 +339,17 @@ async function run() {
     await page.fill("#targetServings", "4");
     const scaledText = await page.locator("#scaledList").innerText();
     check(/2 lb\s+ground beef/i.test(scaledText), "Recipe ingredients scale for four people", scaledText);
+    await page.locator("#textRecipe").click();
+    const sharedRecipe = await page.evaluate(() => window.__lastClipboardText);
+    check(
+      /Test Meatloaf/i.test(sharedRecipe)
+        && /Serves 4/i.test(sharedRecipe)
+        && /2 lb ground beef/i.test(sharedRecipe)
+        && /Ingredients/i.test(sharedRecipe)
+        && /Instructions/i.test(sharedRecipe),
+      "Text recipe prepares a complete scaled message",
+      sharedRecipe.replace(/\s+/g, " ").slice(0, 220)
+    );
     await page.locator("#startCooking").click();
     check(await page.locator("#cookingMode").isVisible(), "Guided cooking opens for the selected recipe");
     check(

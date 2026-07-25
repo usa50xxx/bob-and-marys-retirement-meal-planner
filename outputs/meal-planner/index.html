@@ -120,6 +120,9 @@
           <span id="saveStatus" class="status-line" role="status" aria-live="polite">Saved on this device</span>
           <small id="lastSaveDetail">No confirmed save yet</small>
         </div>
+        <button type="button" id="machineSoundToggle" class="machine-sound-toggle" aria-pressed="true">
+          Machine sounds: On
+        </button>
       </section>
 
       <section class="command-center" aria-label="Command center" data-app-views="home">
@@ -399,7 +402,10 @@ Mix everything, shape into a loaf, and bake at 350 for 1 hour."></textarea>
                 <h2>Recipe view</h2>
                 <p id="showcaseSummary">Meal photo, ingredient pictures, and cooking instructions.</p>
               </div>
-              <button type="button" id="startCooking" class="primary">Start cooking</button>
+              <div class="actions">
+                <button type="button" id="textRecipe">Text recipe</button>
+                <button type="button" id="startCooking" class="primary">Start cooking</button>
+              </div>
             </div>
             <div class="showcase-layout">
               <figure class="showcase-photo">
