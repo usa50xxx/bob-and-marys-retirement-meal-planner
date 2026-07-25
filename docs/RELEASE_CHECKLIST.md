@@ -12,7 +12,8 @@ The `Build and test` workflow runs on every push. It:
 6. Builds an installable debug APK.
 7. Uploads the APK, checksum, and lint report to the workflow run.
 8. Reuses that exact APK on Android 7 and Android 15 emulators.
-9. Tests offline recipe-photo reading, recovery, touch sizing, and phone layout.
+9. Tests live recipe search, airplane-mode behavior, offline recipe-photo
+   reading, recovery, touch sizing, and phone layout.
 10. Upgrades a lower-version installation and verifies saved recipes and inventory survive.
 
 The `Draft Android release` workflow runs for semantic version tags such as
@@ -80,13 +81,14 @@ stated requirement for new apps and updates beginning August 31, 2026.
 
 ## v1.0 approval gates
 
-- [ ] All automated tests and Android lint pass.
+- [x] All automated tests and Android lint pass in hosted CI.
 - [ ] Signed APK upgrades an existing 0.9 installation without data loss.
 - [ ] Signed AAB passes Play Console pre-launch checks.
 - [ ] Core tasks pass on Android 7, current Android, and tablet layouts.
 - [x] Native CI passes on Android 7 and Android 15, including offline recipe-photo OCR.
 - [x] The installed-app upgrade test preserves and migrates a saved recipe and inventory item.
-- [ ] Airplane-mode operation and optional online recipe search are tested.
+- [x] Android 15 CI verifies real TheMealDB search, the airplane-mode failure
+  message, and local recipe/photo processing while offline.
 - [x] Backup and restore are tested with realistic data.
 - [x] Automated WCAG A/AA checks cover every main screen, selected recipes, guided cooking, phone layouts, keyboard access, visible focus, and screen-reader names.
 - [ ] Manual accessibility review covers 200% text scaling and real TalkBack or VoiceOver use.
