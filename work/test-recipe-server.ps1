@@ -10,12 +10,23 @@ $outFile = Join-Path $temporaryDirectory "bob-mary-recipe-server-out.txt"
 $errFile = Join-Path $temporaryDirectory "bob-mary-recipe-server-err.txt"
 Remove-Item -LiteralPath $outFile, $errFile -Force -ErrorAction SilentlyContinue
 
-$process = Start-Process -FilePath "powershell" -ArgumentList @(
-  "-NoProfile",
-  "-ExecutionPolicy", "Bypass",
-  "-File", "`"$serverScript`"",
-  "-NoBrowser"
-) -WindowStyle Hidden -RedirectStandardOutput $outFile -RedirectStandardError $errFile -PassThru
+$isWindowsPlatform = [System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT
+$startParameters = @{
+  FilePath = if ($isWindowsPlatform) { "powershell" } else { "pwsh" }
+  ArgumentList = @(
+    "-NoProfile",
+    "-ExecutionPolicy", "Bypass",
+    "-File", "`"$serverScript`"",
+    "-NoBrowser"
+  )
+  RedirectStandardOutput = $outFile
+  RedirectStandardError = $errFile
+  PassThru = $true
+}
+if ($isWindowsPlatform) {
+  $startParameters.WindowStyle = "Hidden"
+}
+$process = Start-Process @startParameters
 
 try {
   $homeUrl = $null
