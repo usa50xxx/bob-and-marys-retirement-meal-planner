@@ -180,6 +180,17 @@ async function run() {
       args: ["--no-sandbox"]
     });
     const page = await browser.newPage({ viewport: { width: 1365, height: 900 } });
+    await page.addInitScript(() => {
+      window.__lastClipboardText = "";
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: {
+          writeText: async (value) => {
+            window.__lastClipboardText = value;
+          }
+        }
+      });
+    });
     page.on("pageerror", error => browserErrors.push(error.message));
     page.on("console", msg => {
       if (msg.type() === "error") {
@@ -239,6 +250,30 @@ async function run() {
     await page.fill("#targetServings", "4");
     await page.waitForTimeout(300);
     await expectText(page, "#scaledList", /2 lb.*ground beef|ground beef/i, "Servings scale ingredients", results);
+    const soundToggle = page.locator("#machineSoundToggle");
+    const soundStartsOn = await soundToggle.getAttribute("aria-pressed") === "true";
+    await soundToggle.click();
+    const soundTurnsOff = await soundToggle.getAttribute("aria-pressed") === "false";
+    await soundToggle.click();
+    const soundReturns = await soundToggle.getAttribute("aria-pressed") === "true";
+    results.push({
+      name: "Machine sounds can be turned off and on",
+      status: soundStartsOn && soundTurnsOff && soundReturns ? "PASS" : "FAIL",
+      detail: `starts on: ${soundStartsOn}, turns off: ${soundTurnsOff}, returns: ${soundReturns}`
+    });
+
+    await page.locator("#textRecipe").click();
+    const sharedRecipe = await page.evaluate(() => window.__lastClipboardText);
+    results.push({
+      name: "Text recipe prepares scaled ingredients and instructions",
+      status: /Test Meatloaf/i.test(sharedRecipe)
+        && /Serves 4/i.test(sharedRecipe)
+        && /2 lb ground beef/i.test(sharedRecipe)
+        && /Instructions/i.test(sharedRecipe)
+        ? "PASS"
+        : "FAIL",
+      detail: sharedRecipe.replace(/\s+/g, " ").slice(0, 220)
+    });
 
     await page.evaluate(() => { window.__printCalled = false; window.print = () => { window.__printCalled = true; }; });
     await page.click("#printMeal");
