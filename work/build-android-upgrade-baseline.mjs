@@ -7,6 +7,10 @@ const options = parseArguments(process.argv.slice(2));
 if (!options.output) {
   throw new Error("Provide --output with the baseline APK destination.");
 }
+const variant = options.variant || "debug";
+if (!["debug", "release"].includes(variant)) {
+  throw new Error(`Unsupported Android baseline variant: ${variant}.`);
+}
 
 const gradleFile = "android/app/build.gradle";
 const gradle = fs.readFileSync(gradleFile, "utf8");
@@ -16,13 +20,16 @@ if (!candidateCode) {
 }
 
 const baselineCode = candidateCode - 1;
+const capitalizedVariant = `${variant[0].toUpperCase()}${variant.slice(1)}`;
 run(process.execPath, [
   "work/run-gradle.mjs",
-  "assembleDebug",
+  `assemble${capitalizedVariant}`,
   `-PbobMaryVersionCodeOverride=${baselineCode}`,
 ]);
 
-const source = path.resolve("android/app/build/outputs/apk/debug/app-debug.apk");
+const source = path.resolve(
+  `android/app/build/outputs/apk/${variant}/app-${variant}.apk`,
+);
 const destination = path.resolve(options.output);
 fs.mkdirSync(path.dirname(destination), { recursive: true });
 fs.copyFileSync(source, destination);
@@ -30,5 +37,6 @@ fs.copyFileSync(source, destination);
 console.log(JSON.stringify({
   candidateVersionCode: candidateCode,
   baselineVersionCode: baselineCode,
+  variant,
   apk: destination,
 }, null, 2));

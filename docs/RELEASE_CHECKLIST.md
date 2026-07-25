@@ -19,8 +19,11 @@ The `Build and test` workflow runs on every push. It:
 
 The `Draft Android release` workflow runs for semantic version tags such as
 `v0.9.1`. It repeats the tests, builds a signed APK and Android App Bundle,
+verifies both signatures, upgrades a signed lower-version installation on
+Android 15, runs the native online, offline, recovery, and 200% text checks,
 packages the portable thumb-drive website, writes SHA-256 checksums, and
-creates a draft GitHub release for final human review.
+creates a draft GitHub release for final human review. The keystore and its
+passwords are scoped to signing steps and removed before emulator testing.
 
 Both Android synchronization and thumb-drive packaging use a tracked-only
 release staging step. It rejects backups, planner data, interrupted-save
@@ -100,7 +103,8 @@ stated requirement for new apps and updates beginning August 31, 2026.
 - [x] Privacy policy draft describes local data, photos, files, internet access, and disabled Android automatic backup.
 - [ ] Privacy policy is published at a stable URL, linked inside the app, and
   entered in Play Console. A tested GitHub Pages build and deploy workflow is
-  prepared for `main`; Pages enablement and the in-app link remain.
+  prepared for `main`, and workflow-based Pages publishing is enabled. Merging
+  and deploying the policy plus adding the in-app link remain.
 - [ ] Play Console Data safety answers match the verified release behavior and
   third-party requests. The
   [submission worksheet](PLAY_CONSOLE_DATA_SAFETY.md) is prepared; TheMealDB

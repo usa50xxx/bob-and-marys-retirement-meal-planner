@@ -23,5 +23,12 @@ assert.doesNotMatch(notes, /\b(?:TODO|TBD)\b|<[^>]+>/i);
 assert.match(workflow, /docs\/releases\/\$\{RELEASE_TAG\}\.md/);
 assert.match(workflow, /isDraft/);
 assert.match(workflow, /Refusing to replace an already published release/);
+assert.match(workflow, /signed-test-dist\/candidate\.apk/);
+assert.match(workflow, /signed-test-dist\/baseline\.apk/);
+assert.match(workflow, /candidate_digest/);
+assert.match(workflow, /jar verified/);
+assert.match(workflow, /--upgrade/);
+assert.match(workflow, /--large-text/);
+assert.match(workflow, /Remove signing key before emulator testing/);
 
 console.log("Release notes and draft-release safeguards passed.");
