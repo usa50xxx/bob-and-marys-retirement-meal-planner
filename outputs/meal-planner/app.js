@@ -21,7 +21,7 @@ let startupRecoveryMessage = "";
 let lastSaveReceipt = null;
 let availableBackups = [];
 
-const sampleRecipes = [
+const fallbackRecipes = [
   {
     id: crypto.randomUUID(),
     name: "Lemon Chicken Pasta",
@@ -51,6 +51,11 @@ const sampleRecipes = [
     ]
   }
 ];
+const sampleRecipes = Array.isArray(globalThis.SUPPERLOOM_STARTER_RECIPES)
+  && globalThis.SUPPERLOOM_STARTER_RECIPES.length >= 50
+  ? globalThis.SUPPERLOOM_STARTER_RECIPES
+  : fallbackRecipes;
+const STARTER_CATALOG_VERSION = 1;
 
 let planner;
 let recipes;
@@ -387,14 +392,16 @@ function loadPlanner() {
   try {
     const oldRecipes = JSON.parse(localStorage.getItem(oldStorageKey));
     return {
-      recipes: normalizeRecipes(oldRecipes),
+      recipes: mergeStarterRecipes(oldRecipes),
       foodStorage: normalizeFoodStorage(),
       builderOptions: normalizeBuilderOptions(),
       builderStyles: normalizeBuilderStyles(),
       builderTemplates: {},
       mealCostHistory: [],
       weeklyPlan: normalizeWeeklyPlan(),
-      inventorySettings: normalizeInventorySettings()
+      inventorySettings: normalizeInventorySettings(),
+      starterCatalogVersion: STARTER_CATALOG_VERSION,
+      starterCatalogMigrated: true
     };
   } catch {
     return defaultPlannerData();
@@ -402,8 +409,9 @@ function loadPlanner() {
 }
 
 function plannerDataFromSource(parsed) {
+  const starterCatalogMigrated = Number(parsed.starterCatalogVersion || 0) < STARTER_CATALOG_VERSION;
   return {
-    recipes: normalizeRecipes(parsed.recipes),
+    recipes: starterCatalogMigrated ? mergeStarterRecipes(parsed.recipes) : normalizeRecipes(parsed.recipes),
     foodStorage: normalizeFoodStorage(parsed.foodStorage || parsed.pantry),
     builderOptions: normalizeBuilderOptions(parsed.builderOptions),
     builderStyles: normalizeBuilderStyles(parsed.builderStyles),
@@ -411,6 +419,8 @@ function plannerDataFromSource(parsed) {
     mealCostHistory: normalizeMealCostHistory(parsed.mealCostHistory),
     weeklyPlan: normalizeWeeklyPlan(parsed.weeklyPlan),
     inventorySettings: normalizeInventorySettings(parsed.inventorySettings),
+    starterCatalogVersion: STARTER_CATALOG_VERSION,
+    starterCatalogMigrated,
     savedAt: String(parsed.savedAt || "")
   };
 }
@@ -562,7 +572,8 @@ function undoLastChange() {
 
 function applyPlannerData(data) {
   const source = data && typeof data === "object" ? data : {};
-  recipes = normalizeRecipes(source.recipes);
+  const starterCatalogMigrated = Number(source.starterCatalogVersion || 0) < STARTER_CATALOG_VERSION;
+  recipes = starterCatalogMigrated ? mergeStarterRecipes(source.recipes) : normalizeRecipes(source.recipes);
   foodStorage = normalizeFoodStorage(source.foodStorage || source.pantry);
   builderOptions = normalizeBuilderOptions(source.builderOptions);
   builderStyles = normalizeBuilderStyles(source.builderStyles);
@@ -570,6 +581,7 @@ function applyPlannerData(data) {
   mealCostHistory = normalizeMealCostHistory(source.mealCostHistory);
   weeklyPlan = normalizeWeeklyPlan(source.weeklyPlan);
   inventorySettings = normalizeInventorySettings(source.inventorySettings);
+  return starterCatalogMigrated;
 }
 
 function setSaveStatus(message, resetAfter = 0) {
@@ -652,6 +664,7 @@ function writePlannerLocally(data, options = {}) {
 function currentPlannerData() {
   return {
     schemaVersion: 5,
+    starterCatalogVersion: STARTER_CATALOG_VERSION,
     recipes,
     foodStorage,
     builderOptions,
@@ -710,9 +723,10 @@ async function loadDriveData() {
     const data = await response.json();
     if (!data || !Array.isArray(data.recipes) || !data.recipes.length) return;
 
-    applyPlannerData(data);
+    const starterCatalogMigrated = applyPlannerData(data);
     selectedRecipeId = recipes[0]?.id || null;
-    writePlannerLocally(data);
+    const currentData = currentPlannerData();
+    writePlannerLocally(currentData);
     recordSuccessfulSave("the thumb drive", data.savedAt || new Date().toISOString());
     render();
     setAppView(currentAppView, { focus: false, persist: false });
@@ -728,6 +742,7 @@ async function loadDriveData() {
     } else {
       setSaveStatus("Loaded from thumb drive");
     }
+    if (starterCatalogMigrated) scheduleDriveSave(currentData);
   } catch {
     setSaveStatus(isNativeApp() ? "Saved on this phone" : "Saved in this browser only");
   }
@@ -786,8 +801,18 @@ function defaultPlannerData() {
     builderTemplates: {},
     mealCostHistory: [],
     weeklyPlan: normalizeWeeklyPlan(),
-    inventorySettings: normalizeInventorySettings()
+    inventorySettings: normalizeInventorySettings(),
+    starterCatalogVersion: STARTER_CATALOG_VERSION
   };
+}
+
+function mergeStarterRecipes(saved) {
+  const existing = normalizeRecipes(saved);
+  const existingNames = new Set(existing.map((recipe) => recipe.name.trim().toLowerCase()));
+  const missing = sampleRecipes
+    .filter((recipe) => !existingNames.has(String(recipe.name || "").trim().toLowerCase()))
+    .map(normalizeRecipe);
+  return [...existing, ...missing];
 }
 
 function normalizeRecipes(saved) {
@@ -1038,6 +1063,9 @@ if (!lastSaveReceipt && planner.savedAt) {
   };
 }
 updateCookingTimers();
+if (planner.starterCatalogMigrated) {
+  writePlannerLocally(currentPlannerData(), { keepPrevious: true });
+}
 
 render();
 renderLastSaveDetail();

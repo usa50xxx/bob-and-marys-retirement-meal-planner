@@ -26,6 +26,7 @@ const PUBLIC_ROOT_FILES = new Set([
   "receipt-reader.js",
   "recipe-reader.js",
   "recovery.js",
+  "starter-recipes.js",
   "styles.css",
 ]);
 const LEGAL_FILES = ["PRIVACY.md", "THIRD_PARTY_NOTICES.md", "IMAGE_LICENSE.md"];
@@ -35,6 +36,7 @@ const LEGACY_WEBVIEW_SCRIPTS = [
   "receipt-reader.js",
   "recipe-reader.js",
   "recovery.js",
+  "starter-recipes.js",
   "app.js",
 ];
 

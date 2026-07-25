@@ -553,7 +553,7 @@ h2 {
 
 .rolodex-letter {
   min-width: 0;
-  height: 18px;
+  height: 24px;
   padding: 0;
   border-radius: 4px;
   border: 1px solid rgba(91, 110, 106, 0.72);
@@ -2169,7 +2169,7 @@ body[data-device-mode="computer"] .device-link[data-device-mode="computer"] {
   }
 
   .masthead-rolodex .recipe-rolodex-shell {
-    grid-template-columns: 38px minmax(0, 1fr) 42px;
+    grid-template-columns: 38px minmax(0, 1fr) 54px;
     gap: 8px;
   }
 

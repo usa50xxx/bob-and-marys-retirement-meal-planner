@@ -32,6 +32,7 @@ $topLevelFiles = @(
   "receipt-reader.js",
   "recipe-reader.js",
   "recovery.js",
+  "starter-recipes.js",
   "styles.css",
   "meal-planner-server.ps1",
   "README.txt",

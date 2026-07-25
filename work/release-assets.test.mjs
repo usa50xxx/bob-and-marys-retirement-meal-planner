@@ -26,6 +26,7 @@ for (const privatePath of [
 for (const publicPath of [
   "index.html",
   "app.js",
+  "starter-recipes.js",
   "images/ingredients/apple.webp",
   "vendor/pdfjs/pdf.min.mjs",
 ]) {
@@ -68,6 +69,7 @@ try {
   await fs.access(path.join(destination, "index.html"));
   await fs.access(path.join(destination, "compatibility.js"));
   await fs.access(path.join(destination, "ingredient-image-aliases.js"));
+  await fs.access(path.join(destination, "starter-recipes.js"));
   await fs.access(path.join(destination, "PRIVACY.md"));
   await fs.access(path.join(destination, "THIRD_PARTY_NOTICES.md"));
   await fs.access(path.join(destination, "IMAGE_LICENSE.md"));
@@ -94,6 +96,7 @@ try {
     "receipt-reader.js",
     "recipe-reader.js",
     "recovery.js",
+    "starter-recipes.js",
     "app.js",
   ]) {
     const stagedScript = await fs.readFile(path.join(destination, script), "utf8");

@@ -8,7 +8,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "test": "node work/food-engine.test.js && node work/recipe-reader.test.js && node work/recovery.test.js && node work/e-drive-file-safety.test.js && node work/image-assets.test.mjs && node work/release-assets.test.mjs && node work/release-notes.test.mjs && node work/workflow-security.test.mjs && node work/run-gradle.test.mjs && node work/privacy-site.test.mjs && node work/test-focused-meal-planner.js && node work/test-device-modes.js && node work/test-accessibility.js && node work/test-receipt-files.js && node work/test-recipe-capture.js && node work/test-recovery.js",
+    "test": "node work/food-engine.test.js && node work/recipe-reader.test.js && node work/starter-recipes.test.mjs && node work/recovery.test.js && node work/e-drive-file-safety.test.js && node work/image-assets.test.mjs && node work/release-assets.test.mjs && node work/release-notes.test.mjs && node work/workflow-security.test.mjs && node work/run-gradle.test.mjs && node work/privacy-site.test.mjs && node work/test-focused-meal-planner.js && node work/test-device-modes.js && node work/test-accessibility.js && node work/test-receipt-files.js && node work/test-recipe-capture.js && node work/test-recovery.js",
     "fixtures:generate": "node work/generate-receipt-fixtures.mjs && node work/generate-recipe-fixtures.mjs",
     "images:optimize": "node work/optimize-ingredient-images.mjs",
     "images:import-sheet": "node work/import-generated-ingredient-sheet.mjs",
