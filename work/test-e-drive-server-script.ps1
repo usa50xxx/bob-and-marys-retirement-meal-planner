@@ -56,7 +56,7 @@ try {
     shareOnWifi = [bool]$ShareOnWifi
     phoneUrlFound = if ($ShareOnWifi) { ($text -match "Phone view on the same Wi-Fi: http://") } else { $false }
     homeStatus = [int]$homeResponse.StatusCode
-    titleFound = ($homeResponse.Content -match "Bob and Mary's Retirement Meal Planner")
+    titleFound = ($homeResponse.Content -match "Supperloom Meal Planner")
     dataStatus = [int]$data.StatusCode
     dataLooksJson = ($data.Content.Trim().StartsWith("{"))
     processStillRunning = (-not $process.HasExited)

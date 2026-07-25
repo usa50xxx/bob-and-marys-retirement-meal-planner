@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/pork-cuts-v2.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "baby_back_ribs", "label": "Baby back ribs" },
+    { "key": "spare_ribs", "label": "Spare ribs" },
+    { "key": "ground_pork", "label": "Ground pork" },
+    { "key": "pork_sausage", "label": "Pork sausage links" },
+    { "key": "bacon", "label": "Raw bacon strips" },
+    { "key": "ham", "label": "Whole cured ham" },
+    { "key": "ham_steak", "label": "Center-cut ham steak" },
+    { "key": "country_style_ribs", "label": "Country-style pork ribs" }
+  ]
+}

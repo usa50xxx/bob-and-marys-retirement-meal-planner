@@ -1,9 +1,29 @@
 const storageKey = "thumb-drive-meal-planner-v2";
 const oldStorageKey = "thumb-drive-meal-planner-v1";
 const deviceStorageKey = "bobMaryMealPlannerDeviceMode";
+const appViewStorageKey = "bobMaryMealPlannerView";
+const cookingStorageKey = "bobMaryMealPlannerCookingSession";
+const pendingStorageKey = "bobMaryMealPlannerPendingSave";
+const previousStorageKey = "bobMaryMealPlannerPreviousGoodSave";
+const backupStorageKey = "bobMaryMealPlannerBackups";
+const saveReceiptStorageKey = "bobMaryMealPlannerLastSave";
+const appViewOrder = ["home", "recipes", "plan", "groceries", "inventory", "spending"];
 let saveTimer = null;
+let saveStatusTimer = null;
+let undoStack = [];
+let currentAppView = "home";
+let pendingReceiptItems = [];
+let editorUndoArmed = true;
+let cookingSession = null;
+let cookingTimerTicker = null;
+let cookingWakeLock = null;
+let pendingRecipeDraft = null;
+let startupRecoveryMessage = "";
+let lastSaveReceipt = null;
+let availableBackups = [];
+let swipeStart = null;
 
-const sampleRecipes = [
+const fallbackRecipes = [
   {
     id: crypto.randomUUID(),
     name: "Lemon Chicken Pasta",
@@ -33,6 +53,11 @@ const sampleRecipes = [
     ]
   }
 ];
+const sampleRecipes = Array.isArray(window.SUPPERLOOM_STARTER_RECIPES)
+  && window.SUPPERLOOM_STARTER_RECIPES.length >= 50
+  ? window.SUPPERLOOM_STARTER_RECIPES
+  : fallbackRecipes;
+const STARTER_CATALOG_VERSION = 1;
 
 let planner;
 let recipes;
@@ -42,6 +67,7 @@ let builderStyles;
 let builderTemplates;
 let mealCostHistory;
 let weeklyPlan;
+let inventorySettings;
 let selectedRecipeId = null;
 let visualRecipeIndex = 0;
 let lastRecipeSpinAt = 0;
@@ -56,7 +82,16 @@ const quickBuildMeal = document.querySelector("#quickBuildMeal");
 const quickAddRecipe = document.querySelector("#quickAddRecipe");
 const quickShopping = document.querySelector("#quickShopping");
 const quickPrint = document.querySelector("#quickPrint");
-const appTabs = document.querySelectorAll(".app-tabs button");
+const viewButtons = document.querySelectorAll("[data-app-view]");
+const printViewButton = document.querySelector("[data-print-view]");
+const focusedLayout = document.querySelector("#focusedLayout");
+const appTabs = document.querySelector(".app-tabs");
+const swipeSurface = document.querySelector(".shell");
+const appViewAnnouncement = document.querySelector("#appViewAnnouncement");
+const appViewSections = document.querySelectorAll("[data-app-views]");
+const undoChange = document.querySelector("#undoChange");
+const saveStatus = document.querySelector("#saveStatus");
+const lastSaveDetail = document.querySelector("#lastSaveDetail");
 const commandTonight = document.querySelector("#commandTonight");
 const commandTonightMeta = document.querySelector("#commandTonightMeta");
 const commandWeek = document.querySelector("#commandWeek");
@@ -74,6 +109,11 @@ const recipeForm = document.querySelector("#recipeForm");
 const recipeName = document.querySelector("#recipeName");
 const baseServings = document.querySelector("#baseServings");
 const recipeNotes = document.querySelector("#recipeNotes");
+const recipePrepTime = document.querySelector("#recipePrepTime");
+const recipeCookTime = document.querySelector("#recipeCookTime");
+const recipeTotalTime = document.querySelector("#recipeTotalTime");
+const recipeTemperature = document.querySelector("#recipeTemperature");
+const recipeSourceUrl = document.querySelector("#recipeSourceUrl");
 const recipePhotoPreview = document.querySelector("#recipePhotoPreview");
 const recipePhotoInput = document.querySelector("#recipePhotoInput");
 const removeRecipePhoto = document.querySelector("#removeRecipePhoto");
@@ -101,9 +141,28 @@ const clearWeeklyPlan = document.querySelector("#clearWeeklyPlan");
 const printWeeklyList = document.querySelector("#printWeeklyList");
 const copyWeeklyList = document.querySelector("#copyWeeklyList");
 const pasteRecipeCard = document.querySelector("#pasteRecipeCard");
+const recipeUrlInput = document.querySelector("#recipeUrlInput");
+const readRecipeUrl = document.querySelector("#readRecipeUrl");
 const recipePasteBox = document.querySelector("#recipePasteBox");
 const savePastedRecipe = document.querySelector("#savePastedRecipe");
+const recipeFileInput = document.querySelector("#recipeFileInput");
 const clearPastedRecipe = document.querySelector("#clearPastedRecipe");
+const recipeReadStatus = document.querySelector("#recipeReadStatus");
+const recipeReview = document.querySelector("#recipeReview");
+const reviewRecipeName = document.querySelector("#reviewRecipeName");
+const reviewRecipeServings = document.querySelector("#reviewRecipeServings");
+const reviewPrepTime = document.querySelector("#reviewPrepTime");
+const reviewCookTime = document.querySelector("#reviewCookTime");
+const reviewTotalTime = document.querySelector("#reviewTotalTime");
+const reviewTemperature = document.querySelector("#reviewTemperature");
+const reviewSourceUrl = document.querySelector("#reviewSourceUrl");
+const reviewRecipePhotoBox = document.querySelector("#reviewRecipePhotoBox");
+const reviewRecipePhoto = document.querySelector("#reviewRecipePhoto");
+const reviewIngredientRows = document.querySelector("#reviewIngredientRows");
+const addReviewIngredient = document.querySelector("#addReviewIngredient");
+const reviewRecipeNotes = document.querySelector("#reviewRecipeNotes");
+const saveReviewedRecipe = document.querySelector("#saveReviewedRecipe");
+const cancelRecipeReview = document.querySelector("#cancelRecipeReview");
 const addIngredient = document.querySelector("#addIngredient");
 const newRecipe = document.querySelector("#newRecipe");
 const deleteRecipe = document.querySelector("#deleteRecipe");
@@ -114,13 +173,25 @@ const copyList = document.querySelector("#copyList");
 const walmartPaste = document.querySelector("#walmartPaste");
 const addWalmartOrder = document.querySelector("#addWalmartOrder");
 const groceryFileInput = document.querySelector("#groceryFileInput");
+const receiptReadStatus = document.querySelector("#receiptReadStatus");
+const receiptReview = document.querySelector("#receiptReview");
+const receiptReviewRows = document.querySelector("#receiptReviewRows");
+const commitReceiptItems = document.querySelector("#commitReceiptItems");
+const cancelReceiptReview = document.querySelector("#cancelReceiptReview");
 const clearPantry = document.querySelector("#clearPantry");
+const expiryReminderDays = document.querySelector("#expiryReminderDays");
+const expirySummary = document.querySelector("#expirySummary");
+const useSoonPanel = document.querySelector("#useSoonPanel");
+const useSoonList = document.querySelector("#useSoonList");
+const suggestUseSoon = document.querySelector("#suggestUseSoon");
+const useSoonRecipeResults = document.querySelector("#useSoonRecipeResults");
 const refrigeratorList = document.querySelector("#refrigeratorList");
 const freezerList = document.querySelector("#freezerList");
 const pantryList = document.querySelector("#pantryList");
 const needList = document.querySelector("#needList");
 const foodSpendSummary = document.querySelector("#foodSpendSummary");
 const mealCostSummary = document.querySelector("#mealCostSummary");
+const cookAndDeduct = document.querySelector("#cookAndDeduct");
 const currentMealCost = document.querySelector("#currentMealCost");
 const recordMealCost = document.querySelector("#recordMealCost");
 const mealCostHistoryList = document.querySelector("#mealCostHistory");
@@ -144,8 +215,37 @@ const showcaseMealPhoto = document.querySelector("#showcaseMealPhoto");
 const showcaseMealName = document.querySelector("#showcaseMealName");
 const showcaseIngredients = document.querySelector("#showcaseIngredients");
 const showcaseInstructions = document.querySelector("#showcaseInstructions");
+const startCooking = document.querySelector("#startCooking");
+const cookingMode = document.querySelector("#cookingMode");
+const cookingTitle = document.querySelector("#cookingTitle");
+const cookingMeta = document.querySelector("#cookingMeta");
+const closeCooking = document.querySelector("#closeCooking");
+const resetCooking = document.querySelector("#resetCooking");
+const cookingIngredientsPanel = document.querySelector(".cooking-ingredients-panel");
+const cookingIngredientCount = document.querySelector("#cookingIngredientCount");
+const cookingIngredients = document.querySelector("#cookingIngredients");
+const cookingStepCount = document.querySelector("#cookingStepCount");
+const cookingProgress = document.querySelector("#cookingProgress");
+const cookingStepDone = document.querySelector("#cookingStepDone");
+const cookingStepText = document.querySelector("#cookingStepText");
+const previousCookingStep = document.querySelector("#previousCookingStep");
+const nextCookingStep = document.querySelector("#nextCookingStep");
+const cookingTimerMinutes = document.querySelector("#cookingTimerMinutes");
+const cookingTimerName = document.querySelector("#cookingTimerName");
+const startCookingTimer = document.querySelector("#startCookingTimer");
+const quickTimerButtons = document.querySelectorAll("[data-quick-timer]");
+const cookingTimers = document.querySelector("#cookingTimers");
+const cookingWakeStatus = document.querySelector("#cookingWakeStatus");
+const cookingSessionStatus = document.querySelector("#cookingSessionStatus");
+const finishCooking = document.querySelector("#finishCooking");
 const exportData = document.querySelector("#exportData");
 const importData = document.querySelector("#importData");
+const recoveryPanel = document.querySelector("#recoveryPanel");
+const backupSelect = document.querySelector("#backupSelect");
+const restoreBackup = document.querySelector("#restoreBackup");
+const createBackup = document.querySelector("#createBackup");
+const refreshBackups = document.querySelector("#refreshBackups");
+const recoveryStatus = document.querySelector("#recoveryStatus");
 const deviceModeLinks = document.querySelectorAll("[data-device-mode]");
 const deviceModeNote = document.querySelector("#deviceModeNote");
 const devicePrompt = document.querySelector("#devicePrompt");
@@ -159,21 +259,29 @@ targetServings.addEventListener("input", renderMealViews);
 mealDate.addEventListener("input", renderPrintSheet);
 minusPerson.addEventListener("click", () => changePeople(-1));
 plusPerson.addEventListener("click", () => changePeople(1));
-quickBuildMeal.addEventListener("click", () => focusSection(weeklyPlannerCard));
-quickAddRecipe.addEventListener("click", () => focusSection(visualRecipeList.closest(".visual-picker")));
-quickShopping.addEventListener("click", () => focusSection(walmartPaste.closest(".pantry-card"), walmartPaste));
-quickPrint.addEventListener("click", printSelectedMeal);
-appTabs.forEach((button) => {
-  button.addEventListener("click", () => {
-    const target = document.querySelector(button.dataset.jump);
-    if (button.dataset.jump === "#printSheet") {
-      printSelectedMeal();
-      return;
-    }
-    if (target) focusSection(target);
-  });
+quickBuildMeal.addEventListener("click", () => {
+  setAppView("plan");
+  focusSection(weeklyPlannerCard);
 });
-addIngredient.addEventListener("click", () => addIngredientRow());
+quickAddRecipe.addEventListener("click", () => {
+  setAppView("recipes");
+  focusSection(recipeForm);
+});
+quickShopping.addEventListener("click", () => {
+  setAppView("groceries");
+  focusSection(walmartPaste.closest(".pantry-card"), walmartPaste);
+});
+quickPrint.addEventListener("click", printSelectedMeal);
+viewButtons.forEach((button) => button.addEventListener("click", () => setAppView(button.dataset.appView)));
+swipeSurface.addEventListener("touchstart", startAppViewSwipe, { passive: true });
+swipeSurface.addEventListener("touchend", finishAppViewSwipe, { passive: true });
+swipeSurface.addEventListener("touchcancel", cancelAppViewSwipe, { passive: true });
+printViewButton.addEventListener("click", printSelectedMeal);
+undoChange.addEventListener("click", undoLastChange);
+addIngredient.addEventListener("click", () => {
+  captureEditorUndoOnce();
+  addIngredientRow();
+});
 saveBuiltMeal.addEventListener("click", saveBuilderMeal);
 backBuiltMeal.addEventListener("click", goBackBuilder);
 resetBuiltMeal.addEventListener("click", resetBuilder);
@@ -187,7 +295,15 @@ askFoodAi.addEventListener("click", answerFoodAi);
 foodAiQuestion.addEventListener("keydown", (event) => {
   if (event.key === "Enter") answerFoodAi();
 });
-savePastedRecipe.addEventListener("click", saveRecipeFromPaste);
+savePastedRecipe.addEventListener("click", reviewRecipeFromPaste);
+readRecipeUrl.addEventListener("click", reviewRecipeFromUrl);
+recipeUrlInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") reviewRecipeFromUrl();
+});
+recipeFileInput.addEventListener("change", reviewRecipeFromFile);
+addReviewIngredient.addEventListener("click", () => addReviewIngredientRow());
+saveReviewedRecipe.addEventListener("click", commitReviewedRecipe);
+cancelRecipeReview.addEventListener("click", clearRecipeReview);
 clearPastedRecipe.addEventListener("click", () => {
   recipePasteBox.value = "";
   recipePasteBox.focus();
@@ -196,6 +312,24 @@ newRecipe.addEventListener("click", createRecipe);
 deleteRecipe.addEventListener("click", deleteSelectedRecipe);
 recipeForm.addEventListener("submit", saveSelectedRecipe);
 printMeal.addEventListener("click", printSelectedMeal);
+startCooking.addEventListener("click", openCookingMode);
+closeCooking.addEventListener("click", closeCookingMode);
+resetCooking.addEventListener("click", resetCookingProgress);
+previousCookingStep.addEventListener("click", () => changeCookingStep(-1));
+nextCookingStep.addEventListener("click", () => changeCookingStep(1));
+cookingStepDone.addEventListener("change", updateCookingStepCompletion);
+cookingIngredients.addEventListener("change", updateCookingIngredientCompletion);
+startCookingTimer.addEventListener("click", () => addCookingTimer());
+quickTimerButtons.forEach((button) => {
+  button.addEventListener("click", () => addCookingTimer(cleanNumber(button.dataset.quickTimer, 5)));
+});
+cookingTimers.addEventListener("click", handleCookingTimerAction);
+finishCooking.addEventListener("click", finishCookingSession);
+cookingMode.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeCookingMode();
+});
+document.addEventListener("visibilitychange", handleCookingVisibilityChange);
 recordMealCost.addEventListener("click", recordSelectedMealCost);
 previousCalendarMonth.addEventListener("click", () => changeCalendarMonth(-1));
 nextCalendarMonth.addEventListener("click", () => changeCalendarMonth(1));
@@ -204,12 +338,23 @@ removeRecipePhoto.addEventListener("click", clearRecipePhoto);
 copyList.addEventListener("click", copyScaledIngredients);
 addWalmartOrder.addEventListener("click", addWalmartOrderToPantry);
 groceryFileInput.addEventListener("change", importGroceryFile);
+commitReceiptItems.addEventListener("click", addReviewedReceiptItems);
+cancelReceiptReview.addEventListener("click", clearReceiptReview);
 clearPantry.addEventListener("click", clearPantryTally);
+expiryReminderDays.addEventListener("change", updateExpiryReminder);
+suggestUseSoon.addEventListener("click", renderUseSoonRecipeIdeas);
+cookAndDeduct.addEventListener("click", cookSelectedMeal);
 searchOnlineRecipes.addEventListener("click", searchRecipesByName);
 suggestFromPantry.addEventListener("click", suggestRecipesFromPantry);
 suggestFromStock.addEventListener("click", suggestRecipesFromStock);
 exportData.addEventListener("click", exportRecipes);
 importData.addEventListener("change", importRecipes);
+recoveryPanel.addEventListener("toggle", () => {
+  if (recoveryPanel.open) loadBackupChoices();
+});
+restoreBackup.addEventListener("click", restoreSelectedBackup);
+createBackup.addEventListener("click", createRecoveryBackup);
+refreshBackups.addEventListener("click", loadBackupChoices);
 deviceModeLinks.forEach((link) => {
   link.addEventListener("click", (event) => {
     event.preventDefault();
@@ -220,8 +365,9 @@ devicePromptChoices.forEach((button) => {
   button.addEventListener("click", () => setDeviceMode(button.dataset.deviceChoice, { persist: true, updateUrl: true, announce: true, hidePrompt: true }));
 });
 devicePromptDismiss.addEventListener("click", () => setDeviceMode("computer", { persist: true, updateUrl: false, announce: true, hidePrompt: true }));
-[recipeName, baseServings, recipeNotes].forEach((field) => {
+[recipeName, baseServings, recipeNotes, recipePrepTime, recipeCookTime, recipeTotalTime, recipeTemperature, recipeSourceUrl].forEach((field) => {
   field.addEventListener("input", () => {
+    captureEditorUndoOnce();
     saveCurrentFieldsQuietly();
     renderRecipeList();
     renderWeeklyPlanner();
@@ -232,40 +378,68 @@ devicePromptDismiss.addEventListener("click", () => setDeviceMode("computer", { 
 
 function loadPlanner() {
   const saved = localStorage.getItem(storageKey);
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      return {
-        recipes: Array.isArray(parsed.recipes) && parsed.recipes.length ? parsed.recipes : sampleRecipes,
-        foodStorage: normalizeFoodStorage(parsed.foodStorage || parsed.pantry),
-        builderOptions: normalizeBuilderOptions(parsed.builderOptions),
-        builderStyles: normalizeBuilderStyles(parsed.builderStyles),
-        builderTemplates: normalizeBuilderTemplates(parsed.builderTemplates),
-        mealCostHistory: normalizeMealCostHistory(parsed.mealCostHistory),
-        weeklyPlan: normalizeWeeklyPlan(parsed.weeklyPlan)
-      };
-    } catch {
-      return defaultPlannerData();
+  const pending = localStorage.getItem(pendingStorageKey);
+  const previous = localStorage.getItem(previousStorageKey);
+  const recovery = MealPlannerRecovery.chooseLocalRecovery({ current: saved, pending, previous });
+  if (recovery.data) {
+    if (recovery.recovered) {
+      startupRecoveryMessage = recovery.message;
+      try {
+        if (MealPlannerRecovery.parsePlanner(saved)) localStorage.setItem(previousStorageKey, saved);
+        localStorage.setItem(storageKey, JSON.stringify(recovery.data));
+      } catch {
+        startupRecoveryMessage += " Keep the app open and export a backup.";
+      }
     }
+    localStorage.removeItem(pendingStorageKey);
+    return plannerDataFromSource(recovery.data);
   }
+  if (recovery.message) startupRecoveryMessage = recovery.message;
 
   try {
     const oldRecipes = JSON.parse(localStorage.getItem(oldStorageKey));
     return {
-      recipes: Array.isArray(oldRecipes) && oldRecipes.length ? oldRecipes : sampleRecipes,
+      recipes: mergeStarterRecipes(oldRecipes),
       foodStorage: normalizeFoodStorage(),
       builderOptions: normalizeBuilderOptions(),
       builderStyles: normalizeBuilderStyles(),
       builderTemplates: {},
       mealCostHistory: [],
-      weeklyPlan: normalizeWeeklyPlan()
+      weeklyPlan: normalizeWeeklyPlan(),
+      inventorySettings: normalizeInventorySettings(),
+      starterCatalogVersion: STARTER_CATALOG_VERSION,
+      starterCatalogMigrated: true
     };
   } catch {
     return defaultPlannerData();
   }
 }
 
+function plannerDataFromSource(parsed) {
+  const starterCatalogMigrated = Number(parsed.starterCatalogVersion || 0) < STARTER_CATALOG_VERSION;
+  return {
+    recipes: starterCatalogMigrated ? mergeStarterRecipes(parsed.recipes) : normalizeRecipes(parsed.recipes),
+    foodStorage: normalizeFoodStorage(parsed.foodStorage || parsed.pantry),
+    builderOptions: normalizeBuilderOptions(parsed.builderOptions),
+    builderStyles: normalizeBuilderStyles(parsed.builderStyles),
+    builderTemplates: normalizeBuilderTemplates(parsed.builderTemplates),
+    mealCostHistory: normalizeMealCostHistory(parsed.mealCostHistory),
+    weeklyPlan: normalizeWeeklyPlan(parsed.weeklyPlan),
+    inventorySettings: normalizeInventorySettings(parsed.inventorySettings),
+    starterCatalogVersion: STARTER_CATALOG_VERSION,
+    starterCatalogMigrated,
+    savedAt: String(parsed.savedAt || "")
+  };
+}
+
 function initDeviceMode() {
+  if (isNativeApp()) {
+    setDeviceMode(
+      nativePlatform() === "ios" ? "iphone" : "android",
+      { persist: true, updateUrl: false, announce: false, hidePrompt: true }
+    );
+    return;
+  }
   const queryMode = normalizedDeviceMode(new URLSearchParams(window.location.search).get("device"));
   const savedMode = normalizedDeviceMode(localStorage.getItem(deviceStorageKey));
   const detectedMode = detectDeviceMode();
@@ -274,6 +448,7 @@ function initDeviceMode() {
 
   if (!queryMode && !savedMode) {
     devicePrompt.hidden = false;
+    devicePrompt.querySelector("button")?.focus();
   }
 }
 
@@ -293,8 +468,12 @@ function setDeviceMode(mode, options = {}) {
   if (deviceModeNote) {
     const notes = {
       computer: "Computer view is selected.",
-      iphone: "iPhone view is selected. Start the phone starter on the computer first.",
-      android: "Android view is selected. Start the phone starter on the computer first."
+      iphone: isNativeApp() || isStandaloneApp()
+        ? "iPhone app is selected. Your meal planner is saved on this phone."
+        : "iPhone view is selected. Start the phone starter on the computer first.",
+      android: isNativeApp() || isStandaloneApp()
+        ? "Android app is selected. Your meal planner is saved on this phone."
+        : "Android view is selected. Start the phone starter on the computer first."
     };
     deviceModeNote.textContent = notes[nextMode];
   }
@@ -332,18 +511,275 @@ function detectDeviceMode() {
   return "";
 }
 
+function setAppView(view, options = {}) {
+  currentAppView = appViewOrder.includes(view) ? view : "home";
+  const showFocusedLayout = currentAppView !== "home";
+  focusedLayout.hidden = !showFocusedLayout;
+
+  appViewSections.forEach((section) => {
+    const views = String(section.dataset.appViews || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    section.hidden = !views.includes(currentAppView);
+  });
+
+  const recipeSidebarVisible = currentAppView === "recipes";
+  focusedLayout.classList.toggle("single-pane", showFocusedLayout && !recipeSidebarVisible);
+  viewButtons.forEach((button) => {
+    const active = button.dataset.appView === currentAppView;
+    button.setAttribute("aria-current", active ? "page" : "false");
+  });
+  if (appViewAnnouncement) {
+    const currentButton = [...viewButtons].find((button) => button.dataset.appView === currentAppView);
+    appViewAnnouncement.textContent =
+      `${currentButton?.textContent?.trim() || currentAppView}, page `
+      + `${appViewOrder.indexOf(currentAppView) + 1} of ${appViewOrder.length}`;
+  }
+
+  if (options.persist !== false) {
+    localStorage.setItem(appViewStorageKey, currentAppView);
+  }
+  if (options.focus !== false) {
+    if (document.body.classList.contains("phone-layout")) {
+      const layoutTop = focusedLayout.getBoundingClientRect().top + window.scrollY;
+      const tabsHeight = appTabs?.getBoundingClientRect().height || 0;
+      window.scrollTo({ top: Math.max(0, layoutTop - tabsHeight - 12), behavior: "smooth" });
+    } else {
+      focusedLayout.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+}
+
+function startAppViewSwipe(event) {
+  if (
+    !document.body.classList.contains("phone-layout")
+    || event.touches.length !== 1
+    || document.querySelector("dialog[open]")
+  ) {
+    swipeStart = null;
+    return;
+  }
+  const target = event.target;
+  if (
+    !(target instanceof Element)
+    ||
+    target.closest(
+      "a, button, input, textarea, select, label, summary, [contenteditable='true'], dialog, "
+      + ".visual-recipe-list, .builder-flow, .meal-calendar, .ingredient-row, "
+      + ".builder-ingredient-row, .receipt-review-row, .recipe-review, [data-no-page-swipe]"
+    )
+  ) {
+    swipeStart = null;
+    return;
+  }
+  const touch = event.touches[0];
+  if (touch.clientX < 28 || touch.clientX > window.innerWidth - 28) {
+    swipeStart = null;
+    return;
+  }
+  swipeStart = {
+    x: touch.clientX,
+    y: touch.clientY,
+    at: Date.now()
+  };
+}
+
+function finishAppViewSwipe(event) {
+  if (!swipeStart || event.changedTouches.length !== 1) {
+    swipeStart = null;
+    return;
+  }
+  const touch = event.changedTouches[0];
+  const distanceX = touch.clientX - swipeStart.x;
+  const distanceY = touch.clientY - swipeStart.y;
+  const elapsed = Date.now() - swipeStart.at;
+  const requiredDistance = Math.max(70, Math.min(110, window.innerWidth * 0.2));
+  swipeStart = null;
+
+  if (
+    elapsed > 900
+    || Math.abs(distanceX) < requiredDistance
+    || Math.abs(distanceX) < Math.abs(distanceY) * 1.5
+  ) {
+    return;
+  }
+
+  const currentIndex = appViewOrder.indexOf(currentAppView);
+  const nextIndex = distanceX < 0 ? currentIndex + 1 : currentIndex - 1;
+  if (nextIndex < 0 || nextIndex >= appViewOrder.length) return;
+  setAppView(appViewOrder[nextIndex]);
+}
+
+function cancelAppViewSwipe() {
+  swipeStart = null;
+}
+
+function captureUndo(label) {
+  const snapshot = JSON.stringify({
+    data: currentPlannerData(),
+    selectedRecipeId,
+    appView: currentAppView
+  });
+  if (undoStack[undoStack.length - 1]?.snapshot === snapshot) return;
+  undoStack.push({ label, snapshot });
+  undoStack = undoStack.slice(-20);
+  undoChange.disabled = false;
+  undoChange.textContent = `Undo ${label}`;
+}
+
+function captureEditorUndoOnce() {
+  if (!editorUndoArmed) return;
+  captureUndo("recipe edit");
+  editorUndoArmed = false;
+}
+
+function undoLastChange() {
+  const entry = undoStack.pop();
+  if (!entry) return;
+  const restored = JSON.parse(entry.snapshot);
+  applyPlannerData(restored.data);
+  selectedRecipeId = recipes.some((recipe) => recipe.id === restored.selectedRecipeId)
+    ? restored.selectedRecipeId
+    : recipes[0]?.id || null;
+  editorUndoArmed = true;
+  persistRecipes();
+  render();
+  setAppView(restored.appView || "home", { focus: false });
+  undoChange.disabled = undoStack.length === 0;
+  undoChange.textContent = undoStack.length ? `Undo ${undoStack[undoStack.length - 1].label}` : "Undo";
+  setSaveStatus(`Undid ${entry.label}`);
+}
+
+function applyPlannerData(data) {
+  const source = data && typeof data === "object" ? data : {};
+  const starterCatalogMigrated = Number(source.starterCatalogVersion || 0) < STARTER_CATALOG_VERSION;
+  recipes = starterCatalogMigrated ? mergeStarterRecipes(source.recipes) : normalizeRecipes(source.recipes);
+  foodStorage = normalizeFoodStorage(source.foodStorage || source.pantry);
+  builderOptions = normalizeBuilderOptions(source.builderOptions);
+  builderStyles = normalizeBuilderStyles(source.builderStyles);
+  builderTemplates = normalizeBuilderTemplates(source.builderTemplates);
+  mealCostHistory = normalizeMealCostHistory(source.mealCostHistory);
+  weeklyPlan = normalizeWeeklyPlan(source.weeklyPlan);
+  inventorySettings = normalizeInventorySettings(source.inventorySettings);
+  return starterCatalogMigrated;
+}
+
+function setSaveStatus(message, resetAfter = 0) {
+  clearTimeout(saveStatusTimer);
+  saveStatus.textContent = message;
+  if (resetAfter > 0) {
+    saveStatusTimer = setTimeout(() => {
+      saveStatus.textContent = lastSaveReceipt
+        ? `Saved to ${lastSaveReceipt.destination}`
+        : "Saved on this device";
+    }, resetAfter);
+  }
+}
+
+function loadSaveReceipt() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(saveReceiptStorageKey));
+    if (parsed?.at && parsed?.destination) return parsed;
+  } catch {}
+  return null;
+}
+
+function recordSuccessfulSave(destination, at = new Date().toISOString()) {
+  const timestamp = Number.isFinite(Date.parse(at)) ? at : new Date().toISOString();
+  lastSaveReceipt = { destination, at: timestamp };
+  try {
+    localStorage.setItem(saveReceiptStorageKey, JSON.stringify(lastSaveReceipt));
+  } catch {}
+  renderLastSaveDetail();
+}
+
+function renderLastSaveDetail() {
+  if (!lastSaveReceipt) {
+    lastSaveDetail.textContent = "No confirmed save yet";
+    return;
+  }
+  const date = new Date(lastSaveReceipt.at);
+  const today = new Date();
+  const sameDay = date.toDateString() === today.toDateString();
+  const time = date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const day = sameDay ? "today" : date.toLocaleDateString();
+  lastSaveDetail.textContent = `Last confirmed ${day} at ${time} on ${lastSaveReceipt.destination}`;
+}
+
+function isNativeApp() {
+  return Boolean(window.Capacitor?.isNativePlatform?.());
+}
+
+function nativePlatform() {
+  if (!isNativeApp()) return "";
+  return window.Capacitor?.getPlatform?.() || "android";
+}
+
+function isStandaloneApp() {
+  return window.matchMedia?.("(display-mode: standalone)")?.matches
+    || window.navigator.standalone === true;
+}
+
+function isStaticHostedApp() {
+  return window.location.hostname.endsWith(".github.io");
+}
+
+function usesLocalOnlyStorage() {
+  return isNativeApp() || isStandaloneApp() || isStaticHostedApp();
+}
+
+function localSaveDestination() {
+  return isNativeApp() || isStandaloneApp() ? "this phone" : "this browser";
+}
+
 function persistRecipes() {
   const data = currentPlannerData();
+  setSaveStatus("Saving...");
+  let localSaved = false;
   try {
-    localStorage.setItem(storageKey, JSON.stringify(data));
+    writePlannerLocally(data);
+    localSaved = true;
+    recordSuccessfulSave(localSaveDestination(), data.savedAt);
   } catch {
-    // Large recipe photos may not fit in browser backup storage; the thumb-drive save still runs below.
+    setSaveStatus("Local save needs attention");
   }
+  if (usesLocalOnlyStorage()) {
+    if (localSaved) {
+      setSaveStatus(isNativeApp() || isStandaloneApp() ? "Saved on this phone" : "Saved in this browser");
+    }
+    return;
+  }
+  setSaveStatus(localSaved ? "Saved in browser; saving to thumb drive..." : "Saving to thumb drive...");
   scheduleDriveSave(data);
 }
 
+function writePlannerLocally(data, options = {}) {
+  const serialized = typeof data === "string" ? data : JSON.stringify(data);
+  if (!MealPlannerRecovery.parsePlanner(serialized)) throw new Error("Invalid planner data");
+  const current = localStorage.getItem(storageKey);
+  if (options.keepPrevious !== false && current && current !== serialized && MealPlannerRecovery.parsePlanner(current)) {
+    localStorage.setItem(previousStorageKey, current);
+  }
+  localStorage.setItem(pendingStorageKey, serialized);
+  localStorage.setItem(storageKey, serialized);
+  localStorage.removeItem(pendingStorageKey);
+}
+
 function currentPlannerData() {
-  return { recipes, foodStorage, builderOptions, builderStyles, builderTemplates, mealCostHistory, weeklyPlan, savedAt: new Date().toISOString() };
+  return {
+    schemaVersion: 5,
+    starterCatalogVersion: STARTER_CATALOG_VERSION,
+    recipes,
+    foodStorage,
+    builderOptions,
+    builderStyles,
+    builderTemplates,
+    mealCostHistory,
+    weeklyPlan,
+    inventorySettings,
+    savedAt: new Date().toISOString()
+  };
 }
 
 function scheduleDriveSave(data) {
@@ -353,17 +789,38 @@ function scheduleDriveSave(data) {
 
 async function saveToDrive(data = currentPlannerData()) {
   try {
-    await fetch("/api/data", {
+    const response = await fetch("/api/data", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data, null, 2)
+      body: asciiJson(data)
     });
+    if (!response.ok) throw new Error("Drive save failed");
+    const result = await response.json().catch(() => ({}));
+    recordSuccessfulSave("the thumb drive", result.savedAt || data.savedAt);
+    setSaveStatus("Saved to thumb drive");
+    if (recoveryPanel.open) loadBackupChoices({ quiet: true });
   } catch {
-    // Directly opening index.html still works, but only the launcher can save to the thumb drive file.
+    setSaveStatus("Saved in this browser only");
   }
 }
 
+function asciiJson(value) {
+  return JSON.stringify(value, null, 2).replace(/[\u007f-\uffff]/g, (character) =>
+    `\\u${character.charCodeAt(0).toString(16).padStart(4, "0")}`
+  );
+}
+
 async function loadDriveData() {
+  if (usesLocalOnlyStorage()) {
+    if (startupRecoveryMessage) {
+      setSaveStatus(startupRecoveryMessage);
+      recoveryStatus.textContent = startupRecoveryMessage;
+      recoveryPanel.open = true;
+    } else {
+      setSaveStatus(isNativeApp() || isStandaloneApp() ? "Saved on this phone" : "Saved in this browser");
+    }
+    return;
+  }
   try {
     const response = await fetch(`/api/data?time=${Date.now()}`);
     if (!response.ok) return;
@@ -371,18 +828,28 @@ async function loadDriveData() {
     const data = await response.json();
     if (!data || !Array.isArray(data.recipes) || !data.recipes.length) return;
 
-    recipes = data.recipes;
-    foodStorage = normalizeFoodStorage(data.foodStorage || data.pantry);
-    builderOptions = normalizeBuilderOptions(data.builderOptions);
-    builderStyles = normalizeBuilderStyles(data.builderStyles);
-    builderTemplates = normalizeBuilderTemplates(data.builderTemplates);
-    mealCostHistory = normalizeMealCostHistory(data.mealCostHistory);
-    weeklyPlan = normalizeWeeklyPlan(data.weeklyPlan);
+    const starterCatalogMigrated = applyPlannerData(data);
     selectedRecipeId = recipes[0]?.id || null;
-    localStorage.setItem(storageKey, JSON.stringify(currentPlannerData()));
+    const currentData = currentPlannerData();
+    writePlannerLocally(currentData);
+    recordSuccessfulSave("the thumb drive", data.savedAt || new Date().toISOString());
     render();
+    setAppView(currentAppView, { focus: false, persist: false });
+    if (response.headers.get("X-Meal-Planner-Recovered") === "true") {
+      startupRecoveryMessage = "The thumb drive recovered its newest good automatic backup.";
+      setSaveStatus(startupRecoveryMessage);
+      recoveryStatus.textContent = startupRecoveryMessage;
+      recoveryPanel.open = true;
+    } else if (startupRecoveryMessage) {
+      setSaveStatus(startupRecoveryMessage);
+      recoveryStatus.textContent = startupRecoveryMessage;
+      recoveryPanel.open = true;
+    } else {
+      setSaveStatus("Loaded from thumb drive");
+    }
+    if (starterCatalogMigrated) scheduleDriveSave(currentData);
   } catch {
-    // When opened without the launcher, use browser storage and export/import.
+    setSaveStatus(isNativeApp() || isStandaloneApp() ? "Saved on this phone" : "Saved in this browser only");
   }
 }
 
@@ -418,19 +885,66 @@ function normalizeFoodItem(item) {
     name: item.name || "Unknown item",
     price: cleanNumber(item.price, 0),
     itemNumber: item.itemNumber || "",
-    store: item.store || ""
+    store: item.store || "",
+    bestBy: MealPlannerFood.normalizeDateValue(item.bestBy || item.expirationDate || item.expires)
+  };
+}
+
+function normalizeInventorySettings(saved) {
+  const value = Number(saved?.reminderDays);
+  return {
+    reminderDays: [0, 3, 7, 14].includes(value) ? value : 7
   };
 }
 
 function defaultPlannerData() {
   return {
-    recipes: sampleRecipes,
+    recipes: normalizeRecipes(sampleRecipes),
     foodStorage: normalizeFoodStorage(),
     builderOptions: normalizeBuilderOptions(),
     builderStyles: normalizeBuilderStyles(),
     builderTemplates: {},
     mealCostHistory: [],
-    weeklyPlan: normalizeWeeklyPlan()
+    weeklyPlan: normalizeWeeklyPlan(),
+    inventorySettings: normalizeInventorySettings(),
+    starterCatalogVersion: STARTER_CATALOG_VERSION
+  };
+}
+
+function mergeStarterRecipes(saved) {
+  const existing = normalizeRecipes(saved);
+  const existingNames = new Set(existing.map((recipe) => recipe.name.trim().toLowerCase()));
+  const missing = sampleRecipes
+    .filter((recipe) => !existingNames.has(String(recipe.name || "").trim().toLowerCase()))
+    .map(normalizeRecipe);
+  return [...existing, ...missing];
+}
+
+function normalizeRecipes(saved) {
+  const source = Array.isArray(saved) && saved.length ? saved : sampleRecipes;
+  return source.map(normalizeRecipe);
+}
+
+function normalizeRecipe(recipe) {
+  const source = recipe && typeof recipe === "object" ? recipe : {};
+  return {
+    id: source.id || crypto.randomUUID(),
+    name: String(source.name || "Imported recipe"),
+    baseServings: cleanNumber(source.baseServings, 1),
+    prepTime: String(source.prepTime || ""),
+    cookTime: String(source.cookTime || ""),
+    totalTime: String(source.totalTime || ""),
+    temperature: String(source.temperature || ""),
+    sourceUrl: String(source.sourceUrl || ""),
+    notes: String(source.notes || ""),
+    photo: String(source.photo || ""),
+    ingredients: Array.isArray(source.ingredients)
+      ? source.ingredients.map((ingredient) => ({
+        amount: Math.max(0, Number(ingredient?.amount) || 0),
+        unit: String(ingredient?.unit || ""),
+        name: String(ingredient?.name || "")
+      }))
+      : []
   };
 }
 
@@ -519,6 +1033,14 @@ function render() {
   renderVisualRecipeList();
   renderEditor();
   renderMealViews();
+  enableLazyImages();
+}
+
+function enableLazyImages() {
+  document.querySelectorAll("img").forEach((image) => {
+    image.loading = "lazy";
+    image.decoding = "async";
+  });
 }
 
 const defaultBuilderOptions = {
@@ -635,9 +1157,24 @@ builderStyles = planner.builderStyles;
 builderTemplates = planner.builderTemplates;
 mealCostHistory = planner.mealCostHistory;
 weeklyPlan = planner.weeklyPlan;
+inventorySettings = planner.inventorySettings;
 selectedRecipeId = recipes[0]?.id || null;
+cookingSession = loadCookingSession();
+lastSaveReceipt = loadSaveReceipt();
+if (!lastSaveReceipt && planner.savedAt) {
+  lastSaveReceipt = {
+    destination: isNativeApp() ? "this phone" : "this browser",
+    at: planner.savedAt
+  };
+}
+updateCookingTimers();
+if (planner.starterCatalogMigrated) {
+  writePlannerLocally(currentPlannerData(), { keepPrevious: true });
+}
 
 render();
+renderLastSaveDetail();
+setAppView("home", { focus: false, persist: false });
 loadDriveData();
 
 function weekDayKeys() {
@@ -687,7 +1224,7 @@ function renderWeeklyPlanner() {
         Meal
         <select data-week-recipe="${day.key}">
           <option value="">Choose a recipe</option>
-          ${recipes.map((recipe) => `<option value="${escapeHtml(recipe.id)}" ${recipe.id === entry.recipeId ? "selected" : ""}>${escapeHtml(recipe.name)}</option>`).join("")}
+          ${recipes.filter(isRecipeComplete).map((recipe) => `<option value="${escapeHtml(recipe.id)}" ${recipe.id === entry.recipeId ? "selected" : ""}>${escapeHtml(recipe.name)}</option>`).join("")}
         </select>
       </label>
       <label>
@@ -717,6 +1254,7 @@ function renderWeeklyPlanner() {
 }
 
 function updateWeeklyPlan(dayKey, changes) {
+  captureUndo("weekly plan change");
   weeklyPlan[dayKey] = { ...(weeklyPlan[dayKey] || { recipeId: "", servings: 2 }), ...changes };
   persistRecipes();
   renderCommandCenter();
@@ -728,13 +1266,18 @@ function viewWeeklyRecipe(dayKey, makeToday) {
   const entry = weeklyPlan[dayKey];
   if (!entry?.recipeId) return;
   selectedRecipeId = entry.recipeId;
+  editorUndoArmed = true;
   targetServings.value = cleanNumber(entry.servings, 2);
   if (makeToday) mealDate.valueAsDate = new Date();
   render();
+  setAppView("recipes", { focus: false });
   focusSection(document.querySelector(".recipe-showcase"));
 }
 
 function clearWeekPlan() {
+  if (!weeklyPlanEntries().length) return;
+  if (!window.confirm("Clear every meal from this week's plan?")) return;
+  captureUndo("clear week");
   weeklyPlan = normalizeWeeklyPlan();
   persistRecipes();
   render();
@@ -747,34 +1290,55 @@ function recipeById(id) {
 function weeklyPlanEntries() {
   return weekDayKeys()
     .map((day) => ({ day, entry: weeklyPlan[day.key], recipe: recipeById(weeklyPlan[day.key]?.recipeId) }))
-    .filter((item) => item.recipe);
+    .filter((item) => item.recipe && isRecipeComplete(item.recipe));
 }
 
 function weeklyGroceryItems() {
-  const combined = new Map();
+  const combined = [];
   weeklyPlanEntries().forEach(({ day, entry, recipe }) => {
-    scaleRecipeIngredients(recipe, cleanNumber(entry.servings, recipe.baseServings || 2)).forEach((ingredient) => {
-      const key = `${normalizeName(ingredient.name)}|${ingredient.unit || ""}`;
-      const current = combined.get(key) || {
-        amount: 0,
-        unit: ingredient.unit || "",
-        name: ingredient.name,
-        recipes: new Set(),
-        days: new Set()
-      };
-      current.amount += cleanNumber(ingredient.amount, 0);
+    scaleRecipeIngredients(recipe, cleanNumber(entry.servings, recipe.baseServings || 2))
+      .filter((ingredient) => String(ingredient.name || "").trim() && cleanNumber(ingredient.amount, 0) > 0)
+      .forEach((ingredient) => {
+      const unit = MealPlannerFood.normalizeUnit(ingredient.unit || "");
+      let current = combined.find((item) =>
+        normalizeName(item.name) === normalizeName(ingredient.name) &&
+        MealPlannerFood.convertAmount(1, unit, item.unit) !== null
+      );
+      if (!current) {
+        current = {
+          amount: 0,
+          unit,
+          name: ingredient.name,
+          recipes: new Set(),
+          days: new Set()
+        };
+        combined.push(current);
+      }
+      const converted = MealPlannerFood.convertAmount(
+        cleanNumber(ingredient.amount, 0),
+        unit,
+        current.unit
+      );
+      current.amount += converted ?? cleanNumber(ingredient.amount, 0);
       current.recipes.add(recipe.name);
       current.days.add(day.label);
-      combined.set(key, current);
     });
   });
 
-  return [...combined.values()].map((item) => ({
-    ...item,
-    recipes: [...item.recipes],
-    days: [...item.days],
-    category: groceryCategory(item.name)
-  }));
+  return combined
+    .map((item) => {
+      const stock = MealPlannerFood.analyzeIngredient(item, foodStorage);
+      return {
+        ...item,
+        recipes: [...item.recipes],
+        days: [...item.days],
+        category: groceryCategory(item.name),
+        have: stock.have,
+        buy: stock.buy,
+        matchedItem: stock.match
+      };
+    })
+    .filter((item) => item.buy > 0.0001);
 }
 
 function renderWeeklyGroceryList() {
@@ -800,12 +1364,11 @@ function renderWeeklyGroceryList() {
     categoryItems
       .sort((a, b) => a.name.localeCompare(b.name))
       .forEach((item) => {
-        const match = findPantryMatch(item.name);
         const li = document.createElement("li");
         li.innerHTML = `
           <span>${escapeHtml(item.name)}</span>
-          <strong>${formatAmount(item.amount)} ${escapeHtml(item.unit || "")}</strong>
-          <small>${escapeHtml(item.days.join(", "))}${match ? ` | on hand: ${escapeHtml(match.name)}` : ""}</small>
+          <strong>Buy ${formatAmount(item.buy)} ${escapeHtml(item.unit || "")}</strong>
+          <small>${escapeHtml(item.days.join(", "))}${item.have ? ` | Have ${formatAmount(item.have)} ${escapeHtml(item.unit || "")}` : ""}</small>
         `;
         list.appendChild(li);
       });
@@ -845,6 +1408,7 @@ function answerFoodAi() {
   const selected = selectedRecipe();
   const possible = stockRecipeIdeas();
   const inventoryWords = ["have", "inventory", "stock", "house", "fridge", "refrigerator", "freezer", "pantry", "own"];
+  const expiryWords = ["expire", "expired", "expiration", "best by", "use soon", "going bad", "oldest"];
 
   if (question && !foodAiCanAnswer(question)) {
     foodAiAnswer.innerHTML = "I only help with food, recipes, and the inventory in your house.";
@@ -853,6 +1417,34 @@ function answerFoodAi() {
 
   if (!allItems.length) {
     foodAiAnswer.innerHTML = "Add groceries first, then I can suggest meals from your refrigerator, freezer, and pantry.";
+    return;
+  }
+
+  if (expiryWords.some((word) => question.includes(word))) {
+    const warningDays = cleanNumber(inventorySettings.reminderDays, 7) || 7;
+    const attention = allItems
+      .map((item) => ({ item, expiry: MealPlannerFood.expiryState(item, { warningDays }) }))
+      .filter(({ expiry }) => ["past", "today", "soon"].includes(expiry.state))
+      .sort((a, b) => a.expiry.days - b.expiry.days);
+    const ideas = MealPlannerFood.rankRecipesByExpiry(recipes, foodStorage, { warningDays }).slice(0, 3);
+
+    if (!attention.length) {
+      foodAiAnswer.innerHTML = `Nothing with a best-by date is due within ${warningDays} days.`;
+      return;
+    }
+
+    foodAiAnswer.innerHTML = `
+      <strong>Food needing attention:</strong>
+      <ul>${attention.slice(0, 8).map(({ item, expiry }) =>
+        `<li>${escapeHtml(item.name)} - ${escapeHtml(expiryNoticeText(expiry))}</li>`
+      ).join("")}</ul>
+      ${ideas.length
+        ? `<strong>Recipes to consider:</strong><ul>${ideas.map((idea) =>
+          `<li>${escapeHtml(idea.recipe.name)}${idea.ready ? " - ready now" : ` - ${idea.missingCount} item${idea.missingCount === 1 ? "" : "s"} to buy`}</li>`
+        ).join("")}</ul>`
+        : "<small>No saved recipe uses the food due soon yet.</small>"
+      }
+    `;
     return;
   }
 
@@ -929,17 +1521,28 @@ function answerFoodAi() {
 }
 
 function stockRecipeIdeas() {
+  const expiryRanks = new Map(
+    MealPlannerFood.rankRecipesByExpiry(recipes, foodStorage, {
+      warningDays: cleanNumber(inventorySettings.reminderDays, 7) || 7
+    }).map((idea) => [idea.recipe.id, idea.score])
+  );
   return recipes
     .map((recipe) => {
       const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
       const missing = missingIngredientsForRecipe(recipe);
-      return { recipe, ingredients, missing };
+      return { recipe, ingredients, missing, expiryScore: cleanNumber(expiryRanks.get(recipe.id), 0) };
     })
-    .filter((idea) => idea.ingredients.length && !idea.missing.length);
+    .filter((idea) => idea.ingredients.length && !idea.missing.length)
+    .sort((a, b) => b.expiryScore - a.expiryScore || a.recipe.name.localeCompare(b.recipe.name));
 }
 
 function missingIngredientsForRecipe(recipe) {
-  return (recipe.ingredients || []).filter((ingredient) => !findPantryMatch(ingredient.name));
+  return MealPlannerFood.analyzeRecipe(recipe.ingredients || [], foodStorage).rows
+    .filter((row) => row.buy > 0.0001)
+    .map((row) => ({
+      ...row.ingredient,
+      amount: row.buy
+    }));
 }
 
 function foodCalculatorIdeas() {
@@ -1032,7 +1635,8 @@ function foodAiCanAnswer(question) {
     "food", "meal", "recipe", "cook", "make", "eat", "dinner", "lunch", "breakfast",
     "ingredient", "ingredients", "missing", "need", "buy", "shopping", "cost", "price",
     "spend", "inventory", "stock", "house", "fridge", "refrigerator", "freezer", "pantry",
-    "have", "own", "beef", "chicken", "pork", "fish", "seafood", "spice", "condiment"
+    "have", "own", "beef", "chicken", "pork", "fish", "seafood", "spice", "condiment",
+    "expire", "expired", "expiration", "best by", "use soon", "going bad", "oldest"
   ];
   return allowed.some((word) => question.includes(word));
 }
@@ -1066,7 +1670,7 @@ function weeklyGroceryListText() {
     lines.push("", category);
     group
       .sort((a, b) => a.name.localeCompare(b.name))
-      .forEach((item) => lines.push(`${formatAmount(item.amount)} ${item.unit || ""} ${item.name}`.replace(/\s+/g, " ").trim()));
+      .forEach((item) => lines.push(`${formatAmount(item.buy)} ${item.unit || ""} ${item.name}`.replace(/\s+/g, " ").trim()));
   });
   return lines.join("\n");
 }
@@ -1085,10 +1689,18 @@ function renderMealBuilder() {
     });
   } else if (!builderState.kind) {
     builderQuestion.textContent = `What kind of ${builderOptions[builderState.main].label.toLowerCase()}?`;
-    renderChoiceButtons(mainChoiceButtons, builderOptions[builderState.main].kinds, builderState.kind, (key) => {
-      builderState.kind = key;
-      renderMealBuilder();
-    });
+    renderChoiceButtons(
+      mainChoiceButtons,
+      builderOptions[builderState.main].kinds,
+      builderState.kind,
+      (key) => {
+        builderState.kind = key;
+        renderMealBuilder();
+      },
+      "",
+      false,
+      builderState.main
+    );
   } else if (!builderState.style) {
     builderQuestion.textContent = "How do you want to cook it?";
     renderChoiceButtons(mainChoiceButtons, builderStyles, builderState.style, (key) => {
@@ -1134,7 +1746,15 @@ function mealBuilderTrail() {
   return parts.length ? `Choices: ${parts.join(" > ")}` : "";
 }
 
-function renderChoiceButtons(container, choices, selected, onClick, emptyText = "", disabled = false) {
+function renderChoiceButtons(
+  container,
+  choices,
+  selected,
+  onClick,
+  emptyText = "",
+  disabled = false,
+  imageGroup = ""
+) {
   container.innerHTML = "";
   const entries = Object.entries(choices);
   if (!entries.length || disabled) {
@@ -1149,7 +1769,7 @@ function renderChoiceButtons(container, choices, selected, onClick, emptyText = 
     button.dataset.choiceKey = key;
     button.className = `choice-button ${selected === key ? "active" : ""}`;
     const image = document.createElement("img");
-    image.src = choiceImageFor(key, displayLabel);
+    image.src = choiceImageFor(key, displayLabel, imageGroup);
     image.alt = "";
     image.onerror = () => {
       image.onerror = null;
@@ -1163,7 +1783,57 @@ function renderChoiceButtons(container, choices, selected, onClick, emptyText = 
   });
 }
 
-function choiceImageFor(key, label) {
+function choiceImageFor(key, label, group = "") {
+  const groupChoiceMap = {
+    chicken: {
+      breast: "chicken breast",
+      thighs: "chicken thighs",
+      whole_chicken: "whole chicken",
+      leg_quarters: "chicken leg quarters",
+      half: "half chicken",
+      cutlets: "chicken cutlets",
+      tenders: "chicken tenders",
+      ground_chicken: "ground chicken",
+      drumsticks: "drumsticks",
+      wings: "wings"
+    },
+    pork: {
+      chops: "pork chops",
+      roast: "pork roast",
+      tenderloin: "pork tenderloin",
+      pork_butt: "pork butt",
+      pork_shoulder: "pork shoulder",
+      pork_loin: "pork loin",
+      pork_belly: "pork belly",
+      ribs: "pork ribs",
+      baby_back_ribs: "baby back ribs",
+      spare_ribs: "spare ribs",
+      ground_pork: "ground pork",
+      sausage: "pork sausage",
+      bacon: "bacon",
+      ham: "ham"
+    },
+    fish: {
+      salmon: "salmon",
+      salmon_fillets: "salmon fillets",
+      cod: "cod",
+      haddock: "haddock",
+      halibut: "halibut",
+      flounder: "flounder",
+      catfish: "catfish",
+      trout: "trout",
+      shrimp: "shrimp",
+      jumbo_shrimp: "jumbo shrimp",
+      tuna: "tuna steaks",
+      crab_cakes: "crab cakes",
+      scallops: "scallops",
+      tilapia: "tilapia",
+      lobster: "lobster",
+      mussels: "mussels",
+      clams: "clams",
+      fish_fillets: "fish fillets"
+    }
+  };
   const choiceMap = {
     beef: "beef",
     hamburger: "ground beef",
@@ -1229,7 +1899,7 @@ function choiceImageFor(key, label) {
     grill: "beef",
     slow: "broth"
   };
-  return ingredientImageUrl(choiceMap[key] || label);
+  return ingredientImageUrl(groupChoiceMap[group]?.[key] || choiceMap[key] || label);
 }
 
 function renderBuilderListEditor() {
@@ -1273,6 +1943,7 @@ function addCurrentBuilderChoice() {
   }
 
   const key = uniqueBuilderKey(slugify(name), currentBuilderListInfo().choices);
+  captureUndo("add meal choice");
   setBuilderChoice(key, name);
   builderChoiceName.value = "";
   persistRecipes();
@@ -1287,6 +1958,7 @@ function renameCurrentBuilderChoice() {
     return;
   }
 
+  captureUndo("rename meal choice");
   setBuilderChoice(key, name);
   builderChoiceName.value = "";
   persistRecipes();
@@ -1298,6 +1970,9 @@ function deleteCurrentBuilderChoice() {
   if (!key) return;
 
   const info = currentBuilderListInfo();
+  const label = info.type === "main" ? info.choices[key]?.label : info.choices[key];
+  if (!window.confirm(`Delete "${label || "this choice"}" from the meal builder?`)) return;
+  captureUndo("delete meal choice");
   delete info.choices[key];
   if (info.type === "main" && builderState.main === key) builderState = { main: "", kind: "", style: "" };
   if (info.type === "kind" && builderState.kind === key) builderState.kind = "";
@@ -1420,7 +2095,9 @@ function renderRecipeList() {
     button.append(image, text);
     button.addEventListener("click", () => {
       selectedRecipeId = recipe.id;
+      editorUndoArmed = true;
       render();
+      setAppView("recipes", { focus: false });
       focusSection(document.querySelector(".recipe-showcase"));
     });
     recipeList.appendChild(button);
@@ -1601,7 +2278,9 @@ function openRecipeFromRolodex(card, recipe, index) {
   activeCard.classList.add("is-opening");
   setTimeout(() => {
     selectedRecipeId = recipe.id;
+    editorUndoArmed = true;
     render();
+    setAppView("recipes", { focus: false });
     focusSection(document.querySelector(".recipe-showcase"));
   }, 260);
 }
@@ -1614,6 +2293,8 @@ function setRecipeImage(image, recipe) {
   const fallbackName = recipe.ingredients?.[0]?.name || recipe.name;
   image.src = recipeImageSource(recipe);
   image.alt = "";
+  image.loading = "lazy";
+  image.decoding = "async";
   image.onerror = () => {
     image.onerror = () => {
       image.hidden = true;
@@ -1629,6 +2310,11 @@ function renderEditor() {
   if (!recipe) {
     recipeName.value = "";
     baseServings.value = 2;
+    recipePrepTime.value = "";
+    recipeCookTime.value = "";
+    recipeTotalTime.value = "";
+    recipeTemperature.value = "";
+    recipeSourceUrl.value = "";
     recipeNotes.value = "";
     recipePhotoPreview.removeAttribute("src");
     recipePhotoPreview.hidden = true;
@@ -1639,6 +2325,11 @@ function renderEditor() {
   deleteRecipe.disabled = recipes.length <= 1;
   recipeName.value = recipe.name;
   baseServings.value = recipe.baseServings;
+  recipePrepTime.value = recipe.prepTime || "";
+  recipeCookTime.value = recipe.cookTime || "";
+  recipeTotalTime.value = recipe.totalTime || "";
+  recipeTemperature.value = recipe.temperature || "";
+  recipeSourceUrl.value = recipe.sourceUrl || "";
   recipeNotes.value = recipe.notes || "";
   recipePhotoPreview.hidden = !recipe.photo;
   if (recipe.photo) {
@@ -1693,13 +2384,18 @@ function renderRecipeShowcase() {
     showcaseMealName.textContent = "";
     showcaseIngredients.innerHTML = "";
     showcaseInstructions.innerHTML = "";
+    startCooking.disabled = true;
     return;
   }
 
   const people = cleanNumber(targetServings.value, 1);
-  showcaseSummary.textContent = `${recipe.name} for ${people} people`;
+  const steps = recipeSteps(recipe.notes);
+  const timing = recipeTimingText(recipe);
+  showcaseSummary.textContent = `${recipe.name} for ${people} people${timing ? ` | ${timing}` : ""}`;
   showcaseMealName.textContent = recipe.name;
   showcaseMealPhoto.hidden = false;
+  startCooking.disabled = !steps.length;
+  startCooking.textContent = cookingSession?.recipeId === recipe.id ? "Continue cooking" : "Start cooking";
   setRecipeImage(showcaseMealPhoto, recipe);
 
   showcaseIngredients.innerHTML = "";
@@ -1724,7 +2420,6 @@ function renderRecipeShowcase() {
   });
 
   showcaseInstructions.innerHTML = "";
-  const steps = recipeSteps(recipe.notes);
   if (!steps.length) {
     showcaseInstructions.innerHTML = '<p class="empty">Add cooking steps, times, and temperatures in the recipe notes.</p>';
     return;
@@ -1739,6 +2434,15 @@ function renderRecipeShowcase() {
   showcaseInstructions.appendChild(list);
 }
 
+function recipeTimingText(recipe) {
+  return [
+    recipe.prepTime ? `Prep ${recipe.prepTime}` : "",
+    recipe.cookTime ? `Cook ${recipe.cookTime}` : "",
+    recipe.totalTime ? `Total ${recipe.totalTime}` : "",
+    recipe.temperature ? recipe.temperature : ""
+  ].filter(Boolean).join(" | ");
+}
+
 function recipeSteps(notes) {
   return String(notes || "")
     .split(/\r?\n|(?<=\.)\s+(?=[A-Z0-9])/)
@@ -1746,8 +2450,481 @@ function recipeSteps(notes) {
     .filter(Boolean);
 }
 
+function loadCookingSession() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(cookingStorageKey));
+    return normalizeCookingSession(saved);
+  } catch {
+    return null;
+  }
+}
+
+function normalizeCookingSession(saved) {
+  if (!saved || typeof saved !== "object") return null;
+  const recipe = recipes.find((item) => item.id === saved.recipeId);
+  if (!recipe) return null;
+
+  const steps = recipeSteps(recipe.notes);
+  const ingredientCount = Array.isArray(recipe.ingredients) ? recipe.ingredients.length : 0;
+  const checkedIngredients = uniqueValidIndexes(saved.checkedIngredients, ingredientCount);
+  const completedSteps = uniqueValidIndexes(saved.completedSteps, steps.length);
+  const timers = Array.isArray(saved.timers)
+    ? saved.timers.map(normalizeCookingTimer).filter(Boolean).slice(0, 12)
+    : [];
+
+  return {
+    recipeId: recipe.id,
+    servings: cleanNumber(saved.servings, cleanNumber(recipe.baseServings, 1)),
+    activeStep: Math.min(Math.max(0, Math.floor(Number(saved.activeStep) || 0)), Math.max(0, steps.length - 1)),
+    checkedIngredients,
+    completedSteps,
+    timers
+  };
+}
+
+function uniqueValidIndexes(values, length) {
+  if (!Array.isArray(values) || !length) return [];
+  return [...new Set(values
+    .map((value) => Math.floor(Number(value)))
+    .filter((value) => Number.isInteger(value) && value >= 0 && value < length))]
+    .sort((a, b) => a - b);
+}
+
+function normalizeCookingTimer(saved) {
+  if (!saved || typeof saved !== "object") return null;
+  const savedDuration = Number(saved.durationMs);
+  if (!Number.isFinite(savedDuration) || savedDuration <= 0) return null;
+  const durationMs = Math.min(12 * 60 * 60 * 1000, Math.max(600, savedDuration));
+  const status = ["running", "paused", "done"].includes(saved.status) ? saved.status : "paused";
+  const remainingMs = Math.min(durationMs, Math.max(0, Number(saved.remainingMs) || durationMs));
+  const endAt = Number(saved.endAt) || Date.now() + remainingMs;
+  return {
+    id: saved.id || crypto.randomUUID(),
+    label: String(saved.label || "Kitchen timer").slice(0, 40),
+    durationMs,
+    status,
+    remainingMs: status === "done" ? 0 : remainingMs,
+    endAt,
+    announced: Boolean(saved.announced)
+  };
+}
+
+function createCookingSession(recipe, servings) {
+  return {
+    recipeId: recipe.id,
+    servings,
+    activeStep: 0,
+    checkedIngredients: [],
+    completedSteps: [],
+    timers: []
+  };
+}
+
+function saveCookingSession() {
+  try {
+    if (cookingSession) {
+      localStorage.setItem(cookingStorageKey, JSON.stringify(cookingSession));
+    } else {
+      localStorage.removeItem(cookingStorageKey);
+    }
+  } catch {
+    setSaveStatus("Cooking progress could not be saved", 3000);
+  }
+}
+
+function openCookingMode() {
+  const recipe = selectedRecipe();
+  const steps = recipeSteps(recipe?.notes);
+  if (!recipe || !steps.length) {
+    window.alert("Add cooking steps to this recipe before starting guided cooking.");
+    return;
+  }
+
+  const servings = cleanNumber(targetServings.value, 1);
+  const sameSession = cookingSession?.recipeId === recipe.id && cookingSession.servings === servings;
+  if (!sameSession) {
+    const hasProgress = cookingSession &&
+      (cookingSession.checkedIngredients.length || cookingSession.completedSteps.length || cookingSession.timers.length);
+    if (hasProgress && !window.confirm("Start a different cooking session? The current cooking progress and timers will be replaced.")) {
+      return;
+    }
+    cookingSession = createCookingSession(recipe, servings);
+    saveCookingSession();
+  } else {
+    cookingSession = normalizeCookingSession(cookingSession);
+  }
+
+  renderCookingMode();
+  cookingIngredientsPanel.open = !document.body.classList.contains("phone-layout");
+  if (typeof cookingMode.showModal === "function") {
+    if (!cookingMode.open) cookingMode.showModal();
+  } else {
+    cookingMode.setAttribute("open", "");
+  }
+  document.body.classList.add("cooking-open");
+  requestCookingWakeLock();
+  ensureCookingTimerTicker();
+  setTimeout(() => cookingStepDone.focus(), 0);
+  renderRecipeShowcase();
+}
+
+function closeCookingMode() {
+  if (cookingMode.open && typeof cookingMode.close === "function") {
+    cookingMode.close();
+  } else {
+    cookingMode.removeAttribute("open");
+  }
+  document.body.classList.remove("cooking-open");
+  releaseCookingWakeLock();
+  renderRecipeShowcase();
+}
+
+function renderCookingMode() {
+  if (!cookingSession) return;
+  const recipe = recipes.find((item) => item.id === cookingSession.recipeId);
+  if (!recipe) {
+    cookingSession = null;
+    saveCookingSession();
+    closeCookingMode();
+    return;
+  }
+
+  const steps = recipeSteps(recipe.notes);
+  if (!steps.length) {
+    closeCookingMode();
+    return;
+  }
+  cookingSession.activeStep = Math.min(cookingSession.activeStep, steps.length - 1);
+  const ingredients = scaleRecipeIngredients(recipe, cookingSession.servings);
+  const checkedIngredients = new Set(cookingSession.checkedIngredients);
+  const completedSteps = new Set(cookingSession.completedSteps);
+
+  cookingTitle.textContent = recipe.name;
+  cookingMeta.textContent = `Cooking for ${formatAmount(cookingSession.servings)} people`;
+  cookingIngredients.innerHTML = "";
+  ingredients.forEach((ingredient, index) => {
+    const label = document.createElement("label");
+    label.className = "cooking-ingredient";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.dataset.cookingIngredient = String(index);
+    checkbox.checked = checkedIngredients.has(index);
+    const image = document.createElement("img");
+    image.src = ingredientImageUrl(ingredient.name);
+    image.alt = "";
+    image.onerror = () => {
+      image.onerror = () => {
+        image.hidden = true;
+      };
+      image.src = ingredientRemoteImageUrl(ingredient.name);
+    };
+    const text = document.createElement("span");
+    const name = document.createElement("strong");
+    name.textContent = ingredient.name;
+    const amount = document.createElement("small");
+    amount.textContent = `${formatAmount(ingredient.amount)} ${ingredient.unit || ""}`.trim();
+    text.append(name, amount);
+    label.append(checkbox, image, text);
+    cookingIngredients.appendChild(label);
+  });
+
+  cookingStepCount.textContent = `Step ${cookingSession.activeStep + 1} of ${steps.length}`;
+  cookingProgress.max = steps.length;
+  cookingProgress.value = cookingSession.activeStep + 1;
+  cookingStepText.textContent = steps[cookingSession.activeStep];
+  cookingStepDone.checked = completedSteps.has(cookingSession.activeStep);
+  previousCookingStep.disabled = cookingSession.activeStep === 0;
+  nextCookingStep.disabled = cookingSession.activeStep >= steps.length - 1;
+  cookingIngredientCount.textContent = `${checkedIngredients.size} of ${ingredients.length}`;
+  renderCookingSessionStatus();
+  renderCookingTimers();
+}
+
+function renderCookingSessionStatus(message = "") {
+  if (!cookingSession) {
+    cookingSessionStatus.textContent = "";
+    return;
+  }
+  if (message) {
+    cookingSessionStatus.textContent = message;
+    return;
+  }
+  const recipe = recipes.find((item) => item.id === cookingSession.recipeId);
+  const ingredientTotal = recipe?.ingredients?.length || 0;
+  const stepTotal = recipeSteps(recipe?.notes).length;
+  cookingSessionStatus.textContent =
+    `${cookingSession.checkedIngredients.length} of ${ingredientTotal} ingredients ready | ` +
+    `${cookingSession.completedSteps.length} of ${stepTotal} steps complete`;
+}
+
+function updateCookingIngredientCompletion(event) {
+  const input = event.target.closest("[data-cooking-ingredient]");
+  if (!input || !cookingSession) return;
+  const checked = new Set(cookingSession.checkedIngredients);
+  const index = Number(input.dataset.cookingIngredient);
+  if (input.checked) checked.add(index);
+  else checked.delete(index);
+  cookingSession.checkedIngredients = [...checked].sort((a, b) => a - b);
+  saveCookingSession();
+  renderCookingMode();
+}
+
+function updateCookingStepCompletion() {
+  if (!cookingSession) return;
+  const completed = new Set(cookingSession.completedSteps);
+  if (cookingStepDone.checked) completed.add(cookingSession.activeStep);
+  else completed.delete(cookingSession.activeStep);
+  cookingSession.completedSteps = [...completed].sort((a, b) => a - b);
+  saveCookingSession();
+  renderCookingMode();
+}
+
+function changeCookingStep(delta) {
+  if (!cookingSession) return;
+  const recipe = recipes.find((item) => item.id === cookingSession.recipeId);
+  const steps = recipeSteps(recipe?.notes);
+  cookingSession.activeStep = Math.min(
+    Math.max(0, cookingSession.activeStep + delta),
+    Math.max(0, steps.length - 1)
+  );
+  saveCookingSession();
+  renderCookingMode();
+  cookingStepText.focus?.();
+}
+
+function resetCookingProgress() {
+  if (!cookingSession) return;
+  const hasProgress =
+    cookingSession.checkedIngredients.length ||
+    cookingSession.completedSteps.length ||
+    cookingSession.timers.length;
+  if (hasProgress && !window.confirm("Start this cooking session over and remove its timers?")) return;
+  const recipe = recipes.find((item) => item.id === cookingSession.recipeId);
+  if (!recipe) return;
+  cookingSession = createCookingSession(recipe, cookingSession.servings);
+  saveCookingSession();
+  updateCookingTimers();
+  renderCookingMode();
+}
+
+function addCookingTimer(quickMinutes = 0) {
+  if (!cookingSession) return;
+  const minutes = quickMinutes || Number(cookingTimerMinutes.value);
+  if (!Number.isFinite(minutes) || minutes < 0.01 || minutes > 720) {
+    window.alert("Enter a timer from 0.01 to 720 minutes.");
+    cookingTimerMinutes.focus();
+    return;
+  }
+  const durationMs = Math.round(minutes * 60 * 1000);
+  const defaultLabel = `Step ${cookingSession.activeStep + 1} timer`;
+  const label = cookingTimerName.value.trim() || defaultLabel;
+  cookingSession.timers.push({
+    id: crypto.randomUUID(),
+    label: label.slice(0, 40),
+    durationMs,
+    status: "running",
+    remainingMs: durationMs,
+    endAt: Date.now() + durationMs,
+    announced: false
+  });
+  cookingTimerName.value = "";
+  saveCookingSession();
+  ensureCookingTimerTicker();
+  renderCookingTimers();
+  renderCookingSessionStatus(`${label} started`);
+}
+
+function handleCookingTimerAction(event) {
+  const button = event.target.closest("[data-timer-action]");
+  if (!button || !cookingSession) return;
+  const timer = cookingSession.timers.find((item) => item.id === button.dataset.timerId);
+  if (!timer) return;
+  const action = button.dataset.timerAction;
+  if (action === "remove") {
+    cookingSession.timers = cookingSession.timers.filter((item) => item.id !== timer.id);
+  } else if (action === "pause" && timer.status === "running") {
+    timer.remainingMs = Math.max(0, timer.endAt - Date.now());
+    timer.status = "paused";
+  } else if (action === "resume" && timer.status === "paused") {
+    timer.endAt = Date.now() + timer.remainingMs;
+    timer.status = "running";
+  } else if (action === "restart" && timer.status === "done") {
+    timer.remainingMs = timer.durationMs;
+    timer.endAt = Date.now() + timer.durationMs;
+    timer.status = "running";
+    timer.announced = false;
+  }
+  saveCookingSession();
+  updateCookingTimers();
+  renderCookingTimers();
+}
+
+function cookingTimerRemaining(timer) {
+  if (timer.status === "running") return Math.max(0, timer.endAt - Date.now());
+  if (timer.status === "paused") return Math.max(0, timer.remainingMs);
+  return 0;
+}
+
+function renderCookingTimers() {
+  cookingTimers.innerHTML = "";
+  if (!cookingSession?.timers.length) {
+    cookingTimers.innerHTML = '<p class="empty">No timers running.</p>';
+    return;
+  }
+
+  cookingSession.timers.forEach((timer) => {
+    const row = document.createElement("article");
+    row.className = `cooking-timer ${timer.status}`;
+    row.dataset.timerId = timer.id;
+    const summary = document.createElement("span");
+    const label = document.createElement("strong");
+    label.textContent = timer.label;
+    const time = document.createElement("time");
+    time.textContent = timer.status === "done" ? "Finished" : formatCookingTimer(cookingTimerRemaining(timer));
+    summary.append(label, time);
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.dataset.timerId = timer.id;
+    toggle.dataset.timerAction = timer.status === "running" ? "pause" : timer.status === "paused" ? "resume" : "restart";
+    toggle.textContent = timer.status === "running" ? "Pause" : timer.status === "paused" ? "Resume" : "Restart";
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "remove";
+    remove.dataset.timerId = timer.id;
+    remove.dataset.timerAction = "remove";
+    remove.textContent = "Remove";
+    row.append(summary, toggle, remove);
+    cookingTimers.appendChild(row);
+  });
+}
+
+function formatCookingTimer(milliseconds) {
+  const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return hours
+    ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+    : `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function updateCookingTimers() {
+  if (!cookingSession) {
+    stopCookingTimerTicker();
+    return;
+  }
+  const finished = [];
+  let changed = false;
+  cookingSession.timers.forEach((timer) => {
+    if (timer.status !== "running") return;
+    const remaining = timer.endAt - Date.now();
+    if (remaining <= 0) {
+      timer.remainingMs = 0;
+      timer.status = "done";
+      changed = true;
+      if (!timer.announced) {
+        timer.announced = true;
+        finished.push(timer);
+      }
+    } else {
+      timer.remainingMs = remaining;
+    }
+  });
+  if (changed) saveCookingSession();
+  if (cookingMode.open) renderCookingTimers();
+  finished.forEach(announceCookingTimer);
+  ensureCookingTimerTicker();
+}
+
+function announceCookingTimer(timer) {
+  const message = `${timer.label} is finished`;
+  if (cookingMode.open) renderCookingSessionStatus(message);
+  else setSaveStatus(message, 6000);
+  try {
+    navigator.vibrate?.([250, 150, 250]);
+  } catch {
+    // Vibration is optional.
+  }
+}
+
+function ensureCookingTimerTicker() {
+  const hasRunningTimer = cookingSession?.timers.some((timer) => timer.status === "running");
+  if (hasRunningTimer && !cookingTimerTicker) {
+    cookingTimerTicker = window.setInterval(updateCookingTimers, 1000);
+  } else if (!hasRunningTimer) {
+    stopCookingTimerTicker();
+  }
+}
+
+function stopCookingTimerTicker() {
+  if (!cookingTimerTicker) return;
+  window.clearInterval(cookingTimerTicker);
+  cookingTimerTicker = null;
+}
+
+async function requestCookingWakeLock() {
+  if (!cookingMode.open || document.visibilityState !== "visible") return;
+  if (!navigator.wakeLock?.request) {
+    cookingWakeStatus.textContent = "Screen-awake control is not available here.";
+    return;
+  }
+  if (cookingWakeLock && !cookingWakeLock.released) return;
+  try {
+    cookingWakeLock = await navigator.wakeLock.request("screen");
+    cookingWakeStatus.textContent = "Screen will stay awake while cooking.";
+    cookingWakeLock.addEventListener("release", () => {
+      cookingWakeLock = null;
+      if (cookingMode.open) cookingWakeStatus.textContent = "Screen-awake control was released.";
+    });
+  } catch {
+    cookingWakeStatus.textContent = "Screen sleep setting was not changed.";
+  }
+}
+
+async function releaseCookingWakeLock() {
+  const activeLock = cookingWakeLock;
+  cookingWakeLock = null;
+  if (!activeLock || activeLock.released) return;
+  try {
+    await activeLock.release();
+  } catch {
+    // The browser may have already released it.
+  }
+}
+
+function handleCookingVisibilityChange() {
+  updateCookingTimers();
+  if (document.visibilityState === "visible" && cookingMode.open) {
+    requestCookingWakeLock();
+  }
+}
+
+function finishCookingSession() {
+  if (!cookingSession) return;
+  const recipe = recipes.find((item) => item.id === cookingSession.recipeId);
+  if (!recipe) return;
+  const ingredientTotal = recipe.ingredients?.length || 0;
+  const stepTotal = recipeSteps(recipe.notes).length;
+  const unfinished =
+    cookingSession.checkedIngredients.length < ingredientTotal ||
+    cookingSession.completedSteps.length < stepTotal;
+  if (unfinished && !window.confirm("Some ingredients or steps are not checked. Finish cooking anyway?")) return;
+
+  selectedRecipeId = recipe.id;
+  targetServings.value = cookingSession.servings;
+  if (!cookSelectedMeal()) return;
+
+  cookingSession = null;
+  saveCookingSession();
+  stopCookingTimerTicker();
+  closeCookingMode();
+  renderRecipeShowcase();
+}
+
 function ingredientImageUrl(name) {
-  return `images/ingredients/${ingredientImageKey(name)}.png`;
+  const key = ingredientImageKey(name);
+  const aliases = window.BOB_MARY_INGREDIENT_IMAGE_ALIASES || {};
+  return `images/ingredients/${aliases[key] || key}.webp`;
 }
 
 function ingredientRemoteImageUrl(name) {
@@ -1770,6 +2947,10 @@ function ingredientImageKey(name) {
   const stockMap = [
     ["black pepper", "black_pepper"],
     ["pepper", "pepper"],
+    ["canola oil", "canola_oil"],
+    ["peanut oil", "peanut_oil"],
+    ["sesame oil", "sesame_oil"],
+    ["vegetable oil", "vegetable_oil"],
     ["olive oil", "olive_oil"],
     ["oil", "oil"],
     ["ground beef", "ground_beef"],
@@ -1803,14 +2984,20 @@ function ingredientImageKey(name) {
     ["corned beef", "corned_beef"],
     ["ribeye", "ribeye"],
     ["sirloin", "sirloin"],
+    ["tuna steak", "tuna_steaks"],
+    ["pork steak", "pork_steak"],
+    ["ham steak", "ham_steak"],
     ["beef steak", "beef_steak"],
     ["steak", "beef_steak"],
     ["chuck roast", "chuck_roast"],
     ["brisket", "brisket"],
     ["stew meat", "stew_meat"],
+    ["pork roast", "pork_roast"],
     ["roast", "beef_roast"],
     ["hamburger", "ground_beef"],
     ["beef", "beef"],
+    ["half chicken", "half_chicken"],
+    ["chicken tender", "chicken_tenders"],
     ["chicken breast", "chicken_breast"],
     ["chicken thigh", "chicken_thighs"],
     ["whole chicken", "whole_chicken"],
@@ -1824,10 +3011,14 @@ function ingredientImageKey(name) {
     ["chicken drumstick", "chicken_drumsticks"],
     ["wingette", "chicken_wingettes"],
     ["gizzard", "chicken_gizzards"],
+    ["chicken liver", "chicken_liver"],
+    ["chicken wing", "chicken_wings"],
     ["ground chicken", "ground_chicken"],
     ["drumstick", "drumsticks"],
     ["wing", "wings"],
     ["chicken", "chicken"],
+    ["pork tenderloin", "pork_tenderloin"],
+    ["pork rib", "pork_ribs"],
     ["pork chop", "pork_chops"],
     ["pork steak", "pork_steak"],
     ["pork butt", "pork_butt"],
@@ -1838,6 +3029,7 @@ function ingredientImageKey(name) {
     ["spare rib", "spare_ribs"],
     ["country style rib", "country_style_ribs"],
     ["ground pork", "ground_pork"],
+    ["minced pork", "minced_pork"],
     ["pork cutlet", "pork_cutlets"],
     ["pork sausage", "pork_sausage"],
     ["breakfast sausage", "breakfast_sausage"],
@@ -1888,6 +3080,7 @@ function ingredientImageKey(name) {
     ["lemon", "lemon"],
     ["lime", "lime"],
     ["spaghetti", "spaghetti"],
+    ["rice noodle", "rice_noodles"],
     ["egg noodle", "egg_noodles"],
     ["noodle", "noodles"],
     ["penne", "penne"],
@@ -1895,6 +3088,9 @@ function ingredientImageKey(name) {
     ["ramen", "ramen"],
     ["macaroni", "macaroni"],
     ["pasta", "macaroni"],
+    ["brown rice", "brown_rice"],
+    ["basmati rice", "basmati_rice"],
+    ["jasmine rice", "jasmine_rice"],
     ["rice", "rice"],
     ["quinoa", "quinoa"],
     ["couscous", "couscous"],
@@ -1903,12 +3099,26 @@ function ingredientImageKey(name) {
     ["mixed vegetable", "green_beans"],
     ["black bean", "black_beans"],
     ["kidney bean", "kidney_beans"],
+    ["pinto bean", "pinto_beans"],
+    ["refried bean", "refried_beans"],
+    ["baked bean", "baked_beans"],
+    ["cannellini bean", "cannellini_beans"],
+    ["chili bean", "chili_beans"],
     ["chickpea", "chickpeas"],
     ["lentil", "lentils"],
+    ["split pea", "split_peas"],
     ["bean", "beans"],
+    ["bread flour", "bread_flour"],
     ["flour", "flour"],
+    ["cornmeal", "cornmeal"],
+    ["cornstarch", "cornstarch"],
+    ["baking powder", "baking_powder"],
+    ["yeast", "yeast"],
+    ["powdered sugar", "powdered_sugar"],
     ["sugar", "sugar"],
     ["brown sugar", "brown_sugar"],
+    ["oats", "oats"],
+    ["cereal", "cereal"],
     ["salt", "salt"],
     ["ketchup", "ketchup"],
     ["ketup", "ketchup"],
@@ -1927,9 +3137,24 @@ function ingredientImageKey(name) {
     ["tomato sauce", "tomato_sauce"],
     ["tomato paste", "tomato_paste"],
     ["diced tomato", "diced_tomatoes"],
+    ["stewed tomato", "stewed_tomatoes"],
+    ["corned beef hash", "corned_beef_hash"],
     ["cream of mushroom", "cream_of_mushroom"],
     ["cream of chicken", "cream_of_chicken"],
+    ["cream cheese", "cream_cheese"],
+    ["sweetened condensed milk", "sweetened_condensed_milk"],
+    ["apple cider vinegar", "apple_cider_vinegar"],
+    ["balsamic vinegar", "balsamic_vinegar"],
+    ["red wine vinegar", "red_wine_vinegar"],
+    ["rice vinegar", "rice_vinegar"],
+    ["white vinegar", "white_vinegar"],
     ["soy sauce", "soy_sauce"],
+    ["fish sauce", "fish_sauce"],
+    ["hoisin sauce", "hoisin_sauce"],
+    ["oyster sauce", "oyster_sauce"],
+    ["sweet and sour sauce", "sweet_and_sour_sauce"],
+    ["chili sauce", "chili_sauce"],
+    ["duck sauce", "duck_sauce"],
     ["worcestershire", "worcestershire"],
     ["bbq sauce", "bbq_sauce"],
     ["barbecue sauce", "bbq_sauce"],
@@ -1959,7 +3184,9 @@ function ingredientImageKey(name) {
     ["bun", "buns"],
     ["pie crust", "pie_crust"],
     ["pancake mix", "pancake_mix"],
+    ["bouillon cube", "bouillon_cubes"],
     ["peanut butter", "peanut_butter"],
+    ["peanut", "peanuts"],
     ["jam", "jam"],
     ["maple syrup", "maple_syrup"],
     ["kosher salt", "kosher_salt"],
@@ -2019,24 +3246,34 @@ function ingredientImageKey(name) {
     ["pesto", "pesto"],
     ["enchilada sauce", "enchilada_sauce"],
     ["taco sauce", "taco_sauce"],
+    ["taco shell", "taco_shells"],
+    ["smoked salmon", "smoked_salmon"],
+    ["salmon fillet", "salmon_fillets"],
     ["salmon", "salmon"],
     ["catfish", "catfish"],
     ["mahi", "mahi_mahi"],
     ["oyster", "oysters"],
     ["calamari", "calamari"],
     ["anchovy", "anchovies"],
+    ["lobster tail", "lobster_tails"],
     ["lobster", "lobster"],
     ["mussel", "mussels"],
     ["clam", "clams"],
     ["crab meat", "crab"],
     ["crab leg", "crab"],
-    ["crab cake", "crab"],
+    ["crab cake", "crab_cakes"],
     ["crab", "crab"],
+    ["sea scallop", "sea_scallops"],
+    ["bay scallop", "bay_scallops"],
     ["scallop", "scallops"],
     ["cod", "cod"],
+    ["tuna steak", "tuna_steaks"],
+    ["canned tuna", "canned_tuna"],
     ["tuna", "tuna"],
+    ["raw shrimp", "raw_shrimp"],
+    ["cooked shrimp", "cooked_shrimp"],
+    ["jumbo shrimp", "jumbo_shrimp"],
     ["shrimp", "shrimp"],
-    ["fish", "fish"],
     ["ground turkey", "ground_turkey"],
     ["turkey leg", "turkey_legs"],
     ["turkey wing", "turkey_wings"],
@@ -2048,23 +3285,17 @@ function ingredientImageKey(name) {
     ["haddock", "haddock"],
     ["halibut", "halibut"],
     ["flounder", "flounder"],
+    ["rainbow trout", "rainbow_trout"],
+    ["salt cod", "salt_cod"],
     ["snapper", "snapper"],
     ["grouper", "grouper"],
     ["trout", "trout"],
     ["swordfish", "swordfish"],
+    ["sea bass fillet", "sea_bass_fillets"],
     ["sea bass", "sea_bass"],
     ["pollock", "pollock"],
     ["sardine", "sardines"],
-    ["smoked salmon", "smoked_salmon"],
-    ["salmon fillet", "salmon_fillets"],
-    ["tuna steak", "tuna_steaks"],
-    ["canned tuna", "canned_tuna"],
-    ["raw shrimp", "raw_shrimp"],
-    ["cooked shrimp", "cooked_shrimp"],
-    ["jumbo shrimp", "jumbo_shrimp"],
-    ["lobster tail", "lobster_tails"],
-    ["sea scallop", "sea_scallops"],
-    ["bay scallop", "bay_scallops"],
+    ["fish", "fish"],
     ["carrot", "carrot"],
     ["celery", "celery"],
     ["chicken broth", "chicken_broth"],
@@ -2093,7 +3324,10 @@ function ingredientImageKey(name) {
     ["bread", "bread"]
   ];
 
-  const found = stockMap.find(([needle]) => cleaned.includes(needle));
+  const found = stockMap.reduce((best, entry) => {
+    if (!cleaned.includes(entry[0])) return best;
+    return !best || entry[0].length > best[0].length ? entry : best;
+  }, null);
   return found ? found[1] : cleaned.split(/\s+/).slice(0, 2).join("_") || "chicken";
 }
 
@@ -2120,12 +3354,14 @@ function addIngredientRow(ingredient = { amount: "", unit: "", name: "" }) {
   row.querySelector(".unit").value = ingredient.unit;
   row.querySelector(".name").value = ingredient.name;
   row.querySelector(".remove").addEventListener("click", () => {
+    captureEditorUndoOnce();
     row.remove();
     saveCurrentFieldsQuietly();
   });
 
   row.querySelectorAll("input").forEach((input) => {
     input.addEventListener("input", () => {
+      captureEditorUndoOnce();
       saveCurrentFieldsQuietly();
       renderMealViews();
       renderRecipeList();
@@ -2149,6 +3385,11 @@ function collectEditorRecipe(existingId = selectedRecipeId) {
     id: existingId || crypto.randomUUID(),
     name: recipeName.value.trim() || "Untitled recipe",
     baseServings: cleanNumber(baseServings.value, 1),
+    prepTime: recipePrepTime.value.trim(),
+    cookTime: recipeCookTime.value.trim(),
+    totalTime: recipeTotalTime.value.trim(),
+    temperature: recipeTemperature.value.trim(),
+    sourceUrl: recipeSourceUrl.value.trim(),
     notes: recipeNotes.value.trim(),
     ingredients,
     photo: existing?.photo || ""
@@ -2157,8 +3398,18 @@ function collectEditorRecipe(existingId = selectedRecipeId) {
 
 function saveSelectedRecipe(event) {
   event.preventDefault();
-  saveCurrentFieldsQuietly();
+  const recipe = collectEditorRecipe(selectedRecipeId);
+  const error = recipeValidationError(recipe);
+  if (error) {
+    window.alert(error);
+    return;
+  }
+  const index = recipes.findIndex((item) => item.id === selectedRecipeId);
+  if (index >= 0) recipes[index] = recipe;
+  persistRecipes();
+  editorUndoArmed = true;
   render();
+  setSaveStatus("Recipe saved", 1800);
 }
 
 function saveCurrentFieldsQuietly() {
@@ -2169,17 +3420,42 @@ function saveCurrentFieldsQuietly() {
   persistRecipes();
 }
 
+function recipeValidationError(recipe) {
+  if (!String(recipe?.name || "").trim() || /^untitled recipe$/i.test(recipe.name)) {
+    return "Give this recipe a name before saving it.";
+  }
+  if (!Array.isArray(recipe.ingredients) || !recipe.ingredients.length) {
+    return "Add at least one ingredient before saving this recipe.";
+  }
+  const invalid = recipe.ingredients.find((ingredient) =>
+    !String(ingredient.name || "").trim() || cleanNumber(ingredient.amount, 0) <= 0
+  );
+  if (invalid) return "Every ingredient needs a name and an amount greater than zero.";
+  return "";
+}
+
+function isRecipeComplete(recipe) {
+  return recipeValidationError(recipe) === "";
+}
+
 function createRecipe() {
+  captureUndo("new recipe");
   const recipe = {
     id: crypto.randomUUID(),
     name: "New recipe",
     baseServings: cleanNumber(targetServings.value, 2),
+    prepTime: "",
+    cookTime: "",
+    totalTime: "",
+    temperature: "",
+    sourceUrl: "",
     notes: "",
     photo: "",
     ingredients: [{ amount: 1, unit: "", name: "" }]
   };
   recipes.unshift(recipe);
   selectedRecipeId = recipe.id;
+  editorUndoArmed = true;
   persistRecipes();
   render();
   recipeName.focus();
@@ -2189,6 +3465,7 @@ function createRecipe() {
 function addRecipePhoto(event) {
   const file = event.target.files[0];
   if (!file) return;
+  captureUndo("recipe photo");
 
   const reader = new FileReader();
   reader.onload = () => {
@@ -2224,6 +3501,8 @@ function resizePhoto(source, done) {
 function clearRecipePhoto() {
   const index = recipes.findIndex((recipe) => recipe.id === selectedRecipeId);
   if (index === -1) return;
+  if (!recipes[index].photo) return;
+  captureUndo("remove recipe photo");
 
   recipes[index].photo = "";
   persistRecipes();
@@ -2367,6 +3646,7 @@ function saveBuilderMeal() {
   const recipe = buildRecipeFromChoices();
   if (!recipe) return;
 
+  captureUndo("built meal");
   recipes.unshift(recipe);
   selectedRecipeId = recipe.id;
   persistRecipes();
@@ -2390,7 +3670,7 @@ function goBackBuilder() {
   renderMealBuilder();
 }
 
-function saveRecipeFromPaste() {
+function reviewRecipeFromPaste() {
   const pasted = recipePasteBox.value.trim();
   if (!pasted) {
     alert("Paste a recipe into the box first.");
@@ -2398,74 +3678,221 @@ function saveRecipeFromPaste() {
     return;
   }
 
-  const recipe = parsePastedRecipe(pasted);
-  recipes.unshift(recipe);
-  selectedRecipeId = recipe.id;
-  recipePasteBox.value = "";
-  persistRecipes();
-  render();
-  focusSection(recipeForm, recipeName);
+  try {
+    openRecipeReview(parsePastedRecipe(pasted), "Pasted recipe ready to check.");
+  } catch (error) {
+    recipeReadStatus.textContent = error?.message || "I could not read that pasted recipe.";
+  }
 }
 
 function parsePastedRecipe(text) {
-  const lines = text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-  const title = lines[0] || "Pasted recipe";
-  const servingsLine = lines.find((line) => /serves|servings|yield/i.test(line));
-  const servingsMatch = servingsLine?.match(/(\d+)/);
-  const base = servingsMatch ? Number(servingsMatch[1]) : cleanNumber(targetServings.value, 2);
-  const ingredientLines = [];
-  const noteLines = [];
-  let sawLikelyIngredient = false;
-
-  lines.slice(1).forEach((line) => {
-    if (/^(ingredients|directions|instructions|method|prep|steps)\s*:?\s*$/i.test(line)) return;
-    if (line === servingsLine) return;
-
-    if (looksLikeIngredient(line) && !noteLines.length) {
-      ingredientLines.push(line);
-      sawLikelyIngredient = true;
-      return;
-    }
-
-    if (sawLikelyIngredient || line.length > 35) {
-      noteLines.push(line);
-    } else {
-      ingredientLines.push(line);
-    }
-  });
-
-  return {
+  return normalizeRecipe({
     id: crypto.randomUUID(),
-    name: title.replace(/^recipe\s*:\s*/i, ""),
-    baseServings: base,
-    notes: noteLines.join("\n"),
-    photo: "",
-    ingredients: ingredientLines.map(parseIngredientLine).filter((ingredient) => ingredient.name)
-  };
+    ...MealPlannerRecipeReader.parseText(text, {
+      baseServings: cleanNumber(targetServings.value, 2)
+    })
+  });
 }
 
 function looksLikeIngredient(line) {
-  return /^(\d+|\d+\.\d+|\d+\/\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b/i.test(line);
+  return MealPlannerRecipeReader.looksLikeIngredient(line);
 }
 
 function parseIngredientLine(line) {
-  const cleaned = line.replace(/^[-*]\s*/, "").trim();
-  const parsed = parseMeasure(cleaned);
-  const usedText = parsed.originalText || "";
-  const name = cleaned.slice(usedText.length).replace(/^[-, ]+/, "").trim() || cleaned;
+  return MealPlannerRecipeReader.parseIngredientLine(line);
+}
 
-  return {
-    amount: parsed.amount,
-    unit: parsed.unit,
-    name
-  };
+async function reviewRecipeFromUrl() {
+  const value = recipeUrlInput.value.trim();
+  let sourceUrl;
+  try {
+    sourceUrl = new URL(value);
+    if (sourceUrl.protocol !== "https:") throw new Error("Use a secure recipe website link beginning with https.");
+    if (!isPublicRecipeUrl(sourceUrl)) throw new Error("Use a public recipe website link.");
+  } catch (error) {
+    recipeReadStatus.textContent = error?.message || "Enter a complete recipe website link.";
+    recipeUrlInput.focus();
+    return;
+  }
+
+  readRecipeUrl.disabled = true;
+  recipeReadStatus.textContent = "Reading the recipe website...";
+  try {
+    const page = await fetchRecipePage(sourceUrl.href);
+    const draft = MealPlannerRecipeReader.parseHtml(page.html, page.finalUrl || sourceUrl.href);
+    openRecipeReview(draft, "Website recipe ready to check.");
+  } catch (error) {
+    recipeReadStatus.textContent = error?.message
+      || "That website would not share its recipe. Paste the recipe words instead.";
+  } finally {
+    readRecipeUrl.disabled = false;
+  }
+}
+
+function isPublicRecipeUrl(url) {
+  const host = String(url?.hostname || "").toLowerCase().replace(/^\[|\]$/g, "");
+  if (!host || host === "localhost" || host.endsWith(".localhost") || host === "::1") return false;
+  const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (ipv4) {
+    const octets = ipv4.slice(1).map(Number);
+    if (octets.some((part) => part < 0 || part > 255)) return false;
+    if (octets[0] === 0 || octets[0] === 10 || octets[0] === 127 || octets[0] >= 224) return false;
+    if (octets[0] === 169 && octets[1] === 254) return false;
+    if (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) return false;
+    if (octets[0] === 192 && octets[1] === 168) return false;
+  }
+  return !/^(?:fc|fd|fe8|fe9|fea|feb)/i.test(host.replace(/:/g, ""));
+}
+
+async function fetchRecipePage(sourceUrl) {
+  const attempts = isNativeApp()
+    ? [{ direct: true, url: sourceUrl }]
+    : [
+      { direct: false, url: `/api/recipe?url=${encodeURIComponent(sourceUrl)}` },
+      { direct: true, url: sourceUrl }
+    ];
+  let lastError = null;
+
+  for (const attempt of attempts) {
+    try {
+      const response = await fetch(attempt.url);
+      if (!response.ok) {
+        const detail = attempt.direct ? "" : (await response.json().catch(() => null))?.error;
+        throw new Error(detail || "That recipe website could not be read.");
+      }
+      if (attempt.direct) {
+        return { html: await response.text(), finalUrl: response.url || sourceUrl };
+      }
+      const payload = await response.json();
+      if (!payload?.html) throw new Error("The recipe page did not contain readable words.");
+      return payload;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw new Error(lastError?.message || "That website would not share its recipe. Paste the recipe words instead.");
+}
+
+async function reviewRecipeFromFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  recipeReadStatus.textContent = `Reading ${file.name}...`;
+
+  try {
+    const text = await MealPlannerReceipts.readFile(file, (message) => {
+      recipeReadStatus.textContent = String(message || "").replace(/receipt/gi, "recipe");
+    });
+    const draft = MealPlannerRecipeReader.parseText(text, {
+      baseServings: cleanNumber(targetServings.value, 2)
+    });
+    openRecipeReview(draft, `${file.name} is ready to check.`);
+  } catch (error) {
+    recipeReadStatus.textContent = error?.message || "That recipe file could not be read.";
+  } finally {
+    event.target.value = "";
+  }
+}
+
+function openRecipeReview(draft, message = "Recipe ready to check.") {
+  pendingRecipeDraft = normalizeRecipe({
+    ...draft,
+    id: crypto.randomUUID(),
+    baseServings: cleanNumber(draft?.baseServings, cleanNumber(targetServings.value, 2))
+  });
+  reviewRecipeName.value = pendingRecipeDraft.name;
+  reviewRecipeServings.value = pendingRecipeDraft.baseServings;
+  reviewPrepTime.value = pendingRecipeDraft.prepTime;
+  reviewCookTime.value = pendingRecipeDraft.cookTime;
+  reviewTotalTime.value = pendingRecipeDraft.totalTime;
+  reviewTemperature.value = pendingRecipeDraft.temperature;
+  reviewSourceUrl.value = pendingRecipeDraft.sourceUrl;
+  reviewRecipeNotes.value = pendingRecipeDraft.notes;
+  reviewIngredientRows.innerHTML = "";
+  const ingredients = pendingRecipeDraft.ingredients.length
+    ? pendingRecipeDraft.ingredients
+    : [{ amount: 1, unit: "", name: "" }];
+  ingredients.forEach(addReviewIngredientRow);
+
+  reviewRecipePhotoBox.hidden = !pendingRecipeDraft.photo;
+  if (pendingRecipeDraft.photo) {
+    reviewRecipePhoto.src = pendingRecipeDraft.photo;
+  } else {
+    reviewRecipePhoto.removeAttribute("src");
+  }
+  recipeReview.hidden = false;
+  recipeReadStatus.textContent = message;
+  recipeReview.scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => reviewRecipeName.focus(), 300);
+}
+
+function addReviewIngredientRow(ingredient = { amount: 1, unit: "", name: "" }) {
+  const fragment = ingredientTemplate.content.cloneNode(true);
+  const row = fragment.querySelector(".ingredient-row");
+  row.classList.add("review-ingredient-row");
+  row.querySelector(".amount").value = ingredient.amount;
+  row.querySelector(".unit").value = ingredient.unit || "";
+  row.querySelector(".name").value = ingredient.name || "";
+  row.querySelector(".remove").addEventListener("click", () => row.remove());
+  reviewIngredientRows.appendChild(fragment);
+}
+
+function collectReviewedRecipe() {
+  return normalizeRecipe({
+    id: pendingRecipeDraft?.id || crypto.randomUUID(),
+    name: reviewRecipeName.value.trim() || "Untitled recipe",
+    baseServings: cleanNumber(reviewRecipeServings.value, 1),
+    prepTime: reviewPrepTime.value.trim(),
+    cookTime: reviewCookTime.value.trim(),
+    totalTime: reviewTotalTime.value.trim(),
+    temperature: reviewTemperature.value.trim(),
+    sourceUrl: reviewSourceUrl.value.trim(),
+    photo: pendingRecipeDraft?.photo || "",
+    notes: reviewRecipeNotes.value.trim(),
+    ingredients: [...reviewIngredientRows.querySelectorAll(".ingredient-row")]
+      .map((row) => ({
+        amount: cleanNumber(row.querySelector(".amount").value, 0),
+        unit: row.querySelector(".unit").value.trim(),
+        name: row.querySelector(".name").value.trim()
+      }))
+      .filter((ingredient) => ingredient.name)
+  });
+}
+
+function commitReviewedRecipe() {
+  const recipe = collectReviewedRecipe();
+  const error = recipeValidationError(recipe);
+  if (error) {
+    window.alert(`Please check this recipe before saving. ${error}`);
+    return;
+  }
+
+  captureUndo("import recipe");
+  recipes.unshift(recipe);
+  selectedRecipeId = recipe.id;
+  persistRecipes();
+  clearRecipeReview({ preserveStatus: true });
+  recipePasteBox.value = "";
+  recipeUrlInput.value = "";
+  render();
+  setAppView("recipes", { focus: false });
+  recipeReadStatus.textContent = `${recipe.name} was saved after review.`;
+  focusSection(recipeForm, recipeName);
+}
+
+function clearRecipeReview(options = {}) {
+  pendingRecipeDraft = null;
+  recipeReview.hidden = true;
+  reviewIngredientRows.innerHTML = "";
+  reviewRecipePhoto.removeAttribute("src");
+  if (!options.preserveStatus) recipeReadStatus.textContent = "Nothing is saved until you approve the review.";
 }
 
 function deleteSelectedRecipe() {
   if (recipes.length <= 1) return;
+  const selected = selectedRecipe();
+  if (!window.confirm(`Delete "${selected?.name || "this recipe"}"?`)) return;
+  captureUndo("delete recipe");
   const removedId = selectedRecipeId;
   recipes = recipes.filter((recipe) => recipe.id !== selectedRecipeId);
   Object.values(weeklyPlan).forEach((entry) => {
@@ -2497,65 +3924,286 @@ async function copyScaledIngredients() {
 
 function exportRecipes() {
   saveCurrentFieldsQuietly();
-  const blob = new Blob([JSON.stringify(currentPlannerData(), null, 2)], { type: "application/json" });
+  const data = currentPlannerData();
+  storeLocalSnapshot("Exported backup", JSON.stringify(data));
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "meal-planner-recipes.json";
+  link.download = `Supperloom-backup-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  recoveryStatus.textContent = "Backup file created. Keep it with the thumb drive or in another safe place.";
+  setSaveStatus("Backup exported", 2200);
 }
 
-function importRecipes(event) {
+async function importRecipes(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const imported = JSON.parse(reader.result);
-      const importedRecipes = Array.isArray(imported) ? imported : imported.recipes;
-      if (!Array.isArray(importedRecipes) || !importedRecipes.length) throw new Error("Invalid recipe file");
+  try {
+    const prepared = prepareImportedPlanner(await file.text());
+    const issueText = prepared.issues.length
+      ? `\n\nI found ${prepared.issues.length} item${prepared.issues.length === 1 ? "" : "s"} to correct:\n- ${prepared.issues.slice(0, 6).join("\n- ")}${prepared.issues.length > 6 ? "\n- More items will be listed after import." : ""}`
+      : "";
+    if (!window.confirm(`Import this backup and replace the current planner data?${issueText}`)) return;
+    storeLocalSnapshot("Before imported backup");
+    captureUndo("import backup");
+    applyPlannerData(prepared.data);
+    selectedRecipeId = recipes[0]?.id || null;
+    persistRecipes();
+    render();
+    setAppView("home", { focus: false });
+    recoveryPanel.open = true;
+    recoveryStatus.textContent = prepared.issues.length
+      ? `Backup imported. ${prepared.issues.length} problem${prepared.issues.length === 1 ? "" : "s"}: ${prepared.issues.join(" ")}`
+      : `Backup imported from ${file.name}.`;
+    loadBackupChoices({ quiet: true });
+  } catch (error) {
+    const message = error?.message || "That file is not a meal-planner backup.";
+    recoveryPanel.open = true;
+    recoveryStatus.textContent = `Import stopped: ${message}`;
+    alert(`That backup was not imported. ${message}`);
+  } finally {
+    event.target.value = "";
+  }
+}
 
-      recipes = importedRecipes.map((recipe) => ({
-        id: recipe.id || crypto.randomUUID(),
-        name: recipe.name || "Imported recipe",
-        baseServings: cleanNumber(recipe.baseServings, 1),
-        notes: recipe.notes || "",
-        photo: recipe.photo || "",
-        ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : []
-      }));
-      foodStorage = normalizeFoodStorage(imported.foodStorage || imported.pantry || foodStorage);
-      builderOptions = normalizeBuilderOptions(imported.builderOptions || builderOptions);
-      builderStyles = normalizeBuilderStyles(imported.builderStyles || builderStyles);
-      builderTemplates = normalizeBuilderTemplates(imported.builderTemplates || builderTemplates);
-      mealCostHistory = normalizeMealCostHistory(imported.mealCostHistory || mealCostHistory);
-      selectedRecipeId = recipes[0].id;
-      persistRecipes();
-      render();
-    } catch {
-      alert("That file could not be imported. Please choose a meal-planner recipe export.");
+function prepareImportedPlanner(value) {
+  let imported;
+  try {
+    imported = typeof value === "string" ? JSON.parse(value) : value;
+  } catch {
+    throw new Error("The file is not valid JSON.");
+  }
+  const current = currentPlannerData();
+  if (Array.isArray(imported)) {
+    imported = { ...current, recipes: imported };
+  } else if (imported && typeof imported === "object") {
+    const hasOwn = (key) => Object.prototype.hasOwnProperty.call(imported, key);
+    const importedPantryOnly = !hasOwn("foodStorage") && hasOwn("pantry");
+    imported = { ...current, ...imported };
+    if (importedPantryOnly) delete imported.foodStorage;
+  }
+  if (!imported || typeof imported !== "object" || !Array.isArray(imported.recipes)) {
+    throw new Error("The file does not contain a recipes list.");
+  }
+
+  const issues = [];
+  const importedRecipes = [];
+  imported.recipes.forEach((recipe, recipeIndex) => {
+    if (!recipe || typeof recipe !== "object") {
+      issues.push(`Recipe row ${recipeIndex + 1} was not readable and was skipped.`);
+      return;
     }
+    const name = String(recipe.name || "").trim() || `Imported recipe ${recipeIndex + 1}`;
+    if (!String(recipe.name || "").trim()) issues.push(`Recipe row ${recipeIndex + 1} had no name and was renamed "${name}".`);
+    const ingredientSource = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
+    const ingredients = ingredientSource
+      .map((ingredient, ingredientIndex) => {
+        const ingredientName = String(ingredient?.name || "").trim();
+        const amount = Number(ingredient?.amount);
+        if (!ingredientName || !Number.isFinite(amount) || amount <= 0) {
+          issues.push(`${name}: ingredient row ${ingredientIndex + 1} was incomplete and was skipped.`);
+          return null;
+        }
+        return { amount, unit: String(ingredient.unit || ""), name: ingredientName };
+      })
+      .filter(Boolean);
+    if (!ingredients.length) {
+      issues.push(`${name} had no usable ingredients and was skipped.`);
+      return;
+    }
+    importedRecipes.push(normalizeRecipe({ ...recipe, name, ingredients }));
+  });
+  if (!importedRecipes.length) throw new Error(`No complete recipes could be read. ${issues.join(" ")}`.trim());
+
+  const storageSource = imported.foodStorage || imported.pantry;
+  if (Array.isArray(storageSource)) {
+    imported.foodStorage = {
+      refrigerator: [],
+      freezer: [],
+      pantry: reviewImportedFoodRows(storageSource, "Pantry", issues)
+    };
+  } else if (storageSource && typeof storageSource === "object") {
+    imported.foodStorage = {
+      refrigerator: reviewImportedFoodRows(storageSource.refrigerator, "Refrigerator", issues),
+      freezer: reviewImportedFoodRows(storageSource.freezer, "Freezer", issues),
+      pantry: reviewImportedFoodRows(storageSource.pantry, "Pantry", issues)
+    };
+  }
+  delete imported.pantry;
+
+  return {
+    data: { ...imported, recipes: importedRecipes },
+    issues
   };
-  reader.readAsText(file);
-  event.target.value = "";
+}
+
+function reviewImportedFoodRows(value, location, issues) {
+  if (!Array.isArray(value)) {
+    if (value !== undefined) issues.push(`${location} items were not a readable list and were skipped.`);
+    return [];
+  }
+  return value
+    .map((item, index) => {
+      const name = String(item?.name || "").trim();
+      const amount = Number(item?.amount);
+      if (!item || typeof item !== "object" || !name || !Number.isFinite(amount) || amount <= 0) {
+        issues.push(`${location} row ${index + 1} was incomplete and was skipped.`);
+        return null;
+      }
+      return { ...item, name, amount };
+    })
+    .filter(Boolean);
+}
+
+function storeLocalSnapshot(label, serialized = localStorage.getItem(storageKey) || JSON.stringify(currentPlannerData())) {
+  try {
+    const snapshots = MealPlannerRecovery.addSnapshot(
+      localStorage.getItem(backupStorageKey),
+      serialized,
+      { id: crypto.randomUUID(), label }
+    );
+    localStorage.setItem(backupStorageKey, JSON.stringify(snapshots));
+    return true;
+  } catch {
+    recoveryStatus.textContent = "The local backup could not be stored. Export a backup file instead.";
+    return false;
+  }
+}
+
+function backupLabel(prefix, timestamp, extra = "") {
+  const date = new Date(timestamp);
+  const label = Number.isFinite(date.getTime())
+    ? date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" })
+    : "Unknown time";
+  return `${prefix} - ${label}${extra ? ` - ${extra}` : ""}`;
+}
+
+async function loadBackupChoices(options = {}) {
+  const choices = [];
+  const previous = localStorage.getItem(previousStorageKey);
+  const previousData = MealPlannerRecovery.parsePlanner(previous);
+  if (previousData) {
+    choices.push({
+      id: "local:previous",
+      type: "local",
+      data: previous,
+      createdAt: previousData.savedAt || "",
+      label: backupLabel("Previous good save", previousData.savedAt)
+    });
+  }
+  MealPlannerRecovery.normalizeSnapshots(localStorage.getItem(backupStorageKey)).forEach((snapshot) => {
+    choices.push({
+      id: `local:${snapshot.id}`,
+      type: "local",
+      data: snapshot.data,
+      createdAt: snapshot.createdAt,
+      label: backupLabel(snapshot.label, snapshot.createdAt)
+    });
+  });
+
+  if (!isNativeApp()) {
+    try {
+      const response = await fetch(`/api/backups?time=${Date.now()}`);
+      if (response.ok) {
+        const payload = await response.json();
+        (payload.backups || []).forEach((backup) => {
+          choices.push({
+            id: `server:${backup.name}`,
+            type: "server",
+            name: backup.name,
+            createdAt: backup.createdAt,
+            label: backupLabel("Thumb drive automatic", backup.createdAt, `${backup.recipes} recipes`)
+          });
+        });
+      }
+    } catch {}
+  }
+
+  availableBackups = choices.sort((a, b) => Date.parse(b.createdAt || "") - Date.parse(a.createdAt || ""));
+  backupSelect.innerHTML = availableBackups.length
+    ? availableBackups.map((backup) => `<option value="${escapeHtml(backup.id)}">${escapeHtml(backup.label)}</option>`).join("")
+    : '<option value="">No backups available yet</option>';
+  restoreBackup.disabled = !availableBackups.length;
+  if (!options.quiet) {
+    recoveryStatus.textContent = availableBackups.length
+      ? `${availableBackups.length} backup${availableBackups.length === 1 ? "" : "s"} available.`
+      : "No recovery backups exist yet. Choose Create backup now.";
+  }
+}
+
+async function createRecoveryBackup() {
+  saveCurrentFieldsQuietly();
+  const localCreated = storeLocalSnapshot("Manual backup");
+  let driveCreated = false;
+  if (!isNativeApp()) {
+    try {
+      const response = await fetch("/api/backups", { method: "POST" });
+      driveCreated = response.ok;
+    } catch {}
+  }
+  await loadBackupChoices({ quiet: true });
+  recoveryStatus.textContent = driveCreated
+    ? "A new backup was saved on the thumb drive."
+    : localCreated
+      ? `A new backup was saved on ${isNativeApp() ? "this phone" : "this browser"}.`
+      : "A backup could not be created. Export a backup file instead.";
+}
+
+async function restoreSelectedBackup() {
+  const selected = availableBackups.find((backup) => backup.id === backupSelect.value);
+  if (!selected) return;
+  if (!window.confirm(`Restore "${selected.label}"? The current planner will be backed up first.`)) return;
+
+  try {
+    storeLocalSnapshot("Before restore");
+    captureUndo("restore backup");
+    let data;
+    if (selected.type === "server") {
+      const response = await fetch("/api/restore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: selected.name })
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload?.data) throw new Error(payload?.error || "The thumb-drive backup could not be restored.");
+      data = payload.data;
+    } else {
+      data = MealPlannerRecovery.parsePlanner(selected.data);
+    }
+    if (!data) throw new Error("That backup could not be read.");
+
+    applyPlannerData(data);
+    selectedRecipeId = recipes[0]?.id || null;
+    persistRecipes();
+    render();
+    setAppView("home", { focus: false });
+    recoveryPanel.open = true;
+    recoveryStatus.textContent = `Restored ${selected.label}. The planner you had before restoring is also backed up.`;
+    await loadBackupChoices({ quiet: true });
+  } catch (error) {
+    recoveryStatus.textContent = `Restore stopped: ${error?.message || "That backup could not be restored."}`;
+  }
 }
 
 function addWalmartOrderToPantry() {
   const items = parseWalmartText(walmartPaste.value);
   if (!items.length) {
-    alert("Paste the items from your grocery order first.");
+    alert("Paste grocery items with one item on each line, or upload a receipt.");
     return;
   }
 
-  items.forEach((item) => addFoodStorageItem(item));
-  walmartPaste.value = "";
-  persistRecipes();
-  renderMealViews();
+  showReceiptReview(items);
 }
 
 function parseWalmartText(text) {
-  return text
+  const receiptItems = MealPlannerReceipts.parseReceiptText(text);
+  if (receiptItems.length) return receiptItems;
+
+  const store = MealPlannerReceipts.extractStoreName(text);
+  return String(text || "")
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean)
@@ -2564,8 +4212,7 @@ function parseWalmartText(text) {
       const qtyMatch = line.match(/\b(?:qty|quantity)\s*:?\s*(\d+(?:\.\d+)?)/i) || line.match(/^(\d+(?:\.\d+)?)\s*[xX]\s+/);
       const priceMatches = [...line.matchAll(/\$(\d+(?:\.\d{2})?)/g)];
       const price = priceMatches.length ? Number(priceMatches[priceMatches.length - 1][1]) : 0;
-      const itemNumber = extractItemNumber(line);
-      const store = extractStoreName(line);
+      const itemNumber = MealPlannerReceipts.extractItemNumber(line);
       const amount = qtyMatch ? Number(qtyMatch[1]) : 1;
       const cleaned = line
         .replace(/\$\d+(?:\.\d{2})?/g, "")
@@ -2576,46 +4223,134 @@ function parseWalmartText(text) {
         .replace(/\s{2,}/g, " ")
         .trim();
 
-      return { amount, unit: "item", name: cleaned, price, itemNumber, store };
+      return { amount, unit: "item", name: cleaned, price, itemNumber, store, storage: "", bestBy: "" };
     })
     .filter((item) => item.name.length > 1);
 }
 
-function extractItemNumber(line) {
-  const labeled = line.match(/\b(?:sku|upc|item\s*#?|item\s*number|product\s*code|barcode)\s*:?\s*([a-z0-9-]{4,})/i);
-  if (labeled) return labeled[1];
-
-  const longNumber = line.match(/\b(\d{8,14})\b/);
-  return longNumber ? longNumber[1] : "";
-}
-
-function extractStoreName(line) {
-  if (/publix/i.test(line)) return "Publix";
-  if (/aldi/i.test(line)) return "Aldi";
-  if (/walmart/i.test(line)) return "Walmart";
-  return "";
-}
-
-function importGroceryFile(event) {
+async function importGroceryFile(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = () => {
-    walmartPaste.value = reader.result;
-    addWalmartOrderToPantry();
+  receiptReadStatus.textContent = `Reading ${file.name}...`;
+  try {
+    const text = await MealPlannerReceipts.readFile(file, (message) => {
+      receiptReadStatus.textContent = message;
+    });
+    walmartPaste.value = text;
+    const items = parseWalmartText(text);
+    if (!items.length) throw new Error("No grocery items were found. Try a clearer photograph or correct the pasted text.");
+    showReceiptReview(items);
+    receiptReadStatus.textContent = `${items.length} receipt item${items.length === 1 ? "" : "s"} ready to check.`;
+  } catch (error) {
+    receiptReadStatus.textContent = error?.message || "That receipt could not be read.";
+  } finally {
+    event.target.value = "";
+  }
+}
+
+function showReceiptReview(items) {
+  pendingReceiptItems = items.map((item) => ({
+    amount: cleanNumber(item.amount, 1),
+    unit: item.unit || "item",
+    name: String(item.name || "").trim(),
+    price: cleanNumber(item.price, 0),
+    itemNumber: item.itemNumber || "",
+    store: item.store || "",
+    storage: item.storage || foodStorageSection(item.name),
+    bestBy: MealPlannerFood.normalizeDateValue(item.bestBy)
+  }));
+  renderReceiptReview();
+  receiptReview.hidden = false;
+  receiptReview.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderReceiptReview() {
+  receiptReviewRows.innerHTML = "";
+  pendingReceiptItems.forEach((item, index) => {
+    const row = document.createElement("div");
+    row.className = "receipt-review-row";
+    row.dataset.receiptIndex = index;
+    row.innerHTML = `
+      <label>Amount<input class="receipt-amount" type="number" min="0.01" step="0.01" value="${escapeHtml(item.amount)}"></label>
+      <label>Unit<input class="receipt-unit" type="text" value="${escapeHtml(item.unit)}"></label>
+      <label class="receipt-name">Item<input class="receipt-item-name" type="text" value="${escapeHtml(item.name)}"></label>
+      <label>Price<input class="receipt-price" type="number" min="0" step="0.01" value="${escapeHtml(item.price)}"></label>
+      <label class="receipt-store">Store<input class="receipt-store-name" type="text" value="${escapeHtml(item.store)}"></label>
+      <label class="receipt-item-number">Item number<input class="receipt-item-code" type="text" value="${escapeHtml(item.itemNumber)}"></label>
+      <label class="receipt-storage">Put in<select>
+        <option value="refrigerator" ${item.storage === "refrigerator" ? "selected" : ""}>Refrigerator</option>
+        <option value="freezer" ${item.storage === "freezer" ? "selected" : ""}>Freezer</option>
+        <option value="pantry" ${item.storage === "pantry" ? "selected" : ""}>Pantry</option>
+      </select></label>
+      <label class="receipt-best-by">Best by<input class="receipt-best-by-date" type="date" value="${escapeHtml(item.bestBy)}"></label>
+      <button type="button" class="remove">Remove</button>
+    `;
+    const inputs = row.querySelectorAll("input, select");
+    inputs.forEach((input) => input.addEventListener("input", () => updateReceiptItemFromRow(row)));
+    row.querySelector(".remove").addEventListener("click", () => {
+      pendingReceiptItems.splice(index, 1);
+      renderReceiptReview();
+    });
+    receiptReviewRows.appendChild(row);
+  });
+  commitReceiptItems.disabled = pendingReceiptItems.length === 0;
+}
+
+function updateReceiptItemFromRow(row) {
+  const index = Number(row.dataset.receiptIndex);
+  pendingReceiptItems[index] = {
+    amount: cleanNumber(row.querySelector(".receipt-amount").value, 0),
+    unit: row.querySelector(".receipt-unit").value.trim(),
+    name: row.querySelector(".receipt-item-name").value.trim(),
+    price: cleanNumber(row.querySelector(".receipt-price").value, 0),
+    store: row.querySelector(".receipt-store-name").value.trim(),
+    itemNumber: row.querySelector(".receipt-item-code").value.trim(),
+    storage: row.querySelector("select").value,
+    bestBy: MealPlannerFood.normalizeDateValue(row.querySelector(".receipt-best-by-date").value)
   };
-  reader.readAsText(file);
-  event.target.value = "";
+}
+
+function addReviewedReceiptItems() {
+  const validItems = pendingReceiptItems.filter((item) => item.name && cleanNumber(item.amount, 0) > 0);
+  if (!validItems.length) {
+    window.alert("Keep at least one grocery item with a name and amount.");
+    return;
+  }
+  captureUndo("add groceries");
+  validItems.forEach((item) => addFoodStorageItem(item));
+  walmartPaste.value = "";
+  clearReceiptReview();
+  persistRecipes();
+  renderMealViews();
+  setSaveStatus(`${validItems.length} grocery item${validItems.length === 1 ? "" : "s"} added`, 2200);
+}
+
+function clearReceiptReview() {
+  pendingReceiptItems = [];
+  receiptReviewRows.innerHTML = "";
+  receiptReview.hidden = true;
 }
 
 function addFoodStorageItem(item) {
-  const section = foodStorageSection(item.name);
+  const section = ["refrigerator", "freezer", "pantry"].includes(item.storage)
+    ? item.storage
+    : foodStorageSection(item.name);
   const list = foodStorage[section];
   const key = normalizeName(item.name);
-  const existing = list.find((stored) => normalizeName(stored.name) === key);
+  const bestBy = MealPlannerFood.normalizeDateValue(item.bestBy);
+  const existing = list.find((stored) => {
+    if (normalizeName(stored.name) !== key) return false;
+    if (MealPlannerFood.normalizeDateValue(stored.bestBy) !== bestBy) return false;
+    return MealPlannerFood.convertAmount(1, item.unit || "", stored.unit || "") !== null;
+  });
   if (existing) {
-    existing.amount = cleanNumber(existing.amount, 0) + cleanNumber(item.amount, 1);
+    const converted = MealPlannerFood.convertAmount(
+      cleanNumber(item.amount, 1),
+      item.unit || "",
+      existing.unit || ""
+    );
+    existing.amount = cleanNumber(existing.amount, 0) + (converted ?? cleanNumber(item.amount, 1));
     existing.price = cleanNumber(existing.price, 0) + cleanNumber(item.price, 0);
     existing.itemNumber = existing.itemNumber || item.itemNumber || "";
     existing.store = existing.store || item.store || "";
@@ -2629,7 +4364,8 @@ function addFoodStorageItem(item) {
     name: item.name,
     price: cleanNumber(item.price, 0),
     itemNumber: item.itemNumber || "",
-    store: item.store || ""
+    store: item.store || "",
+    bestBy
   });
 }
 
@@ -2642,6 +4378,7 @@ function renderPantry() {
   renderFoodList(freezerList, foodStorage.freezer, "Frozen foods will show here.");
   renderFoodList(pantryList, foodStorage.pantry, "Shelf foods will show here.");
   foodSpendSummary.textContent = `Recorded grocery spending: ${formatMoney(totalFoodCost())}`;
+  renderExpirationPanel();
 }
 
 function renderFoodList(container, items, emptyText) {
@@ -2652,18 +4389,185 @@ function renderFoodList(container, items, emptyText) {
 
   items
     .slice()
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .sort(compareFoodByBestBy)
     .forEach((item) => {
       const li = document.createElement("li");
+      li.className = "inventory-food";
       const price = cleanNumber(item.price, 0) ? `<small>${formatMoney(item.price)} recorded</small>` : "<small>No price recorded</small>";
       const details = [
         item.store ? `Store: ${item.store}` : "",
         item.itemNumber ? `Item #: ${item.itemNumber}` : ""
       ].filter(Boolean).join(" | ");
       const detailLine = details ? `<small>${escapeHtml(details)}</small>` : "";
-      li.innerHTML = `<span>${escapeHtml(item.name)}</span><strong>${formatAmount(cleanNumber(item.amount, 0))} ${escapeHtml(item.unit || "")}</strong>${price}${detailLine}`;
+      const warningDays = cleanNumber(inventorySettings.reminderDays, 0);
+      const expiry = MealPlannerFood.expiryState(item, { warningDays: warningDays || 7 });
+      const showNotice = warningDays > 0 && ["past", "today", "soon"].includes(expiry.state);
+      if (showNotice) li.classList.add(expiry.state === "past" ? "past-date" : "use-soon");
+      const badge = showNotice
+        ? `<small class="expiry-badge">${escapeHtml(expiryNoticeText(expiry))}</small>`
+        : "";
+      li.innerHTML = `
+        <span>${escapeHtml(item.name)}</span>
+        <strong>${formatAmount(cleanNumber(item.amount, 0))} ${escapeHtml(item.unit || "")}</strong>
+        ${price}
+        ${detailLine}
+        ${badge}
+        <label class="inventory-date">
+          Best by
+          <input type="date" value="${escapeHtml(item.bestBy || "")}" aria-label="Best-by date for ${escapeHtml(item.name)}">
+        </label>
+        <button type="button" class="inventory-remove">Remove</button>
+      `;
+      li.querySelector(".inventory-date input").addEventListener("change", (event) => {
+        updateFoodBestBy(item.id, event.target.value);
+      });
+      li.querySelector(".inventory-remove").addEventListener("click", () => removeFoodItem(item.id));
       container.appendChild(li);
     });
+}
+
+function compareFoodByBestBy(left, right) {
+  const leftDate = MealPlannerFood.normalizeDateValue(left.bestBy) || "9999-12-31";
+  const rightDate = MealPlannerFood.normalizeDateValue(right.bestBy) || "9999-12-31";
+  return leftDate.localeCompare(rightDate) || left.name.localeCompare(right.name);
+}
+
+function expiryNoticeText(expiry) {
+  if (expiry.state === "past") {
+    const days = Math.abs(expiry.days);
+    return `Past best-by by ${days} day${days === 1 ? "" : "s"} - check before using`;
+  }
+  if (expiry.state === "today") return "Best by today";
+  if (expiry.days === 1) return "Best by tomorrow";
+  return `Best by in ${expiry.days} days`;
+}
+
+function findFoodItemLocation(id) {
+  for (const section of ["refrigerator", "freezer", "pantry"]) {
+    const index = foodStorage[section].findIndex((item) => item.id === id);
+    if (index >= 0) return { section, index, item: foodStorage[section][index] };
+  }
+  return null;
+}
+
+function updateFoodBestBy(id, value) {
+  const location = findFoodItemLocation(id);
+  if (!location) return;
+  const bestBy = MealPlannerFood.normalizeDateValue(value);
+  if (location.item.bestBy === bestBy) return;
+
+  captureUndo("change best-by date");
+  location.item.bestBy = bestBy;
+  persistRecipes();
+  renderMealViews();
+  setSaveStatus(bestBy ? "Best-by date saved" : "Best-by date removed", 1800);
+}
+
+function removeFoodItem(id) {
+  const location = findFoodItemLocation(id);
+  if (!location) return;
+  if (!window.confirm(`Remove "${location.item.name}" from your food inventory?`)) return;
+
+  captureUndo("remove food");
+  foodStorage[location.section].splice(location.index, 1);
+  persistRecipes();
+  renderMealViews();
+  setSaveStatus(`${location.item.name} removed`, 1800);
+}
+
+function updateExpiryReminder() {
+  const reminderDays = Number(expiryReminderDays.value);
+  if (![0, 3, 7, 14].includes(reminderDays) || reminderDays === inventorySettings.reminderDays) return;
+
+  captureUndo("change use-soon notice");
+  inventorySettings.reminderDays = reminderDays;
+  persistRecipes();
+  renderPantry();
+  setSaveStatus(reminderDays ? `Use-soon notice set to ${reminderDays} days` : "Use-soon notice turned off", 1800);
+}
+
+function renderExpirationPanel() {
+  const reminderDays = cleanNumber(inventorySettings.reminderDays, 0);
+  expiryReminderDays.value = String(reminderDays);
+  useSoonList.innerHTML = "";
+  useSoonRecipeResults.innerHTML = "";
+
+  if (!reminderDays) {
+    expirySummary.textContent = "Notices are off. Best-by dates are still saved.";
+    useSoonPanel.hidden = true;
+    suggestUseSoon.disabled = true;
+    return;
+  }
+
+  const attention = allFoodItems()
+    .map((item) => ({ item, expiry: MealPlannerFood.expiryState(item, { warningDays: reminderDays }) }))
+    .filter(({ expiry }) => ["past", "today", "soon"].includes(expiry.state))
+    .sort((a, b) => a.expiry.days - b.expiry.days || a.item.name.localeCompare(b.item.name));
+  const pastCount = attention.filter(({ expiry }) => expiry.state === "past").length;
+  const soonCount = attention.length - pastCount;
+
+  if (!attention.length) {
+    expirySummary.textContent = `Nothing is due within ${reminderDays} days.`;
+    useSoonPanel.hidden = true;
+    suggestUseSoon.disabled = true;
+    return;
+  }
+
+  const summaryParts = [];
+  if (pastCount) summaryParts.push(`${pastCount} past its best-by date`);
+  if (soonCount) summaryParts.push(`${soonCount} to use soon`);
+  expirySummary.textContent = summaryParts.join(" and ");
+  useSoonPanel.hidden = false;
+  suggestUseSoon.disabled = !attention.some(({ expiry }) => expiry.days >= 0);
+
+  attention.forEach(({ item, expiry }) => {
+    const li = document.createElement("li");
+    li.className = expiry.state === "past" ? "past-date" : "use-soon";
+    li.innerHTML = `
+      <span>${escapeHtml(item.name)}</span>
+      <strong>${escapeHtml(expiryNoticeText(expiry))}</strong>
+    `;
+    useSoonList.appendChild(li);
+  });
+}
+
+function renderUseSoonRecipeIdeas() {
+  const reminderDays = cleanNumber(inventorySettings.reminderDays, 7) || 7;
+  const ideas = MealPlannerFood.rankRecipesByExpiry(recipes, foodStorage, { warningDays: reminderDays });
+  useSoonRecipeResults.innerHTML = "";
+
+  if (!ideas.length) {
+    useSoonRecipeResults.innerHTML = `<p class="status-line">No saved recipe uses the food that is due soon yet.</p>`;
+    return;
+  }
+
+  ideas.slice(0, 6).forEach((idea) => {
+    const recipe = idea.recipe;
+    const card = document.createElement("article");
+    card.className = "online-result stock-result";
+    const image = recipe.photo
+      ? `<img src="${escapeHtml(recipe.photo)}" alt="" loading="lazy" decoding="async">`
+      : `<img src="${escapeHtml(ingredientImageUrl(recipe.ingredients[0]?.name || recipe.name))}" alt="" loading="lazy" decoding="async">`;
+    const foodNames = idea.expiringItems.map((item) => item.name).join(", ");
+    const readiness = idea.ready
+      ? "Ready now from food at home."
+      : `${idea.missingCount} ingredient${idea.missingCount === 1 ? "" : "s"} to buy.`;
+    card.innerHTML = `
+      ${image}
+      <div>
+        <h3>${escapeHtml(recipe.name)}</h3>
+        <p>Uses soon: ${escapeHtml(foodNames)}. ${escapeHtml(readiness)}</p>
+        <button type="button">Open recipe</button>
+      </div>
+    `;
+    card.querySelector("button").addEventListener("click", () => {
+      selectedRecipeId = recipe.id;
+      render();
+      setAppView("recipes", { focus: false });
+      focusSection(document.querySelector(".recipe-showcase"));
+    });
+    useSoonRecipeResults.appendChild(card);
+  });
 }
 
 function renderPantrySuggestionChoices() {
@@ -2693,46 +4597,50 @@ function renderNeedList() {
   const scaled = getScaledIngredients();
   needList.innerHTML = "";
   mealCostSummary.textContent = "";
+  const analysis = MealPlannerFood.analyzeRecipe(scaled, foodStorage);
 
-  if (!scaled.length) {
+  if (!analysis.rows.length) {
     needList.innerHTML = '<li class="empty">Add ingredients to this recipe first.</li>';
+    cookAndDeduct.disabled = true;
     return;
   }
 
-  scaled.forEach((ingredient) => {
-    const pantryItem = findPantryMatch(ingredient.name);
+  analysis.rows.forEach((row) => {
+    const ingredient = row.ingredient;
     const li = document.createElement("li");
-    const haveText = pantryItem ? `${formatAmount(cleanNumber(pantryItem.amount, 0))} ${pantryItem.unit || ""} on hand` : "not found in refrigerator or pantry";
-    li.innerHTML = `<span>${escapeHtml(ingredient.name)}</span><strong>${formatAmount(ingredient.amount)} ${escapeHtml(ingredient.unit || "")}</strong><small>${escapeHtml(haveText)}</small>`;
+    const unit = escapeHtml(ingredient.unit || "item");
+    li.innerHTML = `
+      <span>${escapeHtml(ingredient.name)}</span>
+      <strong>Need ${formatAmount(row.need)} ${unit}</strong>
+      <small>Have ${formatAmount(row.have)} ${unit} | Buy ${formatAmount(row.buy)} ${unit}</small>
+    `;
     needList.appendChild(li);
   });
   const estimate = estimateSelectedMealCost();
-  mealCostSummary.textContent = estimate.cost ? `Rough meal cost: about ${formatMoney(estimate.cost)}` : "No matched prices yet.";
+  const people = cleanNumber(targetServings.value, 1);
+  mealCostSummary.textContent = estimate.cost
+    ? `Rough meal cost: ${formatMoney(estimate.cost)} | ${formatMoney(estimate.cost / people)} per person`
+    : "No matched unit prices yet.";
+  cookAndDeduct.disabled = !selectedRecipe();
 }
 
 function estimateSelectedMealCost() {
-  const matched = new Map();
-
-  getScaledIngredients().forEach((ingredient) => {
-    const item = findPantryMatch(ingredient.name);
-    const price = cleanNumber(item?.price, 0);
-    if (!item || !price) return;
-
-    const key = item.id || normalizeName(item.name);
-    if (!matched.has(key)) {
-      matched.set(key, {
-        name: item.name,
-        price,
-        store: item.store || "",
-        itemNumber: item.itemNumber || ""
-      });
-    }
-  });
-
-  const items = [...matched.values()];
+  const analysis = MealPlannerFood.analyzeRecipe(getScaledIngredients(), foodStorage);
+  const items = analysis.rows
+    .filter((row) => row.match && row.estimatedCost > 0)
+    .map((row) => ({
+      name: row.match.name,
+      ingredientName: row.ingredient.name,
+      price: row.estimatedCost,
+      store: row.match.store || "",
+      itemNumber: row.match.itemNumber || "",
+      amount: row.need,
+      unit: row.ingredient.unit
+    }));
   return {
     cost: items.reduce((sum, item) => sum + item.price, 0),
-    items
+    items,
+    analysis
   };
 }
 
@@ -2743,7 +4651,7 @@ function renderMealCostTally() {
 
   recordMealCost.disabled = !recipe || !estimate.cost;
   currentMealCost.textContent = estimate.cost
-    ? `${recipe.name} for ${people} people: about ${formatMoney(estimate.cost)} from ${estimate.items.length} matched grocery item${estimate.items.length === 1 ? "" : "s"}.`
+    ? `${recipe.name} for ${people} people: about ${formatMoney(estimate.cost)} total, or ${formatMoney(estimate.cost / people)} per person.`
     : "No matched grocery prices yet. Paste grocery orders with prices, then pick a meal.";
 
   mealCostHistoryList.innerHTML = "";
@@ -2825,6 +4733,7 @@ function recordSelectedMealCost() {
   const estimate = estimateSelectedMealCost();
   if (!recipe || !estimate.cost) return;
 
+  captureUndo("record meal cost");
   mealCostHistory.unshift({
     id: crypto.randomUUID(),
     recipeId: recipe.id,
@@ -2841,6 +4750,53 @@ function recordSelectedMealCost() {
   renderMealCostCalendar();
 }
 
+function cookSelectedMeal() {
+  const recipe = selectedRecipe();
+  if (!recipe || !isRecipeComplete(recipe)) {
+    window.alert("Choose a complete recipe before subtracting food.");
+    return false;
+  }
+  const scaled = getScaledIngredients(recipe);
+  const estimate = estimateSelectedMealCost();
+  const analysis = MealPlannerFood.analyzeRecipe(scaled, foodStorage);
+  const missingText = analysis.missingCount
+    ? ` ${analysis.missingCount} ingredient${analysis.missingCount === 1 ? " is" : "s are"} short; available amounts will still be subtracted.`
+    : "";
+  const costText = estimate.cost ? ` The meal cost of ${formatMoney(estimate.cost)} will be recorded.` : "";
+  const usageLines = analysis.rows
+    .filter((row) => row.have > 0)
+    .slice(0, 10)
+    .map((row) => {
+      const amount = Math.min(row.need, row.have);
+      return `${row.ingredient.name}: ${formatAmount(amount)} ${row.ingredient.unit || "item"}`;
+    });
+  const usageText = usageLines.length
+    ? `\n\nFood to subtract:\n${usageLines.map((line) => `- ${line}`).join("\n")}`
+    : "";
+  if (!window.confirm(`Mark "${recipe.name}" as cooked and subtract its ingredients?${missingText}${costText}${usageText}`)) return false;
+
+  captureUndo("cook meal");
+  const consumed = MealPlannerFood.consumeIngredients(foodStorage, scaled);
+  foodStorage = consumed.storage;
+  if (estimate.cost) {
+    mealCostHistory.unshift({
+      id: crypto.randomUUID(),
+      recipeId: recipe.id,
+      recipeName: recipe.name,
+      people: cleanNumber(targetServings.value, 1),
+      cost: estimate.cost,
+      date: mealDate.value ? new Date(`${mealDate.value}T12:00:00`).toISOString() : new Date().toISOString(),
+      items: estimate.items
+    });
+    mealCostHistory = mealCostHistory.slice(0, 100);
+  }
+  persistRecipes();
+  render();
+  setAppView("inventory", { focus: false });
+  setSaveStatus(`${recipe.name} cooked and inventory updated`, 2600);
+  return true;
+}
+
 function renderPrintSheet() {
   const recipe = selectedRecipe();
   if (!recipe) return;
@@ -2849,7 +4805,8 @@ function renderPrintSheet() {
   const dateText = mealDate.value ? new Date(`${mealDate.value}T12:00:00`).toLocaleDateString() : "No date selected";
   const estimate = estimateSelectedMealCost();
   printTitle.textContent = recipe.name;
-  printMeta.textContent = `${dateText} | Planned for ${people} people${estimate.cost ? ` | Rough cost: ${formatMoney(estimate.cost)}` : ""}`;
+  const timing = recipeTimingText(recipe);
+  printMeta.textContent = `${dateText} | Planned for ${people} people${timing ? ` | ${timing}` : ""}${estimate.cost ? ` | Rough cost: ${formatMoney(estimate.cost)}` : ""}`;
   printIngredients.innerHTML = "";
   getScaledIngredients(recipe).forEach((ingredient) => {
     const li = document.createElement("li");
@@ -2873,6 +4830,8 @@ function printSelectedMeal() {
 
 function clearPantryTally() {
   if (!allFoodItems().length) return;
+  if (!window.confirm("Clear every item from the refrigerator, freezer, and pantry?")) return;
+  captureUndo("clear inventory");
   foodStorage = normalizeFoodStorage();
   persistRecipes();
   renderMealViews();
@@ -2957,13 +4916,22 @@ function suggestRecipesFromStock() {
     return;
   }
 
+  const expiryRanks = new Map(
+    MealPlannerFood.rankRecipesByExpiry(recipes, foodStorage, {
+      warningDays: cleanNumber(inventorySettings.reminderDays, 7) || 7
+    }).map((idea) => [idea.recipe.id, idea])
+  );
   const ideas = recipes
     .map((recipe) => {
       const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
-      const missing = ingredients.filter((ingredient) => !findPantryMatch(ingredient.name));
-      return { recipe, ingredients, missing };
+      const missing = MealPlannerFood.analyzeRecipe(ingredients, foodStorage).rows.filter((row) => row.buy > 0.0001);
+      return { recipe, ingredients, missing, expiry: expiryRanks.get(recipe.id) };
     })
-    .filter((idea) => idea.ingredients.length && !idea.missing.length);
+    .filter((idea) => idea.ingredients.length && !idea.missing.length)
+    .sort((a, b) =>
+      cleanNumber(b.expiry?.score, 0) - cleanNumber(a.expiry?.score, 0) ||
+      a.recipe.name.localeCompare(b.recipe.name)
+    );
 
   if (!ideas.length) {
     onlineStatus.textContent = "No saved recipes match only the food you have yet. Add more groceries or save more recipes, then try again.";
@@ -2971,23 +4939,28 @@ function suggestRecipesFromStock() {
   }
 
   onlineStatus.textContent = `${ideas.length} meal idea${ideas.length === 1 ? "" : "s"} using only refrigerator, freezer, and pantry items.`;
-  ideas.slice(0, 12).forEach(({ recipe }) => {
+  ideas.slice(0, 12).forEach(({ recipe, expiry }) => {
     const card = document.createElement("article");
     card.className = "online-result stock-result";
     const image = recipe.photo
-      ? `<img src="${escapeHtml(recipe.photo)}" alt="">`
-      : `<img src="${escapeHtml(ingredientImageUrl(recipe.ingredients[0]?.name || recipe.name))}" alt="">`;
+      ? `<img src="${escapeHtml(recipe.photo)}" alt="" loading="lazy" decoding="async">`
+      : `<img src="${escapeHtml(ingredientImageUrl(recipe.ingredients[0]?.name || recipe.name))}" alt="" loading="lazy" decoding="async">`;
     card.innerHTML = `
       ${image}
       <div>
         <h3>${escapeHtml(recipe.name)}</h3>
-        <p>You have all ${recipe.ingredients.length} listed ingredient${recipe.ingredients.length === 1 ? "" : "s"}.</p>
+        <p>You have all ${recipe.ingredients.length} listed ingredient${recipe.ingredients.length === 1 ? "" : "s"}.${
+          expiry?.expiringItems?.length
+            ? ` Uses soon: ${escapeHtml(expiry.expiringItems.map((item) => item.name).join(", "))}.`
+            : ""
+        }</p>
         <button type="button">Open recipe</button>
       </div>
     `;
     card.querySelector("button").addEventListener("click", () => {
       selectedRecipeId = recipe.id;
       render();
+      setAppView("recipes", { focus: false });
       focusSection(document.querySelector(".recipe-showcase"));
     });
     onlineResults.appendChild(card);
@@ -3021,7 +4994,9 @@ function renderOnlineResults(meals, needsLookup = false) {
   meals.slice(0, 8).forEach((meal) => {
     const card = document.createElement("article");
     card.className = "online-result";
-    const image = meal.strMealThumb ? `<img src="${escapeHtml(meal.strMealThumb)}" alt="">` : "";
+    const image = meal.strMealThumb
+      ? `<img src="${escapeHtml(meal.strMealThumb)}" alt="" loading="lazy" decoding="async">`
+      : "";
     card.innerHTML = `
       ${image}
       <div>
@@ -3067,16 +5042,19 @@ function saveOnlineMeal(meal) {
     id: crypto.randomUUID(),
     name: meal.strMeal || "Online recipe",
     baseServings: cleanNumber(targetServings.value, 2),
+    prepTime: "",
+    cookTime: "",
+    totalTime: "",
+    temperature: MealPlannerRecipeReader.extractTemperature(meal.strInstructions || ""),
+    sourceUrl: meal.strSource || meal.strYoutube || "",
     notes: meal.strInstructions || "",
     photo: meal.strMealThumb || "",
     ingredients
   };
 
-  recipes.unshift(recipe);
-  selectedRecipeId = recipe.id;
-  persistRecipes();
-  render();
-  onlineStatus.textContent = `${recipe.name} was saved to your recipes.`;
+  openRecipeReview(recipe, `${recipe.name} is ready to check before saving.`);
+  onlineStatus.textContent = `${recipe.name} is open in the review section below.`;
+  focusSection(pasteRecipeCard);
 }
 
 function parseMeasure(measure) {

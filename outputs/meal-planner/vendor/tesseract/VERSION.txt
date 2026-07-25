@@ -1,0 +1,6 @@
+Tesseract.js 5.1.1
+Tesseract.js Core 5.1.1
+
+Source packages:
+https://registry.npmjs.org/tesseract.js/-/tesseract.js-5.1.1.tgz
+https://registry.npmjs.org/tesseract.js-core/-/tesseract.js-core-5.1.1.tgz

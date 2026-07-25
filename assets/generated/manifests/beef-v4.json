@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/beef-v4.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "ribeye", "label": "Raw ribeye steak" },
+    { "key": "short_ribs", "label": "Raw beef short ribs" },
+    { "key": "sirloin", "label": "Raw sirloin steak" },
+    { "key": "skirt_steak", "label": "Raw skirt steak" },
+    { "key": "stew_meat", "label": "Raw beef stew meat cubes" },
+    { "key": "t_bone_steak", "label": "Raw T-bone steak" },
+    { "key": "top_round", "label": "Raw top round roast" },
+    { "key": "gravy", "label": "Prepared brown beef gravy" }
+  ]
+}

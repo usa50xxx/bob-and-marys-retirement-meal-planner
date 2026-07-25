@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/spices-v1.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "salt", "label": "Fine table salt" },
+    { "key": "kosher_salt", "label": "Kosher salt" },
+    { "key": "celery_salt", "label": "Celery salt" },
+    { "key": "black_pepper", "label": "Ground black pepper" },
+    { "key": "red_pepper_flakes", "label": "Crushed red pepper flakes" },
+    { "key": "cayenne", "label": "Ground cayenne pepper" },
+    { "key": "paprika", "label": "Sweet paprika" },
+    { "key": "smoked_paprika", "label": "Smoked paprika" }
+  ]
+}

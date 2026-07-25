@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/pantry-v4.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "breadcrumbs", "label": "Dry breadcrumbs" },
+    { "key": "peanut_butter", "label": "Creamy peanut butter" },
+    { "key": "peanuts", "label": "Shelled peanuts" },
+    { "key": "potato", "label": "Russet potato" },
+    { "key": "tomato", "label": "Fresh tomato" },
+    { "key": "diced_tomatoes", "label": "Diced canned tomatoes" },
+    { "key": "stewed_tomatoes", "label": "Stewed canned tomatoes" },
+    { "key": "corned_beef_hash", "label": "Corned beef hash" }
+  ]
+}

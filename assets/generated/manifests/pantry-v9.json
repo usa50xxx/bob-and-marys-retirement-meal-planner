@@ -1,0 +1,10 @@
+{
+  "source": "assets/generated/pantry-v9.png",
+  "columns": 2,
+  "rows": 1,
+  "outputSize": 420,
+  "items": [
+    { "key": "tea", "label": "Loose black tea and brewed tea" },
+    { "key": "worcestershire", "label": "Worcestershire-style sauce" }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/seafood-v5.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "sea_bass", "label": "Whole raw sea bass" },
+    { "key": "smoked_salmon", "label": "Sliced smoked salmon" },
+    { "key": "tuna", "label": "Raw tuna loin" },
+    { "key": "white_wine", "label": "White cooking wine" },
+    { "key": "butter", "label": "Stick of butter" },
+    { "key": "cheddar", "label": "Block of orange cheddar" },
+    { "key": "cheese", "label": "Common cheese wedge assortment" },
+    { "key": "cottage_cheese", "label": "Cottage cheese" }
+  ]
+}

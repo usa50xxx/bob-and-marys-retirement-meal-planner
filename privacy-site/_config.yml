@@ -1,0 +1,6 @@
+title: Supperloom
+description: Privacy policy for the Supperloom meal planner
+lang: en-US
+markdown: kramdown
+exclude:
+  - README.md

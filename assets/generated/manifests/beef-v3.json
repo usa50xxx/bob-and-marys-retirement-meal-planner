@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/beef-v3.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "filet_mignon", "label": "Raw filet mignon medallion" },
+    { "key": "flank_steak", "label": "Raw flank steak" },
+    { "key": "ground_beef", "label": "Loose raw ground beef" },
+    { "key": "hanger_steak", "label": "Raw hanger steak" },
+    { "key": "new_york_strip", "label": "Raw New York strip steak" },
+    { "key": "porterhouse", "label": "Raw porterhouse steak" },
+    { "key": "pot_roast", "label": "Tied raw pot roast" },
+    { "key": "prime_rib_roast", "label": "Raw prime rib roast" }
+  ]
+}

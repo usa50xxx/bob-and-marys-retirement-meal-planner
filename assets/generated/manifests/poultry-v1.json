@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/poultry-v1.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "chicken", "label": "Raw chicken cuts assortment" },
+    { "key": "chicken_drumsticks", "label": "Raw chicken drumsticks" },
+    { "key": "chicken_legs", "label": "Raw whole chicken legs" },
+    { "key": "chicken_liver", "label": "Raw chicken livers" },
+    { "key": "chicken_wings", "label": "Raw whole chicken wings" },
+    { "key": "duck", "label": "Raw whole duck" },
+    { "key": "ground_turkey", "label": "Raw ground turkey" },
+    { "key": "turkey", "label": "Raw turkey breast portion" }
+  ]
+}

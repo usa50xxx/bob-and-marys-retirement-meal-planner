@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/spices-v2.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "chili_powder", "label": "Chili powder" },
+    { "key": "cumin", "label": "Ground cumin" },
+    { "key": "cinnamon", "label": "Ground cinnamon" },
+    { "key": "nutmeg", "label": "Ground nutmeg" },
+    { "key": "cloves", "label": "Whole cloves" },
+    { "key": "allspice", "label": "Whole allspice berries" },
+    { "key": "turmeric", "label": "Ground turmeric" },
+    { "key": "curry_powder", "label": "Curry powder" }
+  ]
+}

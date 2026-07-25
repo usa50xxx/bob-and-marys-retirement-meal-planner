@@ -7,9 +7,28 @@ outputs/meal-planner/backups/
 
 # Generated test output and temporary review artifacts.
 work/**/*.png
+!work/receipt-fixtures/*.png
+!work/recipe-fixtures/*.png
+work/**/*.jpg
+work/**/*.xml
 work/*-images.txt
 work/*-out.txt
 work/*-err.txt
 work/beef-cut-fullpage/
 work/beef-cut-screens/
+work/android-web/
+work/release-web/
+work/release-assets-test/
+work/privacy-site-built/
+work/privacy-site-output/
+work/privacy-site-test/
 
+# Native Android build dependencies and generated intermediates.
+node_modules/
+android/.gradle/
+android/.idea/
+android/local.properties
+android/**/build/
+android/*.jks
+android/*.keystore
+dist/

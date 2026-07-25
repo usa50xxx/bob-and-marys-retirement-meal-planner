@@ -1,0 +1,17 @@
+SUPPERLOOM - ANDROID INSTALL
+
+File to install:
+Supperloom.apk
+
+1. Move the APK file onto the Android phone.
+2. On the phone, open Files or My Files.
+3. Tap "Supperloom.apk".
+4. If Android asks, allow installation from this source.
+5. Tap Install, then Open.
+
+The Android app works locally and keeps its meal-planner information on the
+phone. Use the meal planner's Backup button regularly and keep a backup copy
+on the thumb drive.
+
+Android may warn that this is an app from outside the Play Store. That is
+expected for this private, personally built copy.

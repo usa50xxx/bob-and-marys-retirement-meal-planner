@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/fruit-nuts-v1.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "apple", "label": "Red apple" },
+    { "key": "banana", "label": "Ripe yellow bananas" },
+    { "key": "blueberry", "label": "Fresh blueberries" },
+    { "key": "lemon", "label": "Fresh lemon" },
+    { "key": "lime", "label": "Fresh lime" },
+    { "key": "orange", "label": "Fresh orange" },
+    { "key": "strawberry", "label": "Fresh strawberries" },
+    { "key": "dried_cranberries", "label": "Dried cranberries" }
+  ]
+}

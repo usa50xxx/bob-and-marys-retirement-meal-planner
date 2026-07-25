@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/pantry-v6.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "cannellini_beans", "label": "Cannellini beans" },
+    { "key": "chickpeas", "label": "Chickpeas" },
+    { "key": "lentils", "label": "Brown lentils" },
+    { "key": "split_peas", "label": "Green split peas" },
+    { "key": "green_beans", "label": "Cut green beans" },
+    { "key": "peas", "label": "Green peas" },
+    { "key": "chili_beans", "label": "Chili beans in sauce" },
+    { "key": "cereal", "label": "O-shaped breakfast cereal" }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/seafood-v2.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "shrimp", "label": "Medium raw shrimp" },
+    { "key": "jumbo_shrimp", "label": "Jumbo raw shrimp" },
+    { "key": "tuna_steaks", "label": "Tuna steaks" },
+    { "key": "crab_cakes", "label": "Uncooked crab cakes" },
+    { "key": "scallops", "label": "Sea scallops" },
+    { "key": "tilapia", "label": "Tilapia fillets" },
+    { "key": "lobster", "label": "Whole lobster" },
+    { "key": "mussels", "label": "Mussels" }
+  ]
+}

@@ -4,7 +4,7 @@ setlocal
 set "SOURCE=%~dp0meal-planner"
 set "TARGET=E:\Meal Planner"
 
-echo Bob and Mary's Retirement Meal Planner
+echo Supperloom Meal Planner
 echo Updating beef choice pictures on the thumb drive...
 echo.
 

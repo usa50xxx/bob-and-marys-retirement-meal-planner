@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/condiments-v1.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "apple_cider_vinegar", "label": "Apple cider vinegar" },
+    { "key": "balsamic_vinegar", "label": "Balsamic vinegar" },
+    { "key": "bbq_sauce", "label": "Barbecue sauce" },
+    { "key": "canola_oil", "label": "Canola oil" },
+    { "key": "chili_sauce", "label": "Chili sauce" },
+    { "key": "dijon_mustard", "label": "Dijon mustard" },
+    { "key": "duck_sauce", "label": "Duck sauce" },
+    { "key": "enchilada_sauce", "label": "Red enchilada sauce" }
+  ]
+}

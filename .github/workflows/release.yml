@@ -1,0 +1,251 @@
+name: Draft Android release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing version tag to build, such as v1.0.0
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: release-${{ github.event.inputs.release_tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Signed APK, app bundle, and portable website
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
+
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.9.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Set up Java
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle caching
+        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
+
+      - name: Require Android signing secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          THEMEALDB_API_KEY: ${{ secrets.THEMEALDB_API_KEY }}
+        run: |
+          missing=0
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD THEMEALDB_API_KEY; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name is not configured in repository secrets."
+              missing=1
+            fi
+          done
+          test "$missing" -eq 0
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/release-keystore.jks
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify release version
+        run: pnpm release:verify "$RELEASE_TAG"
+
+      - name: Install test browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Test meal planner
+        run: pnpm test
+
+      - name: Require releasable ingredient images
+        run: pnpm images:audit:strict
+
+      - name: Test thumb-drive server, backup, and recovery
+        shell: pwsh
+        run: |
+          ./work/test-recipe-server.ps1
+          ./work/test-server-recovery.ps1
+
+      - name: Synchronize Android project
+        env:
+          THEMEALDB_API_KEY: ${{ secrets.THEMEALDB_API_KEY }}
+        run: pnpm android:sync
+
+      - name: Build signed release files
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/release-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: node work/run-gradle.mjs lintRelease assembleRelease bundleRelease
+
+      - name: Preserve candidate and build signed upgrade baseline
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/release-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          mkdir -p signed-test-dist
+          cp android/app/build/outputs/apk/release/app-release.apk \
+            signed-test-dist/candidate.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab \
+            signed-test-dist/candidate.aab
+          node work/build-android-upgrade-baseline.mjs \
+            --variant release \
+            --output signed-test-dist/baseline.apk
+
+      - name: Verify release signatures
+        run: |
+          apk_signer="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)"
+          test -n "$apk_signer"
+          "$apk_signer" verify --verbose signed-test-dist/candidate.apk
+          "$apk_signer" verify --verbose signed-test-dist/baseline.apk
+          candidate_digest="$("$apk_signer" verify --print-certs \
+            signed-test-dist/candidate.apk \
+            | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+          baseline_digest="$("$apk_signer" verify --print-certs \
+            signed-test-dist/baseline.apk \
+            | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+          test -n "$candidate_digest"
+          test "$candidate_digest" = "$baseline_digest"
+          if ! jarsigner -verify -verbose -certs \
+            signed-test-dist/candidate.aab \
+            > /tmp/aab-signature-check.log 2>&1 \
+            || ! grep -q "jar verified." /tmp/aab-signature-check.log; then
+            cat /tmp/aab-signature-check.log
+            exit 1
+          fi
+          echo "APK signer continuity and Android App Bundle signature verified."
+
+      - name: Remove signing key before emulator testing
+        run: rm -f android/release-keystore.jks
+
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Test the exact signed APK and upgrade on Android 15
+        uses: reactivecircus/android-emulator-runner@0a638108440efd5c7f980e6ba145dbcdd8f32009 # v2.37.0
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: >-
+            -no-window -gpu swiftshader_indirect -no-snapshot
+            -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: >-
+            node work/run-android-smoke.mjs
+            --apk signed-test-dist/candidate.apk
+            --baseline signed-test-dist/baseline.apk
+            --api 35
+            --release 15
+            --layout phone
+            --upgrade
+            --online
+            --offline
+            --large-text
+
+      - name: Package release files
+        env:
+          THEMEALDB_API_KEY: ${{ secrets.THEMEALDB_API_KEY }}
+        run: |
+          pnpm release:stage
+          mkdir -p dist
+          cp signed-test-dist/candidate.apk \
+            "dist/Supperloom-${RELEASE_TAG}.apk"
+          cp signed-test-dist/candidate.aab \
+            "dist/Supperloom-${RELEASE_TAG}.aab"
+          (
+            cd work/release-web
+            zip -9 -r "../../dist/Supperloom-Thumb-Drive-${RELEASE_TAG}.zip" \
+              meal-planner
+          )
+          cd dist
+          sha256sum *.apk *.aab *.zip > SHA256SUMS.txt
+
+      - name: Attest release files
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
+        with:
+          subject-path: |
+            dist/*.apk
+            dist/*.aab
+            dist/*.zip
+            dist/SHA256SUMS.txt
+
+      - name: Upload release workflow artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: bob-and-marys-meal-planner-${{ env.RELEASE_TAG }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+      - name: Create or update draft GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes_file="docs/releases/${RELEASE_TAG}.md"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            is_draft="$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)"
+            if [ "$is_draft" != "true" ]; then
+              echo "::error::Refusing to replace an already published release."
+              exit 1
+            fi
+            gh release upload "$RELEASE_TAG" dist/* --clobber
+            if [ -f "$notes_file" ]; then
+              gh release edit "$RELEASE_TAG" \
+                --title "Supperloom ${RELEASE_TAG}" \
+                --notes-file "$notes_file"
+            fi
+          elif [ -f "$notes_file" ]; then
+            gh release create "$RELEASE_TAG" dist/* \
+              --draft \
+              --notes-file "$notes_file" \
+              --verify-tag \
+              --title "Supperloom ${RELEASE_TAG}"
+          else
+            gh release create "$RELEASE_TAG" dist/* \
+              --draft \
+              --generate-notes \
+              --verify-tag \
+              --title "Supperloom ${RELEASE_TAG}"
+          fi
+
+      - name: Remove signing key
+        if: always()
+        run: rm -f android/release-keystore.jks

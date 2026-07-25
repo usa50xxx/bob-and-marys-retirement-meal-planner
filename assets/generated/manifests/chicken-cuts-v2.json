@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/chicken-cuts-v2.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "drumsticks", "label": "Chicken drumsticks" },
+    { "key": "wings", "label": "Whole chicken wings" },
+    { "key": "chicken_wingettes", "label": "Chicken wingettes and flats" },
+    { "key": "chicken_gizzards", "label": "Chicken gizzards" },
+    { "key": "split_chicken_breast", "label": "Bone-in split chicken breast" },
+    { "key": "thin_chicken_breast", "label": "Thin chicken breast slices" },
+    { "key": "boneless_chicken_thighs", "label": "Boneless skinless chicken thighs" },
+    { "key": "canned_chicken", "label": "Plain shredded canned chicken" }
+  ]
+}

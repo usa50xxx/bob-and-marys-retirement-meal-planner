@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/seafood-v3.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "clams", "label": "Littleneck clams" },
+    { "key": "fish_fillets", "label": "White fish fillets" },
+    { "key": "grouper", "label": "Grouper fillets" },
+    { "key": "snapper", "label": "Red snapper fillets" },
+    { "key": "swordfish", "label": "Swordfish steaks" },
+    { "key": "mahi_mahi", "label": "Mahi-mahi fillets" },
+    { "key": "pollock", "label": "Pollock fillets" },
+    { "key": "sea_bass_fillets", "label": "Sea bass fillets" }
+  ]
+}

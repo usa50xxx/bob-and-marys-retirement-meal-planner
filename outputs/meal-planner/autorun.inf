@@ -1,5 +1,5 @@
 [AutoRun]
-label=Bob and Mary's Meal Planner
+label=Supperloom
 open=Start Meal Planner.bat
-action=Start Bob and Mary's Meal Planner
+action=Start Supperloom
 shellexecute=Start Meal Planner.bat

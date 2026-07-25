@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/pantry-v3.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "spaghetti", "label": "Dry spaghetti" },
+    { "key": "macaroni", "label": "Dry elbow macaroni" },
+    { "key": "egg_noodles", "label": "Dry egg noodles" },
+    { "key": "noodles", "label": "Dry wheat noodles" },
+    { "key": "rice_noodles", "label": "Dry rice noodles" },
+    { "key": "tortillas", "label": "Flour tortillas" },
+    { "key": "bread", "label": "Sliced sandwich bread" },
+    { "key": "bread_rolls", "label": "Fresh bread rolls" }
+  ]
+}

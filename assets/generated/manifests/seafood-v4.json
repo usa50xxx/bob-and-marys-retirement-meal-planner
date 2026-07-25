@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/seafood-v4.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "anchovies", "label": "Anchovy fillets" },
+    { "key": "calamari", "label": "Cleaned raw calamari" },
+    { "key": "fish", "label": "Generic raw white fish fillets" },
+    { "key": "oysters", "label": "Fresh oysters in half shells" },
+    { "key": "prawns", "label": "Large raw shell-on prawns" },
+    { "key": "rainbow_trout", "label": "Whole raw rainbow trout" },
+    { "key": "raw_shrimp", "label": "Peeled raw shrimp" },
+    { "key": "salt_cod", "label": "Salted cod fillets" }
+  ]
+}

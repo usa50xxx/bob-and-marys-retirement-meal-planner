@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/pork-misc-v1.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "chorizo", "label": "Raw chorizo sausage links" },
+    { "key": "lamb", "label": "Raw lamb chops assortment" },
+    { "key": "minced_pork", "label": "Raw minced pork" },
+    { "key": "pork", "label": "Raw pork cuts assortment" },
+    { "key": "pork_steak", "label": "Raw pork shoulder steak" },
+    { "key": "sausage", "label": "Plain raw sausage links" },
+    { "key": "eggs", "label": "Brown chicken eggs" },
+    { "key": "red_wine", "label": "Red cooking wine" }
+  ]
+}

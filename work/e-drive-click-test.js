@@ -22,6 +22,7 @@ const mimeTypes = {
 };
 
 const testData = {
+  schemaVersion: 3,
   recipes: [
     {
       id: "test-meatloaf",
@@ -43,7 +44,9 @@ const testData = {
     refrigerator: [
       { name: "eggs", amount: 12, unit: "count", price: 3.12, store: "Walmart", itemNumber: "UPC 111" }
     ],
-    freezer: [],
+    freezer: [
+      { name: "ground beef", amount: 0.5, unit: "lb", price: 2.5, store: "Aldi", itemNumber: "SKU 000" }
+    ],
     pantry: [
       { name: "ketchup", amount: 1, unit: "bottle", price: 2.48, store: "Walmart", itemNumber: "SKU 222" },
       { name: "onion soup mix", amount: 1, unit: "box", price: 1.74, store: "Publix", itemNumber: "SKU 333" },
@@ -114,17 +117,45 @@ async function expectText(page, selector, pattern, label, results) {
   if (!ok) throw new Error(`${label} failed. Saw: ${text}`);
 }
 
+async function clickView(page, view) {
+  await page.locator(`[data-app-view="${view}"]`).click();
+  await page.waitForFunction(
+    name => document.querySelector(`[data-app-view="${name}"]`)?.getAttribute("aria-current") === "page",
+    view
+  );
+}
+
+async function replaceOpenFile(fileHandle, contents) {
+  const buffer = Buffer.isBuffer(contents) ? contents : Buffer.from(contents, "utf8");
+  await fileHandle.truncate(0);
+  await fileHandle.write(buffer, 0, buffer.length, 0);
+  await fileHandle.sync();
+}
+
+async function writeExclusiveBackup(targetPath, contents) {
+  const backupHandle = await fsp.open(targetPath, "wx", 0o600);
+  try {
+    await backupHandle.writeFile(contents);
+    await backupHandle.sync();
+  } finally {
+    await backupHandle.close();
+  }
+}
+
 async function run() {
   if (!fs.existsSync(path.join(root, "index.html"))) {
     throw new Error("E:\\Meal Planner\\index.html was not found.");
   }
-  if (!fs.existsSync(dataPath)) {
-    throw new Error("planner-data.json was not found, so I stopped instead of testing over unknown data.");
-  }
 
-  await fsp.mkdir(path.dirname(backupPath), { recursive: true });
-  await fsp.copyFile(dataPath, backupPath);
-  await fsp.writeFile(dataPath, JSON.stringify(testData, null, 2), "utf8");
+  let dataHandle;
+  try {
+    dataHandle = await fsp.open(dataPath, "r+");
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      throw new Error("planner-data.json was not found, so I stopped instead of testing over unknown data.");
+    }
+    throw error;
+  }
 
   let server;
   let browser;
@@ -132,8 +163,14 @@ async function run() {
   const browserErrors = [];
   const requestFailures = [];
   const badResponses = [];
+  let originalData;
 
   try {
+    originalData = await dataHandle.readFile();
+    await fsp.mkdir(path.dirname(backupPath), { recursive: true });
+    await writeExclusiveBackup(backupPath, originalData);
+    await replaceOpenFile(dataHandle, JSON.stringify(testData, null, 2));
+
     server = await serve(root);
     const url = `http://127.0.0.1:${server.address().port}/index.html`;
     const chromePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
@@ -163,7 +200,7 @@ async function run() {
     });
 
     await page.goto(url, { waitUntil: "networkidle" });
-    await page.waitForSelector("text=Bob and Mary's Retirement Meal Planner");
+    await page.waitForSelector("text=Supperloom Meal Planner");
     if (await page.locator("#devicePrompt:not([hidden])").count()) {
       await page.locator("[data-device-choice='computer']").click();
       await page.waitForFunction(() => document.querySelector("#devicePrompt")?.hidden === true);
@@ -173,6 +210,30 @@ async function run() {
     const bodyColor = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     results.push({ name: "Dark easy-on-the-eyes page", status: /rgb\((1[0-9]|2[0-9]|3[0-9])/.test(bodyColor) ? "PASS" : "WARN", detail: bodyColor });
 
+    try {
+      await page.waitForFunction(
+        () => document.querySelector("#recipeName")?.value === "Test Meatloaf",
+        null,
+        { timeout: 10000 }
+      );
+    } catch {
+      const diagnostics = await page.evaluate(async () => ({
+        recipeName: document.querySelector("#recipeName")?.value || "",
+        saveStatus: document.querySelector("#saveStatus")?.textContent || "",
+        driveRecipes: await fetch("/api/data").then(response => response.json())
+          .then(data => data.recipes?.map(recipe => recipe.name) || [])
+          .catch(error => [`request failed: ${error.message}`])
+      }));
+      throw new Error(
+        `Thumb-drive recipes did not load: ${JSON.stringify({
+          ...diagnostics,
+          browserErrors,
+          requestFailures,
+          badResponses
+        })}`
+      );
+    }
+    await clickView(page, "recipes");
     await expectText(page, "#recipeList", /Test Meatloaf/i, "Recipe list loads", results);
 
     await page.fill("#targetServings", "4");
@@ -186,12 +247,13 @@ async function run() {
     const printTitle = await page.locator("#printTitle").innerText();
     results.push({ name: "Print meal page", status: printCalled && /Test Meatloaf/i.test(printTitle) ? "PASS" : "FAIL", detail: printTitle });
 
-    await page.locator("#weeklyPlannerCard").scrollIntoViewIfNeeded();
+    await clickView(page, "plan");
     await page.locator("[data-week-recipe='monday']").selectOption("test-meatloaf");
     await page.locator("[data-week-servings='monday']").fill("4");
     await page.waitForTimeout(500);
     await expectText(page, "#weeklyGroceryGroups", /ground beef/i, "Weekly grocery list builds", results);
 
+    await clickView(page, "recipes");
     await page.locator("#mealBuilderCard").scrollIntoViewIfNeeded();
     await page.click("#resetBuiltMeal");
     await page.locator("#mainChoiceButtons .choice-button").filter({ hasText: /^Beef$/ }).first().click();
@@ -220,7 +282,7 @@ async function run() {
     await page.waitForTimeout(700);
     await expectText(page, "#recipeList", /Ribeye steak.*Grill|Grill.*Ribeye steak/i, "Built meal saves", results);
 
-    await page.locator("#pantryCard").scrollIntoViewIfNeeded();
+    await clickView(page, "groceries");
     const groceryText = [
       "Walmart",
       "Great Value Whole Milk 1 gal $3.48 SKU 12345",
@@ -231,21 +293,27 @@ async function run() {
     ].join("\n");
     await page.fill("#walmartPaste", groceryText);
     await page.click("#addWalmartOrder");
-    await page.waitForTimeout(800);
+    await page.locator(".receipt-review-row").first().waitFor();
+    await page.click("#commitReceiptItems");
+    await clickView(page, "inventory");
     await expectText(page, "#refrigeratorList", /Milk|Eggs/i, "Grocery import sorts refrigerator", results);
     await expectText(page, "#freezerList", /Shrimp/i, "Grocery import sorts freezer", results);
     await expectText(page, "#pantryList", /Ketchup|Spaghetti/i, "Grocery import sorts pantry", results);
 
+    await clickView(page, "home");
     await page.fill("#foodAiQuestion", "What can I make tonight?");
     await page.click("#askFoodAi");
     await page.waitForTimeout(300);
     await expectText(page, "#foodAiAnswer", /make|ideas|closest|food|recipe/i, "Small Food AI answers food question", results);
 
-    await page.locator("#mealSpendingCard").scrollIntoViewIfNeeded();
+    await clickView(page, "recipes");
+    await page.locator("#recipeList button", { hasText: "Test Meatloaf" }).click();
+    await clickView(page, "spending");
     await page.click("#recordMealCost");
     await page.waitForTimeout(700);
     await expectText(page, "#mealCostCalendar", /\$/i, "Meal cost calendar records cost", results);
 
+    await clickView(page, "recipes");
     await page.locator("#recipeForm").scrollIntoViewIfNeeded();
     const onePixelPng = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
     await page.evaluate((dataUrl) => {
@@ -276,15 +344,20 @@ async function run() {
   } finally {
     if (browser) await browser.close().catch(() => {});
     if (server) await new Promise(resolve => server.close(resolve));
-    await fsp.copyFile(backupPath, dataPath);
+    if (originalData) await replaceOpenFile(dataHandle, originalData);
+    await dataHandle.close();
   }
 }
 
-run()
-  .then(result => {
-    console.log(JSON.stringify(result, null, 2));
-  })
-  .catch(error => {
-    console.error(error);
-    process.exit(1);
-  });
+module.exports = { replaceOpenFile, writeExclusiveBackup };
+
+if (require.main === module) {
+  run()
+    .then(result => {
+      console.log(JSON.stringify(result, null, 2));
+    })
+    .catch(error => {
+      console.error(error);
+      process.exit(1);
+    });
+}

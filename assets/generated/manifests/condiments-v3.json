@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/condiments-v3.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "mayonnaise", "label": "Mayonnaise" },
+    { "key": "mustard", "label": "Yellow mustard" },
+    { "key": "olive_oil", "label": "Olive oil" },
+    { "key": "oyster_sauce", "label": "Oyster sauce" },
+    { "key": "peanut_oil", "label": "Peanut oil" },
+    { "key": "red_wine_vinegar", "label": "Red wine vinegar" },
+    { "key": "rice_vinegar", "label": "Rice vinegar" },
+    { "key": "salsa", "label": "Tomato salsa" }
+  ]
+}

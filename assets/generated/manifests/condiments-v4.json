@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/condiments-v4.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "sesame_oil", "label": "Toasted sesame oil" },
+    { "key": "soy_sauce", "label": "Soy sauce" },
+    { "key": "sweet_and_sour_sauce", "label": "Sweet and sour sauce" },
+    { "key": "vegetable_oil", "label": "Vegetable oil" },
+    { "key": "vinegar", "label": "Clear cooking vinegar" },
+    { "key": "white_vinegar", "label": "White vinegar" },
+    { "key": "tartar_sauce", "label": "Tartar sauce" },
+    { "key": "cocktail_sauce", "label": "Seafood cocktail sauce" }
+  ]
+}

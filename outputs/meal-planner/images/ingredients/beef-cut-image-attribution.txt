@@ -1,6 +1,6 @@
 Beef cut image sources
 
-These ingredient thumbnails were made from Wikimedia Commons image files and cropped/resized for Bob and Mary's Retirement Meal Planner.
+These ingredient thumbnails were made from Wikimedia Commons image files and cropped/resized for Supperloom.
 For license and author details, open the matching Wikimedia Commons file page.
 
 ground_beef.png - Ground beef USDA.jpg

@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/pantry-v1.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "flour", "label": "All-purpose flour" },
+    { "key": "bread_flour", "label": "Bread flour" },
+    { "key": "cornmeal", "label": "Yellow cornmeal" },
+    { "key": "cornstarch", "label": "Cornstarch" },
+    { "key": "baking_powder", "label": "Baking powder" },
+    { "key": "yeast", "label": "Active dry yeast" },
+    { "key": "sugar", "label": "Granulated sugar" },
+    { "key": "brown_sugar", "label": "Brown sugar" }
+  ]
+}

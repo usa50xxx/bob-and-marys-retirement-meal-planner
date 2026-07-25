@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/spices-v5.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "cajun_seasoning", "label": "Cajun seasoning blend" },
+    { "key": "italian_seasoning", "label": "Italian seasoning blend" },
+    { "key": "fajita_seasoning", "label": "Fajita seasoning blend" },
+    { "key": "garlic_powder", "label": "Garlic powder" },
+    { "key": "vanilla_extract", "label": "Vanilla extract" },
+    { "key": "almond_extract", "label": "Almond extract" },
+    { "key": "bell_pepper", "label": "Fresh green bell pepper" },
+    { "key": "red_pepper", "label": "Fresh red bell pepper" }
+  ]
+}

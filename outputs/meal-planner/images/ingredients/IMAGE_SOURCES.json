@@ -1,0 +1,218 @@
+﻿[
+    {
+        "ingredient":  "chicken",
+        "sourceIngredient":  "Chicken",
+        "source":  "https://www.themealdb.com/images/ingredients/Chicken.png",
+        "downloadedAs":  "chicken.source.png"
+    },
+    {
+        "ingredient":  "whole_chicken",
+        "sourceIngredient":  "Chicken",
+        "source":  "https://www.themealdb.com/images/ingredients/Chicken.png",
+        "downloadedAs":  "whole_chicken.source.png"
+    },
+    {
+        "ingredient":  "chicken_breast",
+        "sourceIngredient":  "Chicken Breast",
+        "source":  "https://www.themealdb.com/images/ingredients/Chicken%20Breast.png",
+        "downloadedAs":  "chicken_breast.source.png"
+    },
+    {
+        "ingredient":  "chicken_breasts",
+        "sourceIngredient":  "Chicken Breasts",
+        "source":  "https://www.themealdb.com/images/ingredients/Chicken%20Breasts.png",
+        "downloadedAs":  "chicken_breasts.source.png"
+    },
+    {
+        "ingredient":  "chicken_thighs",
+        "sourceIngredient":  "Chicken Thighs",
+        "source":  "https://www.themealdb.com/images/ingredients/Chicken%20Thighs.png",
+        "downloadedAs":  "chicken_thighs.source.png"
+    },
+    {
+        "ingredient":  "chicken_drumsticks",
+        "sourceIngredient":  "Chicken drumsticks",
+        "source":  "https://www.themealdb.com/images/ingredients/Chicken%20drumsticks.png",
+        "downloadedAs":  "chicken_drumsticks.source.png"
+    },
+    {
+        "ingredient":  "chicken_legs",
+        "sourceIngredient":  "Chicken Legs",
+        "source":  "https://www.themealdb.com/images/ingredients/Chicken%20Legs.png",
+        "downloadedAs":  "chicken_legs.source.png"
+    },
+    {
+        "ingredient":  "chicken_wings",
+        "sourceIngredient":  "Chicken Wings",
+        "source":  "https://www.themealdb.com/images/ingredients/Chicken%20Wings.png",
+        "downloadedAs":  "chicken_wings.source.png"
+    },
+    {
+        "ingredient":  "chicken_liver",
+        "sourceIngredient":  "Chicken Liver",
+        "source":  "https://www.themealdb.com/images/ingredients/Chicken%20Liver.png",
+        "downloadedAs":  "chicken_liver.source.png"
+    },
+    {
+        "ingredient":  "pork",
+        "sourceIngredient":  "Pork",
+        "source":  "https://www.themealdb.com/images/ingredients/Pork.png",
+        "downloadedAs":  "pork.source.png"
+    },
+    {
+        "ingredient":  "ground_pork",
+        "sourceIngredient":  "Ground Pork",
+        "source":  "https://www.themealdb.com/images/ingredients/Ground%20Pork.png",
+        "downloadedAs":  "ground_pork.source.png"
+    },
+    {
+        "ingredient":  "minced_pork",
+        "sourceIngredient":  "Minced Pork",
+        "source":  "https://www.themealdb.com/images/ingredients/Minced%20Pork.png",
+        "downloadedAs":  "minced_pork.source.png"
+    },
+    {
+        "ingredient":  "pork_chops",
+        "sourceIngredient":  "Pork Chops",
+        "source":  "https://www.themealdb.com/images/ingredients/Pork%20Chops.png",
+        "downloadedAs":  "pork_chops.source.png"
+    },
+    {
+        "ingredient":  "pork_belly",
+        "sourceIngredient":  "Pork belly slices",
+        "source":  "https://www.themealdb.com/images/ingredients/Pork%20belly%20slices.png",
+        "downloadedAs":  "pork_belly.source.png"
+    },
+    {
+        "ingredient":  "pork_shoulder",
+        "sourceIngredient":  "Pork Shoulder",
+        "source":  "https://www.themealdb.com/images/ingredients/Pork%20Shoulder.png",
+        "downloadedAs":  "pork_shoulder.source.png"
+    },
+    {
+        "ingredient":  "pork_steak",
+        "sourceIngredient":  "Pork Shoulder Steaks",
+        "source":  "https://www.themealdb.com/images/ingredients/Pork%20Shoulder%20Steaks.png",
+        "downloadedAs":  "pork_steak.source.png"
+    },
+    {
+        "ingredient":  "pork_tenderloin",
+        "sourceIngredient":  "Pork Tenderloin",
+        "source":  "https://www.themealdb.com/images/ingredients/Pork%20Tenderloin.png",
+        "downloadedAs":  "pork_tenderloin.source.png"
+    },
+    {
+        "ingredient":  "baby_back_ribs",
+        "sourceIngredient":  "Pork Back Ribs",
+        "source":  "https://www.themealdb.com/images/ingredients/Pork%20Back%20Ribs.png",
+        "downloadedAs":  "baby_back_ribs.source.png"
+    },
+    {
+        "ingredient":  "salmon",
+        "sourceIngredient":  "Salmon",
+        "source":  "https://www.themealdb.com/images/ingredients/Salmon.png",
+        "downloadedAs":  "salmon.source.png"
+    },
+    {
+        "ingredient":  "smoked_salmon",
+        "sourceIngredient":  "Smoked Salmon",
+        "source":  "https://www.themealdb.com/images/ingredients/Smoked%20Salmon.png",
+        "downloadedAs":  "smoked_salmon.source.png"
+    },
+    {
+        "ingredient":  "cod",
+        "sourceIngredient":  "Cod",
+        "source":  "https://www.themealdb.com/images/ingredients/Cod.png",
+        "downloadedAs":  "cod.source.png"
+    },
+    {
+        "ingredient":  "salt_cod",
+        "sourceIngredient":  "Salt Cod",
+        "source":  "https://www.themealdb.com/images/ingredients/Salt%20Cod.png",
+        "downloadedAs":  "salt_cod.source.png"
+    },
+    {
+        "ingredient":  "sea_bass",
+        "sourceIngredient":  "Sea Bass",
+        "source":  "https://www.themealdb.com/images/ingredients/Sea%20Bass.png",
+        "downloadedAs":  "sea_bass.source.png"
+    },
+    {
+        "ingredient":  "sea_bass_fillets",
+        "sourceIngredient":  "Sea Bass Fillets",
+        "source":  "https://www.themealdb.com/images/ingredients/Sea%20Bass%20Fillets.png",
+        "downloadedAs":  "sea_bass_fillets.source.png"
+    },
+    {
+        "ingredient":  "rainbow_trout",
+        "sourceIngredient":  "Rainbow Trout",
+        "source":  "https://www.themealdb.com/images/ingredients/Rainbow%20Trout.png",
+        "downloadedAs":  "rainbow_trout.source.png"
+    },
+    {
+        "ingredient":  "trout",
+        "sourceIngredient":  "Trout",
+        "source":  "https://www.themealdb.com/images/ingredients/Trout.png",
+        "downloadedAs":  "trout.source.png"
+    },
+    {
+        "ingredient":  "tuna",
+        "sourceIngredient":  "Tuna",
+        "source":  "https://www.themealdb.com/images/ingredients/Tuna.png",
+        "downloadedAs":  "tuna.source.png"
+    },
+    {
+        "ingredient":  "shrimp",
+        "sourceIngredient":  "Shrimp",
+        "source":  "https://www.themealdb.com/images/ingredients/Shrimp.png",
+        "downloadedAs":  "shrimp.source.png"
+    },
+    {
+        "ingredient":  "jumbo_shrimp",
+        "sourceIngredient":  "Jumbo Shrimp",
+        "source":  "https://www.themealdb.com/images/ingredients/Jumbo%20Shrimp.png",
+        "downloadedAs":  "jumbo_shrimp.source.png"
+    },
+    {
+        "ingredient":  "raw_shrimp",
+        "sourceIngredient":  "Raw tiger prawns",
+        "source":  "https://www.themealdb.com/images/ingredients/Raw%20tiger%20prawns.png",
+        "downloadedAs":  "raw_shrimp.source.png"
+    },
+    {
+        "ingredient":  "prawns",
+        "sourceIngredient":  "Prawns",
+        "source":  "https://www.themealdb.com/images/ingredients/Prawns.png",
+        "downloadedAs":  "prawns.source.png"
+    },
+    {
+        "ingredient":  "mussels",
+        "sourceIngredient":  "Mussels",
+        "source":  "https://www.themealdb.com/images/ingredients/Mussels.png",
+        "downloadedAs":  "mussels.source.png"
+    },
+    {
+        "ingredient":  "oysters",
+        "sourceIngredient":  "Oysters",
+        "source":  "https://www.themealdb.com/images/ingredients/Oysters.png",
+        "downloadedAs":  "oysters.source.png"
+    },
+    {
+        "ingredient":  "squid",
+        "sourceIngredient":  "Squid",
+        "source":  "https://www.themealdb.com/images/ingredients/Squid.png",
+        "downloadedAs":  "squid.source.png"
+    },
+    {
+        "ingredient":  "calamari",
+        "sourceIngredient":  "Baby Squid",
+        "source":  "https://www.themealdb.com/images/ingredients/Baby%20Squid.png",
+        "downloadedAs":  "calamari.source.png"
+    },
+    {
+        "ingredient":  "lobster",
+        "sourceIngredient":  "Lobster",
+        "source":  "https://www.themealdb.com/images/ingredients/Lobster.png",
+        "downloadedAs":  "lobster.source.png"
+    }
+]

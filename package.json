@@ -1,0 +1,39 @@
+{
+  "name": "supperloom",
+  "version": "0.9.0",
+  "private": true,
+  "description": "Offline meal planning, inventory, grocery, receipt, and spending tools for every household.",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node work/food-engine.test.js && node work/recipe-reader.test.js && node work/starter-recipes.test.mjs && node work/recovery.test.js && node work/e-drive-file-safety.test.js && node work/image-assets.test.mjs && node work/pwa.test.mjs && node work/release-assets.test.mjs && node work/release-notes.test.mjs && node work/workflow-security.test.mjs && node work/run-gradle.test.mjs && node work/privacy-site.test.mjs && node work/test-focused-meal-planner.js && node work/test-device-modes.js && node work/test-accessibility.js && node work/test-receipt-files.js && node work/test-recipe-capture.js && node work/test-recovery.js",
+    "fixtures:generate": "node work/generate-receipt-fixtures.mjs && node work/generate-recipe-fixtures.mjs",
+    "images:optimize": "node work/optimize-ingredient-images.mjs",
+    "images:import-sheet": "node work/import-generated-ingredient-sheet.mjs",
+    "android:sync": "node work/sync-android.mjs",
+    "android:build": "node work/sync-android.mjs && node work/run-gradle.mjs assembleDebug",
+    "android:build:release": "node work/sync-android.mjs && node work/run-gradle.mjs assembleRelease bundleRelease",
+    "android:lint": "node work/run-gradle.mjs lintDebug",
+    "android:smoke": "node work/run-android-smoke.mjs",
+    "android:smoke:upgrade": "node work/test-android-upgrade.mjs",
+    "release:verify": "node work/verify-release-version.mjs",
+    "release:stage": "node work/stage-release.mjs",
+    "images:audit": "node work/audit-image-provenance.mjs",
+    "images:audit:strict": "node work/audit-image-provenance.mjs --strict"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/core": "^8.0.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@capacitor/cli": "^8.0.0",
+    "esbuild": "^0.28.1",
+    "pdf-lib": "^1.17.1",
+    "playwright": "^1.61.1",
+    "sharp": "^0.35.3",
+    "typescript": "6.0.3"
+  }
+}
