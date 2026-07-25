@@ -2299,7 +2299,8 @@ function setRecipeImage(image, recipe) {
   image.loading = "lazy";
   image.decoding = "async";
   image.onerror = () => {
-    if (fallbackName && !String(image.src || "").includes("themealdb.com")) {
+    if (fallbackName && image.dataset.remoteFallbackAttempted !== "true") {
+      image.dataset.remoteFallbackAttempted = "true";
       image.src = ingredientRemoteImageUrl(fallbackName);
       return;
     }
