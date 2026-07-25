@@ -90,6 +90,63 @@ async function run() {
     const android = await browser.newPage({ ...devices["Pixel 7"], viewport: { width: 412, height: 915 } });
     await android.goto(`${baseUrl}/android.html`, { waitUntil: "networkidle" });
     await android.waitForFunction(() => location.search.includes("device=android") && document.body.dataset.deviceMode === "android");
+    const swipe = ({
+      startX = 350,
+      endX = 70,
+      startY = 420,
+      endY = 422,
+      selector = ".shell"
+    } = {}) => android.evaluate(({ startX, endX, startY, endY, selector }) => {
+      const surface = document.querySelector(selector);
+      const start = new Event("touchstart", { bubbles: true });
+      Object.defineProperty(start, "touches", {
+        value: [{ clientX: startX, clientY: startY }]
+      });
+      surface.dispatchEvent(start);
+      const end = new Event("touchend", { bubbles: true });
+      Object.defineProperty(end, "changedTouches", {
+        value: [{ clientX: endX, clientY: endY }]
+      });
+      surface.dispatchEvent(end);
+    }, { startX, endX, startY, endY, selector });
+    const activeView = () => android.locator("[aria-current='page'][data-app-view]").getAttribute("data-app-view");
+    const forwardViews = [];
+    for (const expected of ["recipes", "plan", "groceries", "inventory", "spending"]) {
+      await swipe();
+      await android.waitForFunction(
+        (view) => document.querySelector(`[data-app-view="${view}"]`)?.getAttribute("aria-current") === "page",
+        expected
+      );
+      forwardViews.push(await activeView());
+    }
+    await swipe();
+    const stoppedAtSpending = await activeView();
+    const swipeAnnouncement = await android.locator("#appViewAnnouncement").textContent();
+    await swipe({ selector: ".meal-calendar" });
+    const calendarStayedOnSpending = await activeView();
+    const backViews = [];
+    for (const expected of ["inventory", "groceries", "plan", "recipes", "home"]) {
+      await swipe({ startX: 70, endX: 350 });
+      await android.waitForFunction(
+        (view) => document.querySelector(`[data-app-view="${view}"]`)?.getAttribute("aria-current") === "page",
+        expected
+      );
+      backViews.push(await activeView());
+    }
+    await swipe({ startX: 70, endX: 350 });
+    const stoppedAtHome = await activeView();
+    await swipe({ startX: 20, endX: 300 });
+    const edgeSwipeStayedHome = await activeView();
+    await swipe({ startX: 260, endX: 235 });
+    const shortSwipeStayedHome = await activeView();
+    await swipe({ startX: 300, endX: 180, startY: 250, endY: 500 });
+    const verticalSwipeStayedHome = await activeView();
+    await android.locator("[data-app-view='recipes']").click();
+    await swipe({ selector: "#recipeForm label" });
+    const formSwipeStayedRecipes = await activeView();
+    await android.locator("[data-app-view='home']").click();
+    await swipe({ selector: ".visual-recipe-list" });
+    const rolodexSwipeStayedHome = await activeView();
     await android.locator("[data-app-view='groceries']").click();
     await android.locator("#walmartPaste").fill(
       "Walmart\n1 x Whole Milk $3.49 SKU 12345"
@@ -114,6 +171,8 @@ async function run() {
     await android.locator(".recipe-card").first().click();
     await android.locator("#startCooking").click();
     await android.waitForSelector("#cookingMode[open]");
+    await swipe();
+    const dialogSwipeStayedRecipes = await activeView();
     await android.screenshot({ path: cookingScreenshotPath, fullPage: false });
 
     const result = await desktop.evaluate(() => ({
@@ -140,7 +199,22 @@ async function run() {
       buttonHeight: document.querySelector("button")?.getBoundingClientRect().height || 0,
       mastheadColumns: getComputedStyle(document.querySelector(".masthead")).gridTemplateColumns
     }));
-    const androidResult = { ...androidLayoutResult, ...stickyNavResult };
+    const androidResult = {
+      ...androidLayoutResult,
+      ...stickyNavResult,
+      forwardViews,
+      backViews,
+      stoppedAtSpending,
+      swipeAnnouncement,
+      calendarStayedOnSpending,
+      stoppedAtHome,
+      edgeSwipeStayedHome,
+      shortSwipeStayedHome,
+      verticalSwipeStayedHome,
+      formSwipeStayedRecipes,
+      rolodexSwipeStayedHome,
+      dialogSwipeStayedRecipes
+    };
 
     const cookingResult = await android.evaluate(() => {
       const dialog = document.querySelector("#cookingMode");
@@ -184,6 +258,19 @@ async function run() {
     if (!iphoneResult.headingVisible || iphoneResult.bodyTextLength < 300) failures.push("iPhone screen did not show the planner content.");
     if (androidResult.focusedTop < androidResult.tabsBottom - 2) failures.push("Sticky phone navigation covers the selected screen.");
     if (androidResult.inventoryRemoveHeight < 48 || androidResult.inventoryDateHeight < 48) failures.push("Phone inventory controls are too small for touch use.");
+    if (androidResult.forwardViews.join(",") !== "recipes,plan,groceries,inventory,spending") failures.push("Phone swipe navigation did not follow the expected forward screen order.");
+    if (androidResult.backViews.join(",") !== "inventory,groceries,plan,recipes,home") failures.push("Phone swipe navigation did not follow the expected reverse screen order.");
+    if (androidResult.stoppedAtSpending !== "spending" || androidResult.stoppedAtHome !== "home") failures.push("Phone swipe navigation did not stop at the first and last screens.");
+    if (androidResult.swipeAnnouncement?.trim() !== "Spending, page 6 of 6") failures.push("Phone swipe navigation did not announce the selected screen.");
+    if (
+      androidResult.calendarStayedOnSpending !== "spending"
+      || androidResult.edgeSwipeStayedHome !== "home"
+      || androidResult.shortSwipeStayedHome !== "home"
+      || androidResult.verticalSwipeStayedHome !== "home"
+      || androidResult.formSwipeStayedRecipes !== "recipes"
+      || androidResult.rolodexSwipeStayedHome !== "home"
+      || androidResult.dialogSwipeStayedRecipes !== "recipes"
+    ) failures.push("Phone swipe navigation interfered with a protected control or non-horizontal gesture.");
     if (!cookingResult.open || !cookingResult.title || !cookingResult.stepText || !cookingResult.ingredientCount) failures.push("Guided cooking did not open with recipe content on Android.");
     if (!cookingResult.ingredientsCollapsed || !cookingResult.ingredientSummaryVisible) failures.push("Guided cooking did not prioritize the current step while keeping ingredients reachable on Android.");
     if (!cookingResult.fitsViewport || !cookingResult.noHorizontalOverflow) failures.push("Guided cooking overflows the Android viewport.");

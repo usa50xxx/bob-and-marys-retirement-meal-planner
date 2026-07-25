@@ -1,4 +1,4 @@
-name: Publish privacy policy
+name: Publish Supperloom web app
 
 on:
   push:
@@ -6,9 +6,15 @@ on:
       - main
     paths:
       - ".github/workflows/pages.yml"
+      - "IMAGE_LICENSE.md"
       - "PRIVACY.md"
+      - "THIRD_PARTY_NOTICES.md"
+      - "outputs/meal-planner/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
       - "privacy-site/**"
       - "work/build-privacy-site.mjs"
+      - "work/release-assets.mjs"
   workflow_dispatch:
 
 permissions:
@@ -22,18 +28,28 @@ concurrency:
 
 jobs:
   build:
-    name: Build privacy page
+    name: Build web app and privacy page
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.9.0
+          run_install: false
+
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
+          cache: pnpm
 
-      - name: Prepare privacy site
+      - name: Install build dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare web app and privacy site
         run: node work/build-privacy-site.mjs
 
       - name: Configure GitHub Pages

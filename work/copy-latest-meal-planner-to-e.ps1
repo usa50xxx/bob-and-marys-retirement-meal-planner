@@ -3,6 +3,7 @@ $ErrorActionPreference = "Stop"
 $source = "C:\Users\usa50\Documents\Codex\2026-07-23\i-want-to-create-a-new\outputs\meal-planner"
 $target = "E:\Meal Planner"
 $androidSource = "C:\Users\usa50\Documents\Codex\2026-07-23\i-want-to-create-a-new\outputs\android"
+$driveRootSource = "C:\Users\usa50\Documents\Codex\2026-07-23\i-want-to-create-a-new\thumb-drive-root"
 
 if (-not (Test-Path -LiteralPath "E:\" -PathType Container)) {
   throw "Drive E: is not available."
@@ -13,6 +14,7 @@ if (-not (Test-Path -LiteralPath $source -PathType Container)) {
 }
 
 New-Item -ItemType Directory -Force -Path $target | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $target "icons") | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $target "images") | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $target "images\ingredients") | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $target "backups") | Out-Null
@@ -29,9 +31,12 @@ $topLevelFiles = @(
   "index.html",
   "iphone.html",
   "android.html",
+  "manifest.webmanifest",
+  "pwa.js",
   "receipt-reader.js",
   "recipe-reader.js",
   "recovery.js",
+  "service-worker.js",
   "starter-recipes.js",
   "styles.css",
   "meal-planner-server.ps1",
@@ -59,6 +64,14 @@ foreach ($file in $topLevelFiles) {
   }
 }
 
+Copy-Item -LiteralPath (Join-Path $driveRootSource "autorun.inf") -Destination "E:\autorun.inf" -Force
+
+$sourceIcons = Join-Path $source "icons"
+$targetIcons = Join-Path $target "icons"
+if (Test-Path -LiteralPath $sourceIcons -PathType Container) {
+  Copy-Item -Path (Join-Path $sourceIcons "*") -Destination $targetIcons -Recurse -Force
+}
+
 $legacyStarterFiles = @(
   "Start Bob and Mary's Meal Planner.bat",
   "Start Bob and Mary's Meal Planner for Phones.bat"
@@ -83,7 +96,7 @@ foreach ($file in $rootStarterFiles) {
   if (Test-Path -LiteralPath $rootFile -PathType Leaf) {
     Copy-Item -LiteralPath $rootFile -Destination (Join-Path $backup $file) -Force
   }
-  $sourceFile = Join-Path $source $file
+  $sourceFile = Join-Path $driveRootSource $file
   if (Test-Path -LiteralPath $sourceFile -PathType Leaf) {
     Copy-Item -LiteralPath $sourceFile -Destination $rootFile -Force
   }
@@ -98,6 +111,13 @@ if ($sourceWebpCount -lt 298) {
   throw "The optimized ingredient picture set is incomplete, so the old pictures were left alone."
 }
 Copy-Item -Path (Join-Path $sourceImages "*") -Destination $targetImages -Recurse -Force
+$sourceImageNames = @(
+  Get-ChildItem -LiteralPath $sourceIngredientImages -Filter "*.webp" -File |
+    ForEach-Object { $_.Name }
+)
+Get-ChildItem -LiteralPath $targetIngredientImages -Filter "*.webp" -File |
+  Where-Object { $_.Name -notin $sourceImageNames } |
+  Remove-Item -Force
 Get-ChildItem -LiteralPath $targetIngredientImages -Filter "*.png" -File |
   Remove-Item -Force
 

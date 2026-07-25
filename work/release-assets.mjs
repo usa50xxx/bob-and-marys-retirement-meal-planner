@@ -5,7 +5,7 @@ import path from "node:path";
 import { transform } from "esbuild";
 
 const APP_SOURCE = "outputs/meal-planner";
-const STATIC_DIRECTORIES = new Set(["images", "vendor"]);
+const STATIC_DIRECTORIES = new Set(["icons", "images", "vendor"]);
 const PUBLIC_ROOT_FILES = new Set([
   "README.txt",
   "Start Supperloom for Phones.bat",
@@ -22,10 +22,13 @@ const PUBLIC_ROOT_FILES = new Set([
   "index.html",
   "ingredient-image-aliases.js",
   "iphone.html",
+  "manifest.webmanifest",
   "meal-planner-server.ps1",
+  "pwa.js",
   "receipt-reader.js",
   "recipe-reader.js",
   "recovery.js",
+  "service-worker.js",
   "starter-recipes.js",
   "styles.css",
 ]);
@@ -38,6 +41,7 @@ const LEGACY_WEBVIEW_SCRIPTS = [
   "recovery.js",
   "starter-recipes.js",
   "app.js",
+  "pwa.js",
 ];
 
 function normalizeRelativePath(value) {

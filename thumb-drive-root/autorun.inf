@@ -1,0 +1,5 @@
+[AutoRun]
+label=Supperloom
+open=Start Supperloom.bat
+action=Start Supperloom
+shellexecute=Start Supperloom.bat

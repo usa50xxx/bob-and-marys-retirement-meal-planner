@@ -3,7 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#111a18" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Supperloom" />
     <title>Supperloom - Meal Planner</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/app-icon-192.png" type="image/png" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <script>
       (() => {
         try {
@@ -14,7 +21,14 @@
           )
             || (window.location.protocol === "https:" && window.location.hostname === "localhost");
           if (nativeApp) {
-            localStorage.setItem("bobMaryMealPlannerDeviceMode", "android");
+            const nativePlatform = window.Capacitor
+              && typeof window.Capacitor.getPlatform === "function"
+              ? window.Capacitor.getPlatform()
+              : "android";
+            localStorage.setItem(
+              "bobMaryMealPlannerDeviceMode",
+              nativePlatform === "ios" ? "iphone" : "android"
+            );
             return;
           }
           const params = new URLSearchParams(window.location.search);
@@ -91,13 +105,14 @@
 
       <nav class="app-tabs" aria-label="Main areas">
         <button type="button" data-app-view="home">Home</button>
-        <button type="button" data-app-view="plan">Plan</button>
         <button type="button" data-app-view="recipes">Recipes</button>
+        <button type="button" data-app-view="plan">Plan</button>
         <button type="button" data-app-view="groceries">Groceries</button>
-        <button type="button" data-app-view="inventory">Inventory</button>
+        <button type="button" data-app-view="inventory">Pantry</button>
         <button type="button" data-app-view="spending">Spending</button>
         <button type="button" data-print-view>Print</button>
       </nav>
+      <p id="appViewAnnouncement" class="visually-hidden" aria-live="polite"></p>
 
       <section class="status-strip" aria-label="Save and undo status">
         <button type="button" id="undoChange" disabled>Undo</button>
@@ -712,5 +727,6 @@ Tip: copy the item list from Walmart, Publix, Aldi, or another store, paste it h
     <script src="ingredient-image-aliases.js"></script>
     <script src="starter-recipes.js"></script>
     <script src="app.js"></script>
+    <script src="pwa.js"></script>
   </body>
 </html>

@@ -1,3 +1,3 @@
 @echo off
-cd /d "%~dp0Meal Planner"
+cd /d "%~dp0"
 call "Start Meal Planner.bat"

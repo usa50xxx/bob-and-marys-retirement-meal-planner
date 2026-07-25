@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
+import { stageReleaseAssets } from "./release-assets.mjs";
 
 export async function buildPrivacySite({
   projectRoot = process.cwd(),
@@ -22,6 +23,10 @@ export async function buildPrivacySite({
     `---\nlayout: default\ntitle: Privacy policy\npermalink: /\n---\n\n${markdown}`,
     "utf8",
   );
+  await stageReleaseAssets({
+    projectRoot,
+    destination: path.join(output, "app"),
+  });
   return output;
 }
 

@@ -26,6 +26,10 @@ for (const privatePath of [
 for (const publicPath of [
   "index.html",
   "app.js",
+  "manifest.webmanifest",
+  "pwa.js",
+  "service-worker.js",
+  "icons/app-icon-512.png",
   "starter-recipes.js",
   "images/ingredients/apple.webp",
   "vendor/pdfjs/pdf.min.mjs",
@@ -70,6 +74,10 @@ try {
   await fs.access(path.join(destination, "compatibility.js"));
   await fs.access(path.join(destination, "ingredient-image-aliases.js"));
   await fs.access(path.join(destination, "starter-recipes.js"));
+  await fs.access(path.join(destination, "manifest.webmanifest"));
+  await fs.access(path.join(destination, "pwa.js"));
+  await fs.access(path.join(destination, "service-worker.js"));
+  await fs.access(path.join(destination, "icons", "app-icon-512.png"));
   await fs.access(path.join(destination, "PRIVACY.md"));
   await fs.access(path.join(destination, "THIRD_PARTY_NOTICES.md"));
   await fs.access(path.join(destination, "IMAGE_LICENSE.md"));
@@ -98,6 +106,7 @@ try {
     "recovery.js",
     "starter-recipes.js",
     "app.js",
+    "pwa.js",
   ]) {
     const stagedScript = await fs.readFile(path.join(destination, script), "utf8");
     assert.equal(stagedScript.includes("?."), false, `${script} has optional chaining`);

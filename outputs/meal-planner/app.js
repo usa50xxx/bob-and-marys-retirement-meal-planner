@@ -7,6 +7,7 @@ const pendingStorageKey = "bobMaryMealPlannerPendingSave";
 const previousStorageKey = "bobMaryMealPlannerPreviousGoodSave";
 const backupStorageKey = "bobMaryMealPlannerBackups";
 const saveReceiptStorageKey = "bobMaryMealPlannerLastSave";
+const appViewOrder = ["home", "recipes", "plan", "groceries", "inventory", "spending"];
 let saveTimer = null;
 let saveStatusTimer = null;
 let undoStack = [];
@@ -20,6 +21,7 @@ let pendingRecipeDraft = null;
 let startupRecoveryMessage = "";
 let lastSaveReceipt = null;
 let availableBackups = [];
+let swipeStart = null;
 
 const fallbackRecipes = [
   {
@@ -84,6 +86,8 @@ const viewButtons = document.querySelectorAll("[data-app-view]");
 const printViewButton = document.querySelector("[data-print-view]");
 const focusedLayout = document.querySelector("#focusedLayout");
 const appTabs = document.querySelector(".app-tabs");
+const swipeSurface = document.querySelector(".shell");
+const appViewAnnouncement = document.querySelector("#appViewAnnouncement");
 const appViewSections = document.querySelectorAll("[data-app-views]");
 const undoChange = document.querySelector("#undoChange");
 const saveStatus = document.querySelector("#saveStatus");
@@ -269,6 +273,9 @@ quickShopping.addEventListener("click", () => {
 });
 quickPrint.addEventListener("click", printSelectedMeal);
 viewButtons.forEach((button) => button.addEventListener("click", () => setAppView(button.dataset.appView)));
+swipeSurface.addEventListener("touchstart", startAppViewSwipe, { passive: true });
+swipeSurface.addEventListener("touchend", finishAppViewSwipe, { passive: true });
+swipeSurface.addEventListener("touchcancel", cancelAppViewSwipe, { passive: true });
 printViewButton.addEventListener("click", printSelectedMeal);
 undoChange.addEventListener("click", undoLastChange);
 addIngredient.addEventListener("click", () => {
@@ -427,7 +434,10 @@ function plannerDataFromSource(parsed) {
 
 function initDeviceMode() {
   if (isNativeApp()) {
-    setDeviceMode("android", { persist: true, updateUrl: false, announce: false, hidePrompt: true });
+    setDeviceMode(
+      nativePlatform() === "ios" ? "iphone" : "android",
+      { persist: true, updateUrl: false, announce: false, hidePrompt: true }
+    );
     return;
   }
   const queryMode = normalizedDeviceMode(new URLSearchParams(window.location.search).get("device"));
@@ -458,8 +468,10 @@ function setDeviceMode(mode, options = {}) {
   if (deviceModeNote) {
     const notes = {
       computer: "Computer view is selected.",
-      iphone: "iPhone view is selected. Start the phone starter on the computer first.",
-      android: isNativeApp()
+      iphone: isNativeApp() || isStandaloneApp()
+        ? "iPhone app is selected. Your meal planner is saved on this phone."
+        : "iPhone view is selected. Start the phone starter on the computer first.",
+      android: isNativeApp() || isStandaloneApp()
         ? "Android app is selected. Your meal planner is saved on this phone."
         : "Android view is selected. Start the phone starter on the computer first."
     };
@@ -500,8 +512,7 @@ function detectDeviceMode() {
 }
 
 function setAppView(view, options = {}) {
-  const validViews = ["home", "plan", "recipes", "groceries", "inventory", "spending"];
-  currentAppView = validViews.includes(view) ? view : "home";
+  currentAppView = appViewOrder.includes(view) ? view : "home";
   const showFocusedLayout = currentAppView !== "home";
   focusedLayout.hidden = !showFocusedLayout;
 
@@ -519,6 +530,12 @@ function setAppView(view, options = {}) {
     const active = button.dataset.appView === currentAppView;
     button.setAttribute("aria-current", active ? "page" : "false");
   });
+  if (appViewAnnouncement) {
+    const currentButton = [...viewButtons].find((button) => button.dataset.appView === currentAppView);
+    appViewAnnouncement.textContent =
+      `${currentButton?.textContent?.trim() || currentAppView}, page `
+      + `${appViewOrder.indexOf(currentAppView) + 1} of ${appViewOrder.length}`;
+  }
 
   if (options.persist !== false) {
     localStorage.setItem(appViewStorageKey, currentAppView);
@@ -532,6 +549,70 @@ function setAppView(view, options = {}) {
       focusedLayout.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
+}
+
+function startAppViewSwipe(event) {
+  if (
+    !document.body.classList.contains("phone-layout")
+    || event.touches.length !== 1
+    || document.querySelector("dialog[open]")
+  ) {
+    swipeStart = null;
+    return;
+  }
+  const target = event.target;
+  if (
+    !(target instanceof Element)
+    ||
+    target.closest(
+      "a, button, input, textarea, select, label, summary, [contenteditable='true'], dialog, "
+      + ".visual-recipe-list, .builder-flow, .meal-calendar, .ingredient-row, "
+      + ".builder-ingredient-row, .receipt-review-row, .recipe-review, [data-no-page-swipe]"
+    )
+  ) {
+    swipeStart = null;
+    return;
+  }
+  const touch = event.touches[0];
+  if (touch.clientX < 28 || touch.clientX > window.innerWidth - 28) {
+    swipeStart = null;
+    return;
+  }
+  swipeStart = {
+    x: touch.clientX,
+    y: touch.clientY,
+    at: Date.now()
+  };
+}
+
+function finishAppViewSwipe(event) {
+  if (!swipeStart || event.changedTouches.length !== 1) {
+    swipeStart = null;
+    return;
+  }
+  const touch = event.changedTouches[0];
+  const distanceX = touch.clientX - swipeStart.x;
+  const distanceY = touch.clientY - swipeStart.y;
+  const elapsed = Date.now() - swipeStart.at;
+  const requiredDistance = Math.max(70, Math.min(110, window.innerWidth * 0.2));
+  swipeStart = null;
+
+  if (
+    elapsed > 900
+    || Math.abs(distanceX) < requiredDistance
+    || Math.abs(distanceX) < Math.abs(distanceY) * 1.5
+  ) {
+    return;
+  }
+
+  const currentIndex = appViewOrder.indexOf(currentAppView);
+  const nextIndex = distanceX < 0 ? currentIndex + 1 : currentIndex - 1;
+  if (nextIndex < 0 || nextIndex >= appViewOrder.length) return;
+  setAppView(appViewOrder[nextIndex]);
+}
+
+function cancelAppViewSwipe() {
+  swipeStart = null;
 }
 
 function captureUndo(label) {
@@ -630,6 +711,28 @@ function isNativeApp() {
   return Boolean(window.Capacitor?.isNativePlatform?.());
 }
 
+function nativePlatform() {
+  if (!isNativeApp()) return "";
+  return window.Capacitor?.getPlatform?.() || "android";
+}
+
+function isStandaloneApp() {
+  return window.matchMedia?.("(display-mode: standalone)")?.matches
+    || window.navigator.standalone === true;
+}
+
+function isStaticHostedApp() {
+  return window.location.hostname.endsWith(".github.io");
+}
+
+function usesLocalOnlyStorage() {
+  return isNativeApp() || isStandaloneApp() || isStaticHostedApp();
+}
+
+function localSaveDestination() {
+  return isNativeApp() || isStandaloneApp() ? "this phone" : "this browser";
+}
+
 function persistRecipes() {
   const data = currentPlannerData();
   setSaveStatus("Saving...");
@@ -637,12 +740,14 @@ function persistRecipes() {
   try {
     writePlannerLocally(data);
     localSaved = true;
-    recordSuccessfulSave(isNativeApp() ? "this phone" : "this browser", data.savedAt);
+    recordSuccessfulSave(localSaveDestination(), data.savedAt);
   } catch {
     setSaveStatus("Local save needs attention");
   }
-  if (isNativeApp()) {
-    if (localSaved) setSaveStatus("Saved on this phone");
+  if (usesLocalOnlyStorage()) {
+    if (localSaved) {
+      setSaveStatus(isNativeApp() || isStandaloneApp() ? "Saved on this phone" : "Saved in this browser");
+    }
     return;
   }
   setSaveStatus(localSaved ? "Saved in browser; saving to thumb drive..." : "Saving to thumb drive...");
@@ -706,13 +811,13 @@ function asciiJson(value) {
 }
 
 async function loadDriveData() {
-  if (isNativeApp()) {
+  if (usesLocalOnlyStorage()) {
     if (startupRecoveryMessage) {
       setSaveStatus(startupRecoveryMessage);
       recoveryStatus.textContent = startupRecoveryMessage;
       recoveryPanel.open = true;
     } else {
-      setSaveStatus("Saved on this phone");
+      setSaveStatus(isNativeApp() || isStandaloneApp() ? "Saved on this phone" : "Saved in this browser");
     }
     return;
   }
@@ -744,7 +849,7 @@ async function loadDriveData() {
     }
     if (starterCatalogMigrated) scheduleDriveSave(currentData);
   } catch {
-    setSaveStatus(isNativeApp() ? "Saved on this phone" : "Saved in this browser only");
+    setSaveStatus(isNativeApp() || isStandaloneApp() ? "Saved on this phone" : "Saved in this browser only");
   }
 }
 
