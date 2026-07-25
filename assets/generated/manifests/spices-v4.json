@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/spices-v4.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "cilantro", "label": "Fresh cilantro" },
+    { "key": "tarragon", "label": "Fresh tarragon" },
+    { "key": "marjoram", "label": "Fresh marjoram" },
+    { "key": "bay_leaf", "label": "Dried bay leaves" },
+    { "key": "garlic", "label": "Fresh garlic bulbs" },
+    { "key": "ginger", "label": "Fresh ginger root" },
+    { "key": "green_onion", "label": "Fresh green onions" },
+    { "key": "red_onion", "label": "Fresh red onion" }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/spices-v3.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "oregano", "label": "Dried oregano" },
+    { "key": "basil", "label": "Fresh basil" },
+    { "key": "parsley", "label": "Fresh parsley" },
+    { "key": "thyme", "label": "Fresh thyme" },
+    { "key": "rosemary", "label": "Fresh rosemary" },
+    { "key": "sage", "label": "Fresh sage" },
+    { "key": "dill", "label": "Fresh dill" },
+    { "key": "chives", "label": "Fresh chives" }
+  ]
+}

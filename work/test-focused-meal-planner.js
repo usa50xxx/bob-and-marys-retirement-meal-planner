@@ -320,6 +320,39 @@ async function run() {
         )).join("; ")
       );
     }
+    const specificIngredientImages = {
+      "apple cider vinegar": "apple_cider_vinegar",
+      "red wine vinegar": "red_wine_vinegar",
+      "rice vinegar": "rice_vinegar",
+      "white vinegar": "white_vinegar",
+      "canola oil": "canola_oil",
+      "sesame oil": "sesame_oil",
+      "sweet and sour sauce": "sweet_and_sour_sauce",
+      "brown rice": "brown_rice",
+      "basmati rice": "basmati_rice",
+      "jasmine rice": "jasmine_rice",
+      "rice noodles": "rice_noodles",
+      "bread flour": "bread_flour",
+      "powdered sugar": "powdered_sugar",
+      "peanuts": "peanuts",
+      "cannellini beans": "cannellini_beans",
+      "refried beans": "refried_beans",
+      "split peas": "split_peas",
+      "stewed tomatoes": "stewed_tomatoes",
+      "corned beef hash": "corned_beef_hash"
+    };
+    const imageKeyResults = await page.evaluate((cases) => (
+      Object.entries(cases).map(([name, expected]) => ({
+        name,
+        expected,
+        actual: ingredientImageKey(name)
+      }))
+    ), specificIngredientImages);
+    check(
+      imageKeyResults.every(({ actual, expected }) => actual === expected),
+      "Specific pantry and condiment names use their exact pictures",
+      imageKeyResults.map(({ name, actual }) => `${name}=${actual}`).join("; ")
+    );
     console.error("CHECKPOINT builder");
 
     await clickView(page, "groceries");

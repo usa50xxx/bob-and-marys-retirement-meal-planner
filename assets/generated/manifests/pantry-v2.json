@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/pantry-v2.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "powdered_sugar", "label": "Powdered sugar" },
+    { "key": "oats", "label": "Rolled oats" },
+    { "key": "rice", "label": "Long-grain white rice" },
+    { "key": "brown_rice", "label": "Brown rice" },
+    { "key": "basmati_rice", "label": "Basmati rice" },
+    { "key": "jasmine_rice", "label": "Jasmine rice" },
+    { "key": "quinoa", "label": "White quinoa" },
+    { "key": "couscous", "label": "Couscous" }
+  ]
+}

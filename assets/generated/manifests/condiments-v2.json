@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/condiments-v2.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "fish_sauce", "label": "Fish sauce" },
+    { "key": "hoisin_sauce", "label": "Hoisin sauce" },
+    { "key": "honey", "label": "Honey" },
+    { "key": "horseradish", "label": "Prepared horseradish" },
+    { "key": "hot_sauce", "label": "Hot pepper sauce" },
+    { "key": "jelly", "label": "Fruit jelly" },
+    { "key": "ketchup", "label": "Tomato ketchup" },
+    { "key": "maple_syrup", "label": "Maple syrup" }
+  ]
+}

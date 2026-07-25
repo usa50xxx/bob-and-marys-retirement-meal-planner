@@ -19,7 +19,6 @@
   "canned_tuna": "tuna",
   "catsup": "ketchup",
   "cayenne_pepper": "cayenne",
-  "cereal": "oats",
   "chicken_breasts": "chicken_breast",
   "chicken_broth": "broth",
   "chicken_gravy": "gravy",

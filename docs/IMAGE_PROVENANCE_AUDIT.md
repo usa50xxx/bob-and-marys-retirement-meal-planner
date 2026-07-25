@@ -2,14 +2,14 @@
 
 Status: **blocks a public v1.0 release**
 
-The current ingredient folder contains 295 byte-unique WebP files and no
-duplicate files. A browser alias map preserves 101 additional ingredient names
-without shipping repeated bytes. Sixty-four project-original images have
-complete approved metadata. Existing legacy notes identify a source for 57 of
-the physical files, but those records are not complete license approvals.
-Seventeen files appear in both sets, leaving 104 physical files with at least
-one source record and 191 with none. In total, 231 physical files still need
-replacement or complete approval before release.
+The current ingredient folder contains 298 byte-unique WebP files and no
+duplicate files. A browser alias map preserves 100 additional ingredient names
+without shipping repeated bytes. One hundred eighty-four project-original
+images have complete approved metadata. Existing legacy notes identify a source
+for 57 of the physical files, but those records are not complete license
+approvals. Seventeen files appear in both sets, leaving 224 physical files with
+at least one source record and 74 with none. In total, 114 physical files still
+need replacement or complete approval before release.
 
 Run the report without failing normal development:
 
@@ -65,8 +65,8 @@ permission.
 - Exact duplicate files were collapsed into `IMAGE_ALIASES.json`; every alias
   resolves locally, alias chains are rejected, and automated tests require all
   physical files to have unique bytes.
-- Sixty-four beef, chicken, pork, and seafood images now have visually distinct,
-  project-original generated sources. The unedited source sheets and exact grid
-  manifests are retained under `assets/generated`, their derivation is
-  reproducible, and their release permission is recorded in `IMAGE_LICENSE.md`
-  and `IMAGE_PROVENANCE.json`.
+- One hundred eighty-four beef, chicken, pork, seafood, spice, condiment, and
+  pantry images now have visually distinct, project-original generated sources.
+  The unedited source sheets and exact grid manifests are retained under
+  `assets/generated`, their derivation is reproducible, and their release
+  permission is recorded in `IMAGE_LICENSE.md` and `IMAGE_PROVENANCE.json`.

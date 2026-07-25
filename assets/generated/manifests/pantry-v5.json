@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/pantry-v5.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "beef_broth", "label": "Beef broth" },
+    { "key": "vegetable_broth", "label": "Vegetable broth" },
+    { "key": "broth", "label": "Prepared cooking broth" },
+    { "key": "black_beans", "label": "Black beans" },
+    { "key": "kidney_beans", "label": "Kidney beans" },
+    { "key": "pinto_beans", "label": "Pinto beans" },
+    { "key": "refried_beans", "label": "Refried beans" },
+    { "key": "baked_beans", "label": "Baked beans" }
+  ]
+}
