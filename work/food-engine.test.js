@@ -7,6 +7,8 @@ assert.equal(food.convertAmount(1, "cup", "tbsp"), 16);
 assert.equal(food.convertAmount(2, "eggs", "item"), 2);
 assert.equal(food.convertAmount(2, "count", "item"), 2);
 assert.equal(food.convertAmount(1, "cup", "lb"), null);
+assert.ok(food.convertIngredientAmount(1, "lb", "tbsp", "sugar") >= 35);
+assert.equal(food.convertIngredientAmount(1, "cup", "lb", "ground beef"), null);
 
 const storage = {
   refrigerator: [
@@ -33,6 +35,32 @@ assert.equal(Number(consumed.storage.refrigerator[0].price.toFixed(2)), 2.5);
 assert.equal(Number(consumed.totalUsedCost.toFixed(2)), 8.1);
 assert.equal(storage.refrigerator[0].amount, 2);
 assert.equal(storage.refrigerator[0].price, 10);
+
+const pantryStaples = {
+  refrigerator: [],
+  freezer: [],
+  pantry: [
+    { id: "sugar", name: "granulated sugar", amount: 5, unit: "lb", price: 7.5, store: "Walmart" },
+    { id: "flour", name: "all purpose flour", amount: 5, unit: "lb", price: 4, store: "Aldi" },
+    { id: "corn", name: "canned corn", amount: 12, unit: "oz", price: 1.25, store: "Publix" }
+  ]
+};
+const stapleRecipe = [
+  { name: "sugar", amount: 2, unit: "tbsp" },
+  { name: "flour", amount: 1, unit: "cup" },
+  { name: "corn", amount: 1, unit: "cup" }
+];
+const stapleAnalysis = food.analyzeRecipe(stapleRecipe, pantryStaples);
+assert.equal(stapleAnalysis.ready, true);
+assert.equal(stapleAnalysis.rows.every((row) => row.buy === 0), true);
+const consumedStaples = food.consumeIngredients(pantryStaples, stapleRecipe);
+const remainingSugar = consumedStaples.storage.pantry.find((item) => item.id === "sugar");
+const remainingFlour = consumedStaples.storage.pantry.find((item) => item.id === "flour");
+const remainingCorn = consumedStaples.storage.pantry.find((item) => item.id === "corn");
+assert.ok(remainingSugar.amount > 4.9 && remainingSugar.amount < 5);
+assert.ok(remainingFlour.amount > 4.7 && remainingFlour.amount < 5);
+assert.ok(remainingCorn.amount > 0 && remainingCorn.amount < 12);
+assert.equal(pantryStaples.pantry.find((item) => item.id === "sugar").amount, 5);
 
 const splitStorage = {
   refrigerator: [

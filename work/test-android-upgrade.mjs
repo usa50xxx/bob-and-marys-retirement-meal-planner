@@ -68,7 +68,7 @@ try {
   await cdp.evaluate(`(function () {
     var raw = localStorage.getItem("thumb-drive-meal-planner-v2");
     var data = raw ? JSON.parse(raw) : {};
-    data.schemaVersion = 4;
+    data.schemaVersion = 5;
     data.recipes = [{
       id: ${JSON.stringify(marker)},
       name: ${JSON.stringify(recipeName)},
@@ -122,7 +122,7 @@ try {
     };
   })()`);
   cdp.close();
-  if (!baseline.recipe || !baseline.inventory || baseline.schemaVersion !== 4) {
+  if (!baseline.recipe || !baseline.inventory || baseline.schemaVersion !== 5) {
     throw new Error(`Baseline data was not prepared correctly: ${JSON.stringify(baseline)}`);
   }
   const installedBaselineCode = installedVersionCode(serial);
@@ -190,7 +190,7 @@ try {
   if (installedCandidateCode !== releaseCode) {
     throw new Error(`Installed candidate is ${installedCandidateCode}, expected ${releaseCode}.`);
   }
-  if (!migrated.recipe || !migrated.inventory || migrated.schemaVersion !== 5) {
+  if (!migrated.recipe || !migrated.inventory || migrated.schemaVersion !== 6) {
     throw new Error(`Upgrade did not preserve and migrate data: ${JSON.stringify(migrated)}`);
   }
   if (migrated.overflow > 1) {

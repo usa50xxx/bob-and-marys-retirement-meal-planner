@@ -10,7 +10,6 @@ const PUBLIC_ROOT_FILES = new Set([
   "README.txt",
   "Start Supperloom for Phones.bat",
   "Start Supperloom.bat",
-  "Start Meal Planner From Drive.bat",
   "Start Meal Planner for Phones.bat",
   "Start Meal Planner.bat",
   "android.html",
@@ -101,7 +100,7 @@ export function configureMealDbApiKey(source, apiKey) {
   );
 }
 
-function trackedAppAssets(projectRoot) {
+async function trackedAppAssets(projectRoot) {
   const result = spawnSync("git", ["ls-files", "-z", "--", APP_SOURCE], {
     cwd: projectRoot,
     encoding: "buffer",
@@ -112,7 +111,7 @@ function trackedAppAssets(projectRoot) {
   }
 
   const prefix = `${APP_SOURCE}/`;
-  return result.stdout
+  const tracked = result.stdout
     .toString("utf8")
     .split("\0")
     .filter(Boolean)
@@ -124,6 +123,16 @@ function trackedAppAssets(projectRoot) {
       return file.slice(prefix.length);
     })
     .sort((left, right) => left.localeCompare(right));
+  const present = [];
+  for (const relative of tracked) {
+    try {
+      await fs.access(path.join(projectRoot, APP_SOURCE, ...relative.split("/")));
+      present.push(relative);
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    }
+  }
+  return present;
 }
 
 async function copyRegularFile(source, destination) {
@@ -207,7 +216,7 @@ export async function stageReleaseAssets({
   const resolvedDestination = path.resolve(resolvedRoot, destination);
   assertSafeDestination(resolvedRoot, sourceDir, resolvedDestination);
 
-  const trackedFiles = trackedAppAssets(resolvedRoot);
+  const trackedFiles = await trackedAppAssets(resolvedRoot);
   const rejected = trackedFiles.filter((file) => !isAllowedTrackedAsset(file));
   if (rejected.length) {
     throw new Error(

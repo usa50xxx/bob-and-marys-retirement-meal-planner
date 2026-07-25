@@ -19,6 +19,8 @@ What it does:
 - Change the number of people eating and ingredient amounts update instantly.
 - Print a one-page meal sheet with the scaled ingredients and prep notes.
 - Paste Walmart, Publix, Aldi, or other grocery order text into the food list and it sorts groceries into Refrigerator or Pantry.
+- Compare saved receipt prices beside the weekly list, check the store you prefer, and see a separate list for each store.
+- Buy enough full packages for every recipe while subtracting compatible amounts already in the refrigerator, freezer, or pantry.
 - Upload text or CSV grocery files. The planner tries to save item names, prices, store names, and item numbers such as SKU, UPC, barcode, or item #.
 - Read PDF receipts and receipt photographs, then review and correct the detected items before adding them.
 - Choose Computer, iPhone, or Android view from the top of the page.

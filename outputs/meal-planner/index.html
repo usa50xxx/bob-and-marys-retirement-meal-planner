@@ -196,6 +196,38 @@
               <button type="button" id="copyWeeklyList">Copy weekly list</button>
             </div>
             <div id="weeklyGroceryGroups" class="weekly-grocery-groups"></div>
+            <section id="storeComparison" class="store-comparison" aria-labelledby="storeComparisonTitle">
+              <div class="section-title">
+                <div>
+                  <h3 id="storeComparisonTitle">Compare store prices</h3>
+                  <p>Side-by-side estimates from the prices on your saved receipts.</p>
+                </div>
+                <button type="button" id="addComparisonReceipt">Add a recent receipt</button>
+              </div>
+              <div class="store-picker-grid" aria-label="Stores to compare">
+                <label>
+                  First store
+                  <select data-shopping-store="0"></select>
+                </label>
+                <label>
+                  Second store
+                  <select data-shopping-store="1"></select>
+                </label>
+                <label>
+                  Third store
+                  <select data-shopping-store="2"></select>
+                </label>
+              </div>
+              <div id="storeComparisonSummary" class="store-comparison-summary" role="status">
+                Add meals to the weekly plan to compare their grocery prices.
+              </div>
+              <div id="storeComparisonRows" class="store-comparison-rows"></div>
+              <div id="storeShoppingLists" class="store-shopping-lists" role="region" aria-label="Shopping lists separated by store"></div>
+              <p class="store-comparison-note">
+                The lowest known price is checked automatically. Change a check when you prefer another store.
+                Estimates use your most recent matching receipt price; prices and package sizes can change.
+              </p>
+            </section>
           </section>
 
           <section class="helper-card meal-builder" id="mealBuilderCard" aria-label="Build a meal by choices" data-app-views="recipes">

@@ -118,7 +118,7 @@ async function run() {
     await page.locator('[data-app-view="recipes"]').click();
     await page.locator("#recipeName").fill("Changed after backup");
     await page.waitForTimeout(350);
-    check(await page.evaluate(() => JSON.parse(localStorage.getItem("thumb-drive-meal-planner-v2")).schemaVersion) === 5, "Older schema upgrades to the current schema on save");
+    check(await page.evaluate(() => JSON.parse(localStorage.getItem("thumb-drive-meal-planner-v2")).schemaVersion) === 6, "Older schema upgrades to the current schema on save");
 
     await page.locator('[data-app-view="home"]').click();
     await openRecoveryPanel();

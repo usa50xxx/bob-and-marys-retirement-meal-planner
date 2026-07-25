@@ -32,6 +32,8 @@ GitHub releases. See [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md).
 
 - Scale recipe ingredients for any number of people
 - Plan a week of meals and print a combined grocery list
+- Compare saved receipt prices across three stores and split purchases into store lists
+- Round recipe needs up to practical package sizes after subtracting household inventory
 - Store recipes, preparation instructions, and meal photos
 - Track refrigerator, freezer, and pantry inventory
 - Import grocery-order text with prices, stores, and item numbers

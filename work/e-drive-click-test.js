@@ -1,13 +1,14 @@
 const http = require("http");
 const fs = require("fs");
 const fsp = require("fs/promises");
+const os = require("os");
 const path = require("path");
 const { chromium } = require("playwright");
 
 const root = "E:\\Meal Planner";
 const dataPath = path.join(root, "planner-data.json");
 const backupPath = path.join(root, "backups", `click-test-restore-${Date.now()}.json`);
-const screenshotPath = "C:\\Users\\usa50\\Documents\\Codex\\2026-07-23\\i-want-to-create-a-new\\outputs\\e-drive-click-test.png";
+const screenshotPath = path.join(os.tmpdir(), "supperloom-e-drive-click-test.png");
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -58,6 +59,15 @@ const testData = {
   builderStyles: null,
   builderTemplates: {},
   mealCostHistory: [],
+  groceryPriceHistory: [
+    { id: "walmart-beef", name: "ground beef", amount: 1, unit: "lb", price: 5, store: "Walmart", recordedAt: new Date().toISOString() },
+    { id: "publix-beef", name: "ground beef", amount: 1, unit: "lb", price: 6, store: "Publix", recordedAt: new Date().toISOString() },
+    { id: "aldi-beef", name: "ground beef", amount: 1, unit: "lb", price: 4, store: "Aldi", recordedAt: new Date().toISOString() }
+  ],
+  shoppingSettings: {
+    stores: ["Walmart", "Publix", "Aldi"],
+    assignments: {}
+  },
   weeklyPlan: {},
   savedAt: new Date().toISOString()
 };
@@ -311,6 +321,26 @@ async function run() {
     await page.locator("[data-week-servings='monday']").fill("4");
     await page.waitForTimeout(500);
     await expectText(page, "#weeklyGroceryGroups", /ground beef/i, "Weekly grocery list builds", results);
+    await expectText(
+      page,
+      "#storeComparison",
+      /Walmart[\s\S]*\$10\.00[\s\S]*Publix[\s\S]*\$12\.00[\s\S]*Aldi[\s\S]*\$8\.00/i,
+      "Thumb-drive shopping list compares three stores",
+      results
+    );
+    const groundBeefComparison = page.locator(".store-comparison-row", { hasText: "ground beef" });
+    const aldiChecked = await groundBeefComparison
+      .locator("[data-shopping-store-choice='Aldi']:checked")
+      .count() === 1;
+    const aldiList = await visibleText(
+      page,
+      "#storeShoppingLists .store-shopping-list:has(h4:text-is('Aldi'))"
+    );
+    results.push({
+      name: "Thumb-drive shopping list checks the cheapest store",
+      status: aldiChecked && /ground beef/i.test(aldiList) && /\$8\.00/i.test(aldiList) ? "PASS" : "FAIL",
+      detail: aldiList
+    });
 
     await clickView(page, "recipes");
     await page.locator("#mealBuilderCard").scrollIntoViewIfNeeded();
@@ -399,11 +429,19 @@ async function run() {
       results.push({ name: "Browser errors", status: "PASS", detail: "No page errors or important failed requests" });
     }
 
+    const failedResults = results.filter((result) => result.status === "FAIL");
+    if (failedResults.length) {
+      throw new Error(`Thumb-drive checks failed: ${failedResults.map((result) => result.name).join(", ")}`);
+    }
+
     return { url, screenshotPath, results, browserErrors, requestFailures, badResponses };
   } finally {
     if (browser) await browser.close().catch(() => {});
     if (server) await new Promise(resolve => server.close(resolve));
-    if (originalData) await replaceOpenFile(dataHandle, originalData);
+    if (originalData) {
+      await replaceOpenFile(dataHandle, originalData);
+      await fsp.rm(backupPath, { force: true });
+    }
     await dataHandle.close();
   }
 }

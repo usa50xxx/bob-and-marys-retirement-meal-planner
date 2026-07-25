@@ -1452,6 +1452,196 @@ body.cooking-open {
   color: var(--accent-dark);
 }
 
+.store-comparison {
+  display: grid;
+  gap: 14px;
+  margin-top: 6px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.store-comparison h3 {
+  margin: 0;
+  color: var(--accent-dark);
+}
+
+.store-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.store-comparison-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-block: 1px solid var(--line);
+}
+
+.store-total {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border-right: 1px solid var(--line);
+}
+
+.store-total:last-child {
+  border-right: 0;
+}
+
+.store-total strong {
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+.store-total small {
+  color: var(--muted);
+}
+
+.store-total.best-total strong,
+.store-total.best-total span {
+  color: var(--accent-dark);
+}
+
+.store-comparison-rows {
+  display: grid;
+  gap: 8px;
+}
+
+.store-comparison-row {
+  display: grid;
+  grid-template-columns: minmax(170px, 1.25fr) repeat(3, minmax(130px, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.store-comparison-item,
+.store-price-cell {
+  position: relative;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  background: #141b1d;
+}
+
+.store-comparison-item span,
+.store-price-cell span {
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
+.store-comparison-item small,
+.store-price-cell small {
+  color: var(--muted);
+}
+
+.store-price-cell strong {
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+.store-price-cell.best-price {
+  background: #19302a;
+}
+
+.store-price-cell.best-price strong,
+.store-price-cell.best-price span {
+  color: var(--accent-dark);
+}
+
+.store-price-cell.unknown strong {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.store-price-choice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  color: inherit;
+  cursor: pointer;
+}
+
+.store-price-choice input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.store-price-choice input:disabled {
+  cursor: not-allowed;
+}
+
+.store-price-choice-text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.store-shopping-lists {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.store-shopping-list {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 3px solid var(--line);
+}
+
+.store-shopping-list.has-items {
+  border-top-color: var(--accent);
+}
+
+.store-shopping-list h4 {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  color: var(--ink);
+}
+
+.store-shopping-list h4 span {
+  color: var(--accent-dark);
+}
+
+.store-shopping-list ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.store-shopping-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 8px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--line);
+}
+
+.store-shopping-list li small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+}
+
+.store-comparison-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
 .builder-steps {
   display: grid;
   gap: 14px;
@@ -2253,8 +2443,35 @@ body[data-device-mode="computer"] .device-link[data-device-mode="computer"] {
 
   .command-center,
   .weekly-plan-days,
-  .weekly-grocery-groups {
+  .weekly-grocery-groups,
+  .store-picker-grid,
+  .store-shopping-lists {
     grid-template-columns: 1fr;
+  }
+
+  .store-comparison-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .store-total:nth-child(2) {
+    border-right: 0;
+  }
+
+  .store-total:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .store-comparison-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .store-comparison-item {
+    grid-column: 1 / -1;
+  }
+
+  .store-price-cell {
+    padding: 10px 8px;
+    text-align: center;
   }
 
   .scaled-list li {

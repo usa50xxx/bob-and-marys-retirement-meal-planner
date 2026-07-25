@@ -8,6 +8,7 @@ const { chromium, devices } = require("playwright");
 const root = process.argv[2] || path.resolve("outputs/meal-planner");
 const screenshotPath = process.env.DEVICE_MODE_SCREENSHOT || path.join(os.tmpdir(), "bob-mary-device-mode-test.png");
 const cookingScreenshotPath = process.env.COOKING_MODE_SCREENSHOT || path.join(os.tmpdir(), "bob-mary-cooking-mode-test.png");
+const shoppingScreenshotPath = process.env.SHOPPING_SCREENSHOT || path.join(os.tmpdir(), "supperloom-phone-shopping-test.png");
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -111,6 +112,7 @@ async function run() {
     }, { startX, endX, startY, endY, selector });
     const activeView = () => android.locator("[aria-current='page'][data-app-view]").getAttribute("data-app-view");
     const forwardViews = [];
+    let phonePlanResult = null;
     for (const expected of ["recipes", "plan", "groceries", "inventory", "spending"]) {
       await swipe();
       await android.waitForFunction(
@@ -118,6 +120,29 @@ async function run() {
         expected
       );
       forwardViews.push(await activeView());
+      if (expected === "plan") {
+        const firstRecipe = await android.locator("[data-week-recipe='monday'] option").nth(1).getAttribute("value");
+        await android.locator("[data-week-recipe='monday']").selectOption(firstRecipe);
+        await android.waitForSelector(".store-comparison-row");
+        phonePlanResult = await android.evaluate(() => {
+          const row = document.querySelector(".store-comparison-row");
+          const rowRect = row?.getBoundingClientRect();
+          const choices = [...document.querySelectorAll(".store-comparison-row .store-price-choice")]
+            .slice(0, 3)
+            .map((choice) => {
+              const rect = choice.getBoundingClientRect();
+              return { width: rect.width, height: rect.height };
+            });
+          return {
+            noHorizontalOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1,
+            rowFitsViewport: Boolean(rowRect) && rowRect.left >= -1 && rowRect.right <= innerWidth + 1,
+            choiceCount: choices.length,
+            choices
+          };
+        });
+        await android.locator("#storeComparison").scrollIntoViewIfNeeded();
+        await android.screenshot({ path: shoppingScreenshotPath, fullPage: false });
+      }
     }
     await swipe();
     const stoppedAtSpending = await activeView();
@@ -202,6 +227,7 @@ async function run() {
     const androidResult = {
       ...androidLayoutResult,
       ...stickyNavResult,
+      phonePlanResult,
       forwardViews,
       backViews,
       stoppedAtSpending,
@@ -258,6 +284,12 @@ async function run() {
     if (!iphoneResult.headingVisible || iphoneResult.bodyTextLength < 300) failures.push("iPhone screen did not show the planner content.");
     if (androidResult.focusedTop < androidResult.tabsBottom - 2) failures.push("Sticky phone navigation covers the selected screen.");
     if (androidResult.inventoryRemoveHeight < 48 || androidResult.inventoryDateHeight < 48) failures.push("Phone inventory controls are too small for touch use.");
+    if (
+      !androidResult.phonePlanResult?.noHorizontalOverflow
+      || !androidResult.phonePlanResult?.rowFitsViewport
+      || androidResult.phonePlanResult?.choiceCount !== 3
+      || androidResult.phonePlanResult?.choices.some((choice) => choice.height < 48)
+    ) failures.push("Three-store shopping comparison does not fit or remain touch-friendly on Android.");
     if (androidResult.forwardViews.join(",") !== "recipes,plan,groceries,inventory,spending") failures.push("Phone swipe navigation did not follow the expected forward screen order.");
     if (androidResult.backViews.join(",") !== "inventory,groceries,plan,recipes,home") failures.push("Phone swipe navigation did not follow the expected reverse screen order.");
     if (androidResult.stoppedAtSpending !== "spending" || androidResult.stoppedAtHome !== "home") failures.push("Phone swipe navigation did not stop at the first and last screens.");
@@ -281,6 +313,7 @@ async function run() {
       root,
       screenshotPath,
       cookingScreenshotPath,
+      shoppingScreenshotPath,
       status: failures.length ? "FAIL" : "PASS",
       failures,
       result,

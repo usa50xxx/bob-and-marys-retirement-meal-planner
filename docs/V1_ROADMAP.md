@@ -59,6 +59,14 @@ decision remains an open release blocker.
    will be subtracted; remaining food cost is reduced proportionally; and Undo
    restores both inventory and the meal-cost record.
 
+   **Package and price comparison follow-up:** common pantry foods can also
+   convert conservatively between recipe volume and purchased weight; the
+   grocery list rounds upward to practical package sizes; saved Walmart,
+   Publix, Aldi, or other receipt prices can be compared three at a time; the
+   lowest known price is checked automatically; and checked items are grouped
+   into separate store lists. These are receipt-based estimates, not live
+   retailer quotes.
+
 2. Add expiration-aware inventory.
    Store best-by dates, highlight food to use soon, and rank recipe ideas that
    prevent waste. Alerts should be optional and easy to understand.
@@ -117,7 +125,7 @@ decision remains an open release blocker.
 - Barcode scanning and product lookup.
 - Nutrition and allergy profiles.
 - Home-screen grocery and "tonight's meal" widgets.
-- Store aisle customization and price comparison.
+- Store aisle customization and live retailer price lookup.
 - Cloud recipe discovery beyond the existing optional provider.
 
 ## v1.0 release gates
