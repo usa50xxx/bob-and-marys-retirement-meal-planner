@@ -71,6 +71,20 @@ assert.match(
 );
 assert.match(dependencyReview, /^\s*fail-on-severity:\s*moderate\s*$/m);
 
+const dependabot = fs.readFileSync(".github/dependabot.yml", "utf8");
+for (const ecosystem of ["npm", "gradle", "github-actions"]) {
+  assert.match(
+    dependabot,
+    new RegExp(`package-ecosystem:\\s*${ecosystem.replace("-", "\\-")}`),
+    `Dependabot is not configured for ${ecosystem}.`,
+  );
+}
+assert.equal(
+  (dependabot.match(/interval:\s*weekly/g) || []).length,
+  3,
+  "Each dependency ecosystem must have a weekly update schedule.",
+);
+
 console.log(
   `Workflow security checks passed for ${workflowNames.length} workflows.`,
 );

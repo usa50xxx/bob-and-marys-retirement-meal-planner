@@ -114,17 +114,37 @@ async function expectText(page, selector, pattern, label, results) {
   if (!ok) throw new Error(`${label} failed. Saw: ${text}`);
 }
 
+async function replaceOpenFile(fileHandle, contents) {
+  const buffer = Buffer.isBuffer(contents) ? contents : Buffer.from(contents, "utf8");
+  await fileHandle.truncate(0);
+  await fileHandle.write(buffer, 0, buffer.length, 0);
+  await fileHandle.sync();
+}
+
+async function writeExclusiveBackup(targetPath, contents) {
+  const backupHandle = await fsp.open(targetPath, "wx", 0o600);
+  try {
+    await backupHandle.writeFile(contents);
+    await backupHandle.sync();
+  } finally {
+    await backupHandle.close();
+  }
+}
+
 async function run() {
   if (!fs.existsSync(path.join(root, "index.html"))) {
     throw new Error("E:\\Meal Planner\\index.html was not found.");
   }
-  if (!fs.existsSync(dataPath)) {
-    throw new Error("planner-data.json was not found, so I stopped instead of testing over unknown data.");
-  }
 
-  await fsp.mkdir(path.dirname(backupPath), { recursive: true });
-  await fsp.copyFile(dataPath, backupPath);
-  await fsp.writeFile(dataPath, JSON.stringify(testData, null, 2), "utf8");
+  let dataHandle;
+  try {
+    dataHandle = await fsp.open(dataPath, "r+");
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      throw new Error("planner-data.json was not found, so I stopped instead of testing over unknown data.");
+    }
+    throw error;
+  }
 
   let server;
   let browser;
@@ -132,8 +152,14 @@ async function run() {
   const browserErrors = [];
   const requestFailures = [];
   const badResponses = [];
+  let originalData;
 
   try {
+    originalData = await dataHandle.readFile();
+    await fsp.mkdir(path.dirname(backupPath), { recursive: true });
+    await writeExclusiveBackup(backupPath, originalData);
+    await replaceOpenFile(dataHandle, JSON.stringify(testData, null, 2));
+
     server = await serve(root);
     const url = `http://127.0.0.1:${server.address().port}/index.html`;
     const chromePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
@@ -276,15 +302,20 @@ async function run() {
   } finally {
     if (browser) await browser.close().catch(() => {});
     if (server) await new Promise(resolve => server.close(resolve));
-    await fsp.copyFile(backupPath, dataPath);
+    if (originalData) await replaceOpenFile(dataHandle, originalData);
+    await dataHandle.close();
   }
 }
 
-run()
-  .then(result => {
-    console.log(JSON.stringify(result, null, 2));
-  })
-  .catch(error => {
-    console.error(error);
-    process.exit(1);
-  });
+module.exports = { replaceOpenFile, writeExclusiveBackup };
+
+if (require.main === module) {
+  run()
+    .then(result => {
+      console.log(JSON.stringify(result, null, 2));
+    })
+    .catch(error => {
+      console.error(error);
+      process.exit(1);
+    });
+}

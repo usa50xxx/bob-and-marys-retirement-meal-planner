@@ -38,7 +38,12 @@ metadata.
 Repository secret scanning and push protection are enabled. Dependabot
 vulnerability alerts and automatic security updates are enabled, and the
 `Dependency review` workflow blocks pull requests that introduce dependencies
-with moderate-or-higher known vulnerabilities.
+with moderate-or-higher known vulnerabilities. Weekly version checks cover
+npm, Gradle, and GitHub Actions dependencies.
+
+CodeQL default setup is enabled with the Extended query suite. It scans
+supported source and workflow languages on the default branch, pull requests,
+and a weekly schedule without duplicating the Android build workflow.
 
 Each signed release APK, Android App Bundle, portable website archive, and
 checksum file receives a GitHub artifact attestation. This records verifiable
