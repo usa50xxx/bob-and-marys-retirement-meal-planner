@@ -662,7 +662,7 @@ h2 {
   top: 112px;
   left: 12px;
   right: 12px;
-  min-height: 138px;
+  min-height: calc(6em + 42px);
   grid-template-columns: 94px minmax(0, 1fr);
   gap: 14px;
   padding: 12px;
@@ -2174,7 +2174,7 @@ body[data-device-mode="computer"] .device-link[data-device-mode="computer"] {
   }
 
   .masthead-rolodex .recipe-rolodex-window {
-    min-height: 320px;
+    min-height: calc(6em + 224px);
   }
 
   .masthead-rolodex .rolodex-spin {
