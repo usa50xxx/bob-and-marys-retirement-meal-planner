@@ -22,6 +22,8 @@ What it does:
 - Upload text or CSV grocery files. The planner tries to save item names, prices, store names, and item numbers such as SKU, UPC, barcode, or item #.
 - Read PDF receipts and receipt photographs, then review and correct the detected items before adding them.
 - Choose Computer, iPhone, or Android view from the top of the page.
+- Turn the optional old-fashioned machine sounds on or off from the save-status row.
+- Text a scaled recipe and its cooking instructions from the Recipe view.
 - On a phone, swipe left or right through Home, Recipes, Plan, Groceries, Pantry, and Spending.
 - Export recipes and pantry data to a backup file, then import it on another computer.
 - Start with 60 built-in everyday recipes, including beef, chicken, pork, seafood, pasta, soups, breakfasts, and side dishes.
@@ -48,8 +50,9 @@ Its recipes and food inventory are saved locally on that Android device.
 For a phone-only iPhone edition, open
 https://usa50xxx.github.io/bob-and-marys-retirement-meal-planner/app/
 in Safari, tap Share, and tap Add to Home Screen. Open Supperloom once while online
-so the app, starter recipes, pictures, PDF reader, and receipt reader are available
-offline. Its recipes and food inventory are saved locally on that iPhone.
+so the app, starter recipes, core pictures, PDF reader, and receipt reader are
+available offline. Other ingredient pictures are saved for offline use after they
+have been viewed. Its recipes and food inventory are saved locally on that iPhone.
 
 Auto-start note:
 Modern Windows usually blocks USB drives from automatically running programs when they

@@ -282,6 +282,7 @@ h2 {
 
 .status-strip {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   margin-top: 10px;
@@ -295,6 +296,32 @@ h2 {
 .status-strip small {
   color: var(--muted);
   font-size: 0.78rem;
+}
+
+.machine-sound-toggle {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.machine-sound-toggle[aria-pressed="true"] {
+  color: var(--accent-dark);
+  border-color: var(--accent);
+}
+
+.status-strip.machine-complete {
+  animation: machine-confirmation 0.72s ease-out;
+}
+
+@keyframes machine-confirmation {
+  0% {
+    box-shadow: 0 0 0 0 rgba(211, 181, 103, 0);
+  }
+  38% {
+    box-shadow: 0 0 0 3px rgba(211, 181, 103, 0.42), 0 0 24px rgba(126, 190, 159, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 0 8px rgba(211, 181, 103, 0);
+  }
 }
 
 .command-center {
@@ -759,8 +786,10 @@ h2 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .visual-recipe.rolodex-card {
+  .visual-recipe.rolodex-card,
+  .status-strip.machine-complete {
     transition: none;
+    animation: none;
   }
 }
 
