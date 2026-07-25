@@ -8,6 +8,14 @@ const {
 } = require("./e-drive-click-test.js");
 
 async function run() {
+  const harnessSource = await fs.readFile(
+    path.join(__dirname, "e-drive-click-test.js"),
+    "utf8",
+  );
+  assert.doesNotMatch(harnessSource, /existsSync\(dataPath\)/);
+  assert.match(harnessSource, /fsp\.open\(dataPath,\s*"r\+"\)/);
+  assert.match(harnessSource, /fsp\.open\(targetPath,\s*"wx"/);
+
   const directory = await fs.mkdtemp(
     path.join(os.tmpdir(), "bob-mary-e-drive-safety-"),
   );
