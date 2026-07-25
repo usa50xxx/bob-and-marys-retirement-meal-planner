@@ -146,4 +146,30 @@ assert.equal(receiptRows[0].store, "Walmart");
 assert.equal(receiptRows[1].amount, 2);
 assert.equal(receiptRows[1].price, 9.96);
 
+const multiStoreRows = receipts.parseReceiptText(`
+Walmart
+Great Value Ground Beef 2 lb $10.98 Item # WM-BEEF
+Large Eggs 12 count $2.99 UPC WM-EGGS
+Publix Order
+Breadcrumbs 2 cups $3.49 SKU PB-BREAD
+Onion Soup Mix 2 packets $2.49 SKU PB-SOUP
+Aldi Receipt
+2 x 16 oz Spaghetti $3.98 Item # AL-PASTA
+Ketchup 2 cups $2.49 Item # AL-KETCHUP
+`);
+assert.deepEqual(
+  multiStoreRows.map(({ name, amount, unit, store, itemNumber }) => ({
+    name, amount, unit, store, itemNumber
+  })),
+  [
+    { name: "Great Value Ground Beef", amount: 2, unit: "lb", store: "Walmart", itemNumber: "WM-BEEF" },
+    { name: "Large Eggs", amount: 12, unit: "count", store: "Walmart", itemNumber: "WM-EGGS" },
+    { name: "Breadcrumbs", amount: 2, unit: "cup", store: "Publix", itemNumber: "PB-BREAD" },
+    { name: "Onion Soup Mix", amount: 2, unit: "packet", store: "Publix", itemNumber: "PB-SOUP" },
+    { name: "Spaghetti", amount: 32, unit: "oz", store: "Aldi", itemNumber: "AL-PASTA" },
+    { name: "Ketchup", amount: 2, unit: "cup", store: "Aldi", itemNumber: "AL-KETCHUP" }
+  ]
+);
+assert.equal(receipts.extractStoreName("Walmart first, Publix later"), "Walmart");
+
 console.log("food-engine tests passed");

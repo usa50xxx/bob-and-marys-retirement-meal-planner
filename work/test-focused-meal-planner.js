@@ -243,6 +243,24 @@ async function run() {
 
     await clickView(page, "recipes");
     check(await page.locator("#recipeList").isVisible(), "Recipes screen opens");
+    const persistedRecipeCount = plannerData.recipes.length;
+    await page.locator("#newRecipe").click();
+    await page.waitForFunction(() => document.querySelector("#recipeName")?.value === "New recipe");
+    const draftImage = await page.locator("#recipeList .recipe-card.active img").evaluate((image) => ({
+      src: image.getAttribute("src"),
+      loaded: image.complete && image.naturalWidth > 0
+    }));
+    check(
+      plannerData.recipes.length === persistedRecipeCount,
+      "An incomplete new recipe is not written to thumb-drive data"
+    );
+    check(
+      draftImage.loaded && /icons\/app-icon-192\.png$/i.test(draftImage.src),
+      "A recipe without a food photo uses the local Supperloom placeholder",
+      JSON.stringify(draftImage)
+    );
+    await page.locator("#undoChange").click();
+    await page.waitForFunction(() => document.querySelector("#recipeName")?.value === "Test Meatloaf");
     await page.fill("#targetServings", "4");
     const scaledText = await page.locator("#scaledList").innerText();
     check(/2 lb\s+ground beef/i.test(scaledText), "Recipe ingredients scale for four people", scaledText);
@@ -367,15 +385,32 @@ async function run() {
     await clickView(page, "groceries");
     const receiptText = [
       "Walmart",
-      "1 x Whole Milk $3.48 SKU 12345",
-      "1 x Frozen Shrimp $9.98 Item # 55555",
-      "1 x Spaghetti $1.29 UPC 33333"
+      "Whole Milk 1 count $3.48 SKU 12345",
+      "Publix Order",
+      "Frozen Shrimp 16 oz $9.98 Item # 55555",
+      "Aldi Receipt",
+      "2 x 16 oz Spaghetti $2.58 UPC 33333"
     ].join("\n");
     await page.fill("#walmartPaste", receiptText);
     await page.locator("#addWalmartOrder").click();
     const rows = page.locator(".receipt-review-row");
     await rows.first().waitFor();
     check(await rows.count() === 3, "Pasted receipt opens an editable review", `${await rows.count()} items`);
+    const parsedRows = await rows.evaluateAll((receiptRows) => receiptRows.map((row) => ({
+      amount: Number(row.querySelector(".receipt-amount").value),
+      unit: row.querySelector(".receipt-unit").value,
+      name: row.querySelector(".receipt-item-name").value,
+      store: row.querySelector(".receipt-store-name").value
+    })));
+    check(
+      JSON.stringify(parsedRows) === JSON.stringify([
+        { amount: 1, unit: "count", name: "Whole Milk", store: "Walmart" },
+        { amount: 16, unit: "oz", name: "Frozen Shrimp", store: "Publix" },
+        { amount: 32, unit: "oz", name: "Spaghetti", store: "Aldi" }
+      ]),
+      "Multi-store headings and package quantities are parsed correctly",
+      JSON.stringify(parsedRows)
+    );
     await rows.first().locator(".receipt-best-by-date").fill(dateFromToday(2));
     await page.locator("#commitReceiptItems").click();
     await page.waitForTimeout(400);
@@ -461,6 +496,24 @@ async function run() {
     check(/Saved to thumb drive|Saved in this browser only/i.test(saveText), "Save status is visible", saveText);
 
     await clickView(page, "recipes");
+    const firstRecipeUnit = page.locator("#ingredientRows .unit").first();
+    const originalRecipeUnit = await firstRecipeUnit.inputValue();
+    await firstRecipeUnit.fill("2");
+    const validationDialogPromise = page.waitForEvent("dialog");
+    await page.locator("#recipeForm button[type='submit']").click();
+    const validationDialog = await validationDialogPromise;
+    const validationMessage = validationDialog.message();
+    check(
+      /check the unit/i.test(validationMessage),
+      "Numeric-only recipe units are rejected before saving",
+      validationMessage
+    );
+    check(
+      plannerData.recipes[0].ingredients[0].unit === originalRecipeUnit,
+      "An invalid recipe edit is not written to the thumb-drive data"
+    );
+    await firstRecipeUnit.fill(originalRecipeUnit);
+    await page.waitForTimeout(450);
     await page.locator("#startCooking").click();
     await page.locator("#finishCooking").click();
     await page.waitForFunction(() =>
@@ -484,6 +537,15 @@ async function run() {
     );
     await page.waitForTimeout(500);
     check(plannerData.mealCostHistory.length === 1, "Cooking records the meal cost once");
+    const recordedCost = plannerData.mealCostHistory[0].cost;
+    await clickView(page, "spending");
+    const postCookingCost = await page.locator("#currentMealCost").innerText();
+    check(
+      postCookingCost.includes(`$${recordedCost.toFixed(2)}`),
+      "Meal estimate remains stable after its inventory is consumed",
+      postCookingCost
+    );
+    await clickView(page, "inventory");
     await page.locator("#undoChange").click();
     const restoredRefrigerator = await page.locator("#refrigeratorList").innerText();
     const restoredFreezer = await page.locator("#freezerList").innerText();

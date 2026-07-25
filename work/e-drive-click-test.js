@@ -32,7 +32,7 @@ const testData = {
       photo: "",
       ingredients: [
         { amount: 1, unit: "lb", name: "ground beef" },
-        { amount: 2, unit: "", name: "eggs" },
+        { amount: 2, unit: "count", name: "eggs" },
         { amount: 0.25, unit: "cup", name: "ketchup" },
         { amount: 1, unit: "packet", name: "onion soup mix" },
         { amount: 0.5, unit: "tsp", name: "salt" },

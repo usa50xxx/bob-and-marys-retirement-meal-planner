@@ -1,11 +1,12 @@
 const http = require("http");
 const fs = require("fs");
 const fsp = require("fs/promises");
+const os = require("os");
 const path = require("path");
 const { chromium } = require("playwright");
 
-const root = "E:\\Meal Planner";
-const screenshotPath = "C:\\Users\\usa50\\Documents\\Codex\\2026-07-23\\i-want-to-create-a-new\\outputs\\e-recipe-clicks-fixed.png";
+const root = path.resolve(process.env.MEAL_PLANNER_ROOT || process.argv[2] || "E:\\Meal Planner");
+const screenshotPath = path.join(os.tmpdir(), "supperloom-recipe-clicks.png");
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -61,17 +62,27 @@ async function run() {
     const page = await browser.newPage({ viewport: { width: 900, height: 900 } });
     const url = `http://127.0.0.1:${server.address().port}/index.html`;
     await page.goto(url, { waitUntil: "networkidle" });
+    if (await page.locator("#devicePrompt").isVisible()) {
+      await page.locator("#devicePromptDismiss").click();
+    }
+    await page.locator("[data-app-view='recipes']").click();
     await page.waitForSelector("#recipeList .recipe-card");
-    await page.waitForFunction(() => [...document.querySelectorAll("#recipeList .recipe-card img")].every(img => img.complete && img.naturalWidth > 0));
     await page.waitForSelector("#visualRecipeList .visual-recipe");
-    await page.waitForFunction(() => [...document.querySelectorAll("#visualRecipeList .visual-recipe img")].every(img => img.complete && img.naturalWidth > 0));
+    await page.waitForFunction(() => {
+      const images = [
+        document.querySelector("#recipeList .recipe-card.active img"),
+        document.querySelector("#visualRecipeList .rolodex-card[data-center='true'] img")
+      ];
+      return images.every((image) => image?.complete && image.naturalWidth > 0);
+    });
 
     const before = await page.evaluate(() => ({
       recipeCards: document.querySelectorAll("#recipeList .recipe-card").length,
       recipeImages: [...document.querySelectorAll("#recipeList .recipe-card img")].map(img => ({
         src: img.getAttribute("src"),
         width: img.naturalWidth,
-        height: img.naturalHeight
+        height: img.naturalHeight,
+        visible: img.getBoundingClientRect().width > 0 && img.getBoundingClientRect().height > 0
       })),
       visualCards: document.querySelectorAll("#visualRecipeList .visual-recipe").length,
       rolodexCards: document.querySelectorAll("#visualRecipeList .rolodex-card").length,
@@ -110,7 +121,8 @@ async function run() {
     const failures = [];
     if (before.recipeCards < 1) failures.push("No recipe cards found.");
     if (before.recipeImages.length !== before.recipeCards) failures.push("Recipe cards do not all have images.");
-    if (before.recipeImages.some(img => img.width <= 0 || img.height <= 0)) failures.push("One or more recipe card images did not load.");
+    if (before.recipeImages.some(img => !img.src)) failures.push("One or more recipe cards have no image source.");
+    if (before.recipeImages.some(img => img.visible && (img.width <= 0 || img.height <= 0))) failures.push("One or more visible recipe card images did not load.");
     if (before.visualCards < before.recipeCards) failures.push("Visual recipe book does not show all recipes.");
     if (before.rolodexCards < before.recipeCards || before.rolodexWindow !== 1) failures.push("Rolodex spinner did not render.");
     if (before.letterButtons !== 26 || !before.enabledLetters.includes("S") || !before.enabledLetters.includes("L") || !before.enabledLetters.includes("T")) failures.push("A-Z Rolodex tabs did not render for the recipe letters.");

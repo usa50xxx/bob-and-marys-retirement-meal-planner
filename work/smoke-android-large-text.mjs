@@ -13,7 +13,7 @@ function decodeBaseline() {
 }
 
 try {
-  const result = await client.evaluate(`(function () {
+  const result = await client.evaluate(`(async function () {
     var navigation = Array.prototype.slice.call(
       document.querySelectorAll("[data-app-view]")
     );
@@ -26,6 +26,15 @@ try {
       ".app-tabs button",
       ".status-line"
     ];
+
+    async function settleView() {
+      await new Promise(function (resolve) {
+        requestAnimationFrame(function () {
+          requestAnimationFrame(resolve);
+        });
+      });
+      await new Promise(function (resolve) { setTimeout(resolve, 320); });
+    }
 
     function visible(element) {
       var style = window.getComputedStyle(element);
@@ -54,9 +63,13 @@ try {
     }
 
     document.querySelector('[data-app-view="home"]').click();
+    await settleView();
     var samples = sampleSelectors.map(sample).filter(Boolean);
-    var views = navigation.map(function (button) {
+    var views = [];
+    for (var navigationIndex = 0; navigationIndex < navigation.length; navigationIndex += 1) {
+      var button = navigation[navigationIndex];
       button.click();
+      await settleView();
       var visibleControls = Array.prototype.slice.call(
         document.querySelectorAll("button, a.device-link, input, select, textarea, summary")
       ).filter(visible);
@@ -96,15 +109,16 @@ try {
           };
         })
         .sort(function (left, right) { return left.height - right.height; });
-      return {
+      views.push({
         name: button.getAttribute("data-app-view"),
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         clippedText: clippedText,
         offscreenControls: offscreenControls,
         minimumAction: actions.length ? actions[0] : null
-      };
-    });
+      });
+    }
     document.querySelector('[data-app-view="home"]').click();
+    await settleView();
 
     return {
       title: document.title,

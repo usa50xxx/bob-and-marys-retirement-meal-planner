@@ -541,7 +541,9 @@ function setAppView(view, options = {}) {
     localStorage.setItem(appViewStorageKey, currentAppView);
   }
   if (options.focus !== false) {
-    if (document.body.classList.contains("phone-layout")) {
+    if (currentAppView === "home") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (document.body.classList.contains("phone-layout")) {
       const layoutTop = focusedLayout.getBoundingClientRect().top + window.scrollY;
       const tabsHeight = appTabs?.getBoundingClientRect().height || 0;
       window.scrollTo({ top: Math.max(0, layoutTop - tabsHeight - 12), behavior: "smooth" });
@@ -2286,20 +2288,23 @@ function openRecipeFromRolodex(card, recipe, index) {
 }
 
 function recipeImageSource(recipe) {
-  return recipe.photo || ingredientImageUrl(recipe.ingredients?.[0]?.name || recipe.name);
+  const ingredientName = recipe.ingredients?.find((ingredient) => String(ingredient?.name || "").trim())?.name;
+  return recipe.photo || (ingredientName ? ingredientImageUrl(ingredientName) : "icons/app-icon-192.png");
 }
 
 function setRecipeImage(image, recipe) {
-  const fallbackName = recipe.ingredients?.[0]?.name || recipe.name;
+  const fallbackName = recipe.ingredients?.find((ingredient) => String(ingredient?.name || "").trim())?.name || "";
   image.src = recipeImageSource(recipe);
   image.alt = "";
   image.loading = "lazy";
   image.decoding = "async";
   image.onerror = () => {
-    image.onerror = () => {
-      image.hidden = true;
-    };
-    image.src = ingredientRemoteImageUrl(fallbackName);
+    if (fallbackName && !String(image.src || "").includes("themealdb.com")) {
+      image.src = ingredientRemoteImageUrl(fallbackName);
+      return;
+    }
+    image.onerror = null;
+    image.src = "icons/app-icon-192.png";
   };
 }
 
@@ -3416,7 +3421,13 @@ function saveCurrentFieldsQuietly() {
   const index = recipes.findIndex((recipe) => recipe.id === selectedRecipeId);
   if (index === -1) return;
 
-  recipes[index] = collectEditorRecipe(selectedRecipeId);
+  const draft = collectEditorRecipe(selectedRecipeId);
+  recipes[index] = draft;
+  const error = recipeValidationError(draft);
+  if (error) {
+    setSaveStatus(`Not saved yet: ${error}`);
+    return;
+  }
   persistRecipes();
 }
 
@@ -3431,7 +3442,20 @@ function recipeValidationError(recipe) {
     !String(ingredient.name || "").trim() || cleanNumber(ingredient.amount, 0) <= 0
   );
   if (invalid) return "Every ingredient needs a name and an amount greater than zero.";
+  const unclearName = recipe.ingredients.find((ingredient) => !isSensibleFoodName(ingredient.name));
+  if (unclearName) return `Check the ingredient name "${String(unclearName.name || "").trim()}". Use a food name with at least two letters.`;
+  const unclearUnit = recipe.ingredients.find((ingredient) => !isSensibleFoodUnit(ingredient.unit));
+  if (unclearUnit) return `Check the unit for "${unclearUnit.name}". Use a unit such as lb, oz, cup, count, can, packet, pinch, or dash.`;
   return "";
+}
+
+function isSensibleFoodName(value) {
+  return (String(value || "").match(/[a-z]/gi) || []).length >= 2;
+}
+
+function isSensibleFoodUnit(value) {
+  const unit = String(value || "").trim();
+  return (unit.match(/[a-z]/gi) || []).length >= 1 && unit.length <= 30;
 }
 
 function isRecipeComplete(recipe) {
@@ -3456,8 +3480,8 @@ function createRecipe() {
   recipes.unshift(recipe);
   selectedRecipeId = recipe.id;
   editorUndoArmed = true;
-  persistRecipes();
   render();
+  setSaveStatus("New recipe started; add a name, ingredient, and unit to save it");
   recipeName.focus();
   recipeName.select();
 }
@@ -3474,7 +3498,7 @@ function addRecipePhoto(event) {
       if (index === -1) return;
 
       recipes[index].photo = photo;
-      persistRecipes();
+      if (!recipeValidationError(recipes[index])) persistRecipes();
       render();
     });
   };
@@ -3810,8 +3834,11 @@ function openRecipeReview(draft, message = "Recipe ready to check.") {
   reviewRecipeNotes.value = pendingRecipeDraft.notes;
   reviewIngredientRows.innerHTML = "";
   const ingredients = pendingRecipeDraft.ingredients.length
-    ? pendingRecipeDraft.ingredients
-    : [{ amount: 1, unit: "", name: "" }];
+    ? pendingRecipeDraft.ingredients.map((ingredient) => ({
+      ...ingredient,
+      unit: String(ingredient.unit || "").trim() || "item"
+    }))
+    : [{ amount: 1, unit: "item", name: "" }];
   ingredients.forEach(addReviewIngredientRow);
 
   reviewRecipePhotoBox.hidden = !pendingRecipeDraft.photo;
@@ -3852,7 +3879,7 @@ function collectReviewedRecipe() {
     ingredients: [...reviewIngredientRows.querySelectorAll(".ingredient-row")]
       .map((row) => ({
         amount: cleanNumber(row.querySelector(".amount").value, 0),
-        unit: row.querySelector(".unit").value.trim(),
+        unit: row.querySelector(".unit").value.trim() || "item",
         name: row.querySelector(".name").value.trim()
       }))
       .filter((ingredient) => ingredient.name)
@@ -4202,18 +4229,23 @@ function parseWalmartText(text) {
   const receiptItems = MealPlannerReceipts.parseReceiptText(text);
   if (receiptItems.length) return receiptItems;
 
-  const store = MealPlannerReceipts.extractStoreName(text);
+  let activeStore = "";
   return String(text || "")
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean)
     .filter((line) => !/subtotal|grand total|delivery|pickup|tax|payment|order number|receipt total/i.test(line))
     .map((line) => {
+      const headingStore = MealPlannerReceipts.storeHeadingName(line);
+      if (headingStore) {
+        activeStore = headingStore;
+        return null;
+      }
       const qtyMatch = line.match(/\b(?:qty|quantity)\s*:?\s*(\d+(?:\.\d+)?)/i) || line.match(/^(\d+(?:\.\d+)?)\s*[xX]\s+/);
       const priceMatches = [...line.matchAll(/\$(\d+(?:\.\d{2})?)/g)];
       const price = priceMatches.length ? Number(priceMatches[priceMatches.length - 1][1]) : 0;
       const itemNumber = MealPlannerReceipts.extractItemNumber(line);
-      const amount = qtyMatch ? Number(qtyMatch[1]) : 1;
+      const purchaseQuantity = qtyMatch ? Number(qtyMatch[1]) : 1;
       const cleaned = line
         .replace(/\$\d+(?:\.\d{2})?/g, "")
         .replace(/\b(?:qty|quantity)\s*:?\s*\d+(?:\.\d+)?/gi, "")
@@ -4222,10 +4254,23 @@ function parseWalmartText(text) {
         .replace(/\b(?:walmart|publix|aldi|aldi's)\b/gi, "")
         .replace(/\s{2,}/g, " ")
         .trim();
+      const packageDetails = MealPlannerReceipts.extractPackageQuantity(cleaned);
+      const amount = packageDetails.amount > 0
+        ? packageDetails.amount * purchaseQuantity
+        : purchaseQuantity;
 
-      return { amount, unit: "item", name: cleaned, price, itemNumber, store, storage: "", bestBy: "" };
+      return {
+        amount,
+        unit: packageDetails.unit || "item",
+        name: packageDetails.name,
+        price,
+        itemNumber,
+        store: MealPlannerReceipts.extractStoreName(line) || activeStore,
+        storage: "",
+        bestBy: ""
+      };
     })
-    .filter((item) => item.name.length > 1);
+    .filter((item) => item?.name.length > 1);
 }
 
 async function importGroceryFile(event) {
@@ -4312,11 +4357,25 @@ function updateReceiptItemFromRow(row) {
 }
 
 function addReviewedReceiptItems() {
-  const validItems = pendingReceiptItems.filter((item) => item.name && cleanNumber(item.amount, 0) > 0);
-  if (!validItems.length) {
-    window.alert("Keep at least one grocery item with a name and amount.");
+  if (!pendingReceiptItems.length) {
+    window.alert("Keep at least one grocery item to add.");
     return;
   }
+  const invalidItem = pendingReceiptItems.find((item) =>
+    !isSensibleFoodName(item.name)
+    || !isSensibleFoodUnit(item.unit)
+    || cleanNumber(item.amount, 0) <= 0
+    || !Number.isFinite(Number(item.price))
+    || Number(item.price) < 0
+  );
+  if (invalidItem) {
+    window.alert(
+      `Check "${invalidItem.name || "this grocery item"}". `
+      + "Every grocery needs a food name, an amount above zero, a word-based unit, and a non-negative price."
+    );
+    return;
+  }
+  const validItems = pendingReceiptItems.slice();
   captureUndo("add groceries");
   validItems.forEach((item) => addFoodStorageItem(item));
   walmartPaste.value = "";
@@ -4627,20 +4686,64 @@ function renderNeedList() {
 function estimateSelectedMealCost() {
   const analysis = MealPlannerFood.analyzeRecipe(getScaledIngredients(), foodStorage);
   const items = analysis.rows
-    .filter((row) => row.match && row.estimatedCost > 0)
-    .map((row) => ({
-      name: row.match.name,
-      ingredientName: row.ingredient.name,
-      price: row.estimatedCost,
-      store: row.match.store || "",
-      itemNumber: row.match.itemNumber || "",
-      amount: row.need,
-      unit: row.ingredient.unit
-    }));
+    .map((row) => {
+      if (row.match && row.estimatedCost > 0) {
+        return {
+          name: row.match.name,
+          ingredientName: row.ingredient.name,
+          price: row.estimatedCost,
+          store: row.match.store || "",
+          itemNumber: row.match.itemNumber || "",
+          amount: row.need,
+          unit: row.ingredient.unit
+        };
+      }
+      return historicalIngredientCost(row.ingredient);
+    })
+    .filter(Boolean);
   return {
     cost: items.reduce((sum, item) => sum + item.price, 0),
     items,
     analysis
+  };
+}
+
+function historicalIngredientCost(ingredient) {
+  const candidates = mealCostHistory
+    .flatMap((entry) => (entry.items || []).map((item) => ({ item, date: entry.date })))
+    .map(({ item, date }) => {
+      const score = MealPlannerFood.nameMatchScore(
+        ingredient.name,
+        item.ingredientName || item.name
+      );
+      const historicalAmount = MealPlannerFood.convertAmount(
+        cleanNumber(item.amount, 0),
+        item.unit || "",
+        ingredient.unit || ""
+      );
+      if (score < 70 || !historicalAmount || cleanNumber(item.price, 0) <= 0) return null;
+      return {
+        item,
+        date,
+        score,
+        price: cleanNumber(ingredient.amount, 0) * (cleanNumber(item.price, 0) / historicalAmount)
+      };
+    })
+    .filter(Boolean)
+    .sort((left, right) =>
+      right.score - left.score || new Date(right.date) - new Date(left.date)
+    );
+  const best = candidates[0];
+  if (!best || best.price <= 0) return null;
+  return {
+    name: best.item.name || ingredient.name,
+    ingredientName: ingredient.name,
+    price: best.price,
+    store: best.item.store || "",
+    itemNumber: best.item.itemNumber || "",
+    amount: ingredient.amount,
+    unit: ingredient.unit,
+    priceSource: "history"
   };
 }
 
