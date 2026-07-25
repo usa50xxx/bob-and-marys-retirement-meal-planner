@@ -281,6 +281,30 @@ async function run() {
     const printCalled = await page.evaluate(() => window.__printCalled === true);
     const printTitle = await page.locator("#printTitle").innerText();
     results.push({ name: "Print meal page", status: printCalled && /Test Meatloaf/i.test(printTitle) ? "PASS" : "FAIL", detail: printTitle });
+    await page.emulateMedia({ media: "print" });
+    const printLayout = await page.locator("#printSheet").evaluate((sheet) => {
+      const sheetStyle = getComputedStyle(sheet);
+      return {
+        color: sheetStyle.color,
+        background: sheetStyle.backgroundColor,
+        fontSize: sheetStyle.fontSize,
+        columns: getComputedStyle(sheet.querySelector(".print-columns")).columnCount,
+        devicePrompt: getComputedStyle(document.querySelector("#devicePrompt")).display,
+        cookingMode: getComputedStyle(document.querySelector("#cookingMode")).display
+      };
+    });
+    const printLayoutPass = printLayout.color === "rgb(0, 0, 0)"
+      && printLayout.background === "rgb(255, 255, 255)"
+      && Math.abs(Number.parseFloat(printLayout.fontSize) - (16 * 96 / 72)) < 0.1
+      && printLayout.columns === "3"
+      && printLayout.devicePrompt === "none"
+      && printLayout.cookingMode === "none";
+    results.push({
+      name: "Print layout is black 16-point text on white paper in three columns",
+      status: printLayoutPass ? "PASS" : "FAIL",
+      detail: JSON.stringify(printLayout)
+    });
+    await page.emulateMedia({ media: "screen" });
 
     await clickView(page, "plan");
     await page.locator("[data-week-recipe='monday']").selectOption("test-meatloaf");
