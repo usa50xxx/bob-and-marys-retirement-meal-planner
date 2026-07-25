@@ -1,11 +1,12 @@
 const http = require("http");
 const fs = require("fs");
 const fsp = require("fs/promises");
+const os = require("os");
 const path = require("path");
 const { chromium } = require("playwright");
 
-const root = "E:\\Meal Planner";
-const screenshotPath = "C:\\Users\\usa50\\Documents\\Codex\\2026-07-23\\i-want-to-create-a-new\\outputs\\e-top-rolodex.png";
+const root = path.resolve(process.env.MEAL_PLANNER_ROOT || process.argv[2] || "E:\\Meal Planner");
+const screenshotPath = path.join(os.tmpdir(), "supperloom-top-rolodex.png");
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -60,8 +61,19 @@ async function run() {
     const page = await browser.newPage({ viewport: { width: 1365, height: 900 } });
     const url = `http://127.0.0.1:${server.address().port}/index.html`;
     await page.goto(url, { waitUntil: "networkidle" });
+    if (await page.locator("#devicePrompt").isVisible()) {
+      await page.locator("#devicePromptDismiss").click();
+    }
     await page.waitForSelector(".masthead .masthead-rolodex .recipe-rolodex-window");
-    await page.waitForFunction(() => [...document.querySelectorAll(".masthead .rolodex-card img")].every(img => img.complete && img.naturalWidth > 0));
+    await page.waitForFunction(() => {
+      const image = document.querySelector(".masthead .rolodex-card[data-center='true'] img");
+      return image?.complete && image.naturalWidth > 0;
+    });
+
+    await page.locator("[data-app-view='spending']").click();
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.locator("[data-app-view='home']").click();
+    await page.waitForFunction(() => window.scrollY < 5);
 
     const beforeTransforms = await page.$$eval(".masthead .rolodex-card", cards => cards.map(card => card.style.transform));
     await page.locator(".masthead .rolodex-spin").last().click();
@@ -70,6 +82,18 @@ async function run() {
     await page.locator(".masthead .rolodex-letter").filter({ hasText: /^T$/ }).first().click();
     await page.waitForTimeout(350);
     const activeLetter = await page.locator(".masthead .rolodex-letter.active").innerText();
+    const homePosition = await page.evaluate(() => {
+      const windowBox = document.querySelector(".masthead .recipe-rolodex-window")?.getBoundingClientRect();
+      const centerCard = document.querySelector(".masthead .rolodex-card[data-center='true']")?.getBoundingClientRect();
+      return {
+        centerCardContained: Boolean(
+          windowBox && centerCard
+          && centerCard.top >= windowBox.top
+          && centerCard.bottom <= windowBox.bottom
+        ),
+        scrollY: window.scrollY
+      };
+    });
     await page.locator(".masthead .rolodex-card[data-center='true']").click();
     await page.waitForTimeout(900);
 
@@ -94,6 +118,7 @@ async function run() {
         activeLetter: document.querySelector(".masthead .rolodex-letter.active")?.textContent || ""
       };
     });
+    result.homePosition = homePosition;
 
     await page.screenshot({ path: screenshotPath, fullPage: false });
 
@@ -103,6 +128,7 @@ async function run() {
     if (result.rolodexWidth < 430 || result.rolodexWindowHeight < 340) failures.push("Rolodex is not large enough in the masthead.");
     if (JSON.stringify(beforeTransforms) === JSON.stringify(afterButtonTransforms)) failures.push("Rolodex did not spin from the top controls.");
     if (activeLetter !== "T" || result.showcase !== "Taco Night") failures.push("Top A-Z tab/front card did not open Taco Night.");
+    if (!result.homePosition.centerCardContained || result.homePosition.scrollY > 5) failures.push("Returning Home left the selected Rolodex card clipped.");
     if (result.letterCount !== 26) failures.push("A-Z rail is missing letters.");
 
     console.log(JSON.stringify({

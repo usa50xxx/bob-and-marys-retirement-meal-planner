@@ -39,6 +39,7 @@ if (options.upgrade) {
 
 const pid = await startApp(serial);
 const endpoint = await forwardWebView(serial, pid);
+await sleep(2500);
 const smokeEnvironment = {
   ...process.env,
   ANDROID_CDP_URL: endpoint,
@@ -51,10 +52,12 @@ async function runSmoke(script, environment, { capture = false } = {}) {
   let lastError;
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     try {
-      return run(process.execPath, [script], {
+      const output = run(process.execPath, [script], {
         env: environment,
-        capture,
+        capture: true,
       });
+      if (!capture && output) console.log(output);
+      return output;
     } catch (error) {
       lastError = error;
       if (attempt === 2) break;
@@ -103,8 +106,8 @@ if (options["large-text"]) {
     ["shell", "settings", "get", "system", "font_scale"],
     { capture: true },
   );
-  const baselineOutput = await runSmoke(
-    "work/smoke-android-large-text.js",
+const baselineOutput = await runSmoke(
+    "work/smoke-android-large-text.mjs",
     {
       ...smokeEnvironment,
       ANDROID_LARGE_TEXT_PHASE: "baseline",
@@ -127,7 +130,8 @@ if (options["large-text"]) {
     adbRun(serial, ["shell", "am", "force-stop", "com.bobandmary.mealplanner"]);
     const largeTextPid = await startApp(serial);
     const largeTextEndpoint = await forwardWebView(serial, largeTextPid);
-    await runSmoke("work/smoke-android-large-text.js", {
+    await sleep(2500);
+    await runSmoke("work/smoke-android-large-text.mjs", {
       ...smokeEnvironment,
       ANDROID_CDP_URL: largeTextEndpoint,
       ANDROID_LARGE_TEXT_PHASE: "scaled",
