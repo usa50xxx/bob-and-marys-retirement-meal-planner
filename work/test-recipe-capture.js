@@ -167,7 +167,12 @@ Mix and bake for 55 minutes.`);
     check(/400/.test(await page.locator("#reviewTemperature").inputValue()), "Recipe photo OCR extracts oven temperature");
     await page.locator("#cancelRecipeReview").click();
 
-    await page.locator("#recipeUrlInput").fill("http://127.0.0.1/private-recipe");
+    await page.locator("#recipeUrlInput").fill("http://recipes.example/beef-stew");
+    await page.locator("#readRecipeUrl").click();
+    check(await page.locator("#recipeReview").isHidden(), "Recipe links require encrypted HTTPS");
+    check(/secure recipe website link/i.test(await page.locator("#recipeReadStatus").textContent()), "Unencrypted link explains what to use instead");
+
+    await page.locator("#recipeUrlInput").fill("https://127.0.0.1/private-recipe");
     await page.locator("#readRecipeUrl").click();
     check(await page.locator("#recipeReview").isHidden(), "Recipe links cannot target a private address");
     check(/public recipe website/i.test(await page.locator("#recipeReadStatus").textContent()), "Private link explains what to use instead");

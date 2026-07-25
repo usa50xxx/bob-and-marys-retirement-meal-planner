@@ -239,8 +239,8 @@ function Test-PublicRecipeAddress([System.Net.IPAddress]$address) {
 }
 
 function Assert-PublicRecipeUri([Uri]$uri) {
-  if ($uri.Scheme -notin @("http", "https")) {
-    throw "Use a recipe link beginning with http or https."
+  if ($uri.Scheme -ne "https") {
+    throw "Use a secure recipe website link beginning with https."
   }
   if ([string]::IsNullOrWhiteSpace($uri.DnsSafeHost) -or $uri.DnsSafeHost -eq "localhost") {
     throw "That recipe address is not allowed."

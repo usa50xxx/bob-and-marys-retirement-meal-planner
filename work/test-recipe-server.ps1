@@ -41,13 +41,21 @@ try {
 
   $privateBlocked = $false
   try {
-    Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/recipe?url=$([Uri]::EscapeDataString('http://127.0.0.1/'))" -TimeoutSec 10 | Out-Null
+    Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/recipe?url=$([Uri]::EscapeDataString('https://127.0.0.1/'))" -TimeoutSec 10 | Out-Null
   } catch {
     $privateBlocked = $_.Exception.Response.StatusCode.value__ -eq 400
   }
 
+  $unencryptedBlocked = $false
+  try {
+    Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/recipe?url=$([Uri]::EscapeDataString('http://example.com/recipe'))" -TimeoutSec 10 | Out-Null
+  } catch {
+    $unencryptedBlocked = $_.Exception.Response.StatusCode.value__ -eq 400
+  }
+
   if (-not $payload.html -or $payload.html.Length -lt 100) { throw "The recipe page body was empty." }
   if (-not $privateBlocked) { throw "Private network recipe addresses were not blocked." }
+  if (-not $unencryptedBlocked) { throw "Unencrypted recipe addresses were not blocked." }
 
   [ordered]@{
     passed = $true
@@ -55,6 +63,7 @@ try {
     finalUrl = $payload.finalUrl
     htmlCharacters = $payload.html.Length
     privateAddressBlocked = $privateBlocked
+    unencryptedAddressBlocked = $unencryptedBlocked
   } | ConvertTo-Json
 } finally {
   if ($process -and -not $process.HasExited) {

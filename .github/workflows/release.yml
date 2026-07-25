@@ -87,9 +87,11 @@ jobs:
       - name: Require releasable ingredient images
         run: pnpm images:audit:strict
 
-      - name: Test thumb-drive backup and recovery
+      - name: Test thumb-drive server, backup, and recovery
         shell: pwsh
-        run: ./work/test-server-recovery.ps1
+        run: |
+          ./work/test-recipe-server.ps1
+          ./work/test-server-recovery.ps1
 
       - name: Synchronize Android project
         run: pnpm android:sync

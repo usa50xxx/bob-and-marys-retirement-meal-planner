@@ -3574,7 +3574,7 @@ async function reviewRecipeFromUrl() {
   let sourceUrl;
   try {
     sourceUrl = new URL(value);
-    if (!["http:", "https:"].includes(sourceUrl.protocol)) throw new Error("Use a website link beginning with http or https.");
+    if (sourceUrl.protocol !== "https:") throw new Error("Use a secure recipe website link beginning with https.");
     if (!isPublicRecipeUrl(sourceUrl)) throw new Error("Use a public recipe website link.");
   } catch (error) {
     recipeReadStatus.textContent = error?.message || "Enter a complete recipe website link.";
