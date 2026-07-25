@@ -272,8 +272,22 @@ async function run() {
       detail: `starts on: ${soundStartsOn}, turns off: ${soundTurnsOff}, returns: ${soundReturns}`
     });
 
+    await page.evaluate(() => {
+      window.__shareAlertMessage = "";
+      window.alert = (message) => {
+        window.__shareAlertMessage = String(message);
+      };
+    });
     await page.locator("#textRecipe").click();
+    await page.waitForFunction(() =>
+      /recipe copied/i.test(document.querySelector("#textRecipe")?.textContent || "")
+      && /full recipe has been copied/i.test(window.__shareAlertMessage || "")
+    );
     const sharedRecipe = await page.evaluate(() => window.__lastClipboardText);
+    const shareFeedback = await page.evaluate(() => ({
+      alert: window.__shareAlertMessage,
+      button: document.querySelector("#textRecipe")?.textContent || ""
+    }));
     results.push({
       name: "Text recipe prepares scaled ingredients and instructions",
       status: /Test Meatloaf/i.test(sharedRecipe)
@@ -283,6 +297,14 @@ async function run() {
         ? "PASS"
         : "FAIL",
       detail: sharedRecipe.replace(/\s+/g, " ").slice(0, 220)
+    });
+    results.push({
+      name: "Text recipe visibly explains what happened",
+      status: /full recipe has been copied/i.test(shareFeedback.alert)
+        && /recipe copied/i.test(shareFeedback.button)
+        ? "PASS"
+        : "FAIL",
+      detail: JSON.stringify(shareFeedback)
     });
 
     await page.evaluate(() => { window.__printCalled = false; window.print = () => { window.__printCalled = true; }; });
