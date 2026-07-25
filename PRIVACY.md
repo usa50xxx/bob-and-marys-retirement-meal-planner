@@ -27,8 +27,8 @@ chooses an online feature:
 
 - Recipe search sends the typed recipe name or main ingredient to TheMealDB and
   downloads matching public recipe information and images.
-- Import from a recipe link requests the public web address chosen by the user.
-  That recipe website receives a normal web request.
+- Import from a recipe link requests the public HTTPS address chosen by the
+  user. That recipe website receives a normal encrypted web request.
 
 Those providers process requests under their own privacy policies. The planner
 does not send household inventory, grocery history, receipt contents, meal

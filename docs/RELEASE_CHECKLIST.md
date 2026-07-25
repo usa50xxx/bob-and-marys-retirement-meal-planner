@@ -96,7 +96,10 @@ stated requirement for new apps and updates beginning August 31, 2026.
 - [ ] Manual accessibility review covers 200% text scaling and real TalkBack or VoiceOver use.
 - [x] Privacy policy draft describes local data, photos, files, internet access, and disabled Android automatic backup.
 - [ ] Privacy policy is published at a stable URL, linked inside the app, and entered in Play Console.
-- [ ] Play Console Data safety answers match the verified release behavior and third-party requests.
+- [ ] Play Console Data safety answers match the verified release behavior and
+  third-party requests. The
+  [submission worksheet](PLAY_CONSOLE_DATA_SAFETY.md) is prepared; TheMealDB
+  retention and the final signed build still require confirmation.
 - [x] Food image licenses and attribution are complete; all 298 physical images pass the strict provenance audit.
 - [ ] A paid TheMealDB publish key is configured and the provider credit is approved.
 - [ ] Repository software license is selected.
