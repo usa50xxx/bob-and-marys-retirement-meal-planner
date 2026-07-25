@@ -132,7 +132,7 @@ jobs:
             api: 35
             release: "15"
             upgrade: true
-            extra: "--upgrade"
+            extra: "--upgrade --online --offline"
 
     steps:
       - name: Check out source

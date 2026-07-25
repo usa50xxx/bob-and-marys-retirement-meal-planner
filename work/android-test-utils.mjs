@@ -13,12 +13,13 @@ export const adb = process.env.ADB
 
 export function parseArguments(values) {
   const options = {};
+  const booleanOptions = new Set(["upgrade", "online", "offline"]);
   for (let index = 0; index < values.length; index += 1) {
     const value = values[index];
     if (!value.startsWith("--")) continue;
     const name = value.slice(2);
-    if (name === "upgrade") {
-      options.upgrade = true;
+    if (booleanOptions.has(name)) {
+      options[name] = true;
       continue;
     }
     const next = values[index + 1];

@@ -48,16 +48,36 @@ async function run() {
   }
 
   await command("Runtime.enable");
-  let nativeFetch = { skipped: true };
+  const expectedOffline = process.env.ANDROID_EXPECTED_OFFLINE === "1";
+  let onlineSearch = { skipped: true };
   if (process.env.ANDROID_SKIP_ONLINE !== "1") {
-    nativeFetch = await evaluate(`fetch("https://schema.org/Recipe")
-      .then(async (response) => {
-        const text = await response.text();
-        return { ok: response.ok, status: response.status, hasRecipePage: /schema\\.org Type|A recipe/i.test(text) };
-      })
-      .catch((error) => ({ ok: false, status: 0, error: error.message }))`);
-    if (!nativeFetch.ok || !nativeFetch.hasRecipePage) {
-      throw new Error(`Android native recipe fetch failed: ${JSON.stringify(nativeFetch)}`);
+    onlineSearch = await evaluate(`(async function () {
+      document.querySelector('[data-app-view="recipes"]').click();
+      document.querySelector("#onlineRecipeSearch").value = "Arrabiata";
+      await searchRecipesByName();
+      return {
+        status: document.querySelector("#onlineStatus").textContent,
+        results: document.querySelectorAll("#onlineResults .online-result").length,
+        firstRecipe: document.querySelector("#onlineResults .online-result h3")?.textContent || ""
+      };
+    })()`);
+    if (onlineSearch.results < 1 || !/recipe.*found/i.test(onlineSearch.status)) {
+      throw new Error(`Android online recipe search failed: ${JSON.stringify(onlineSearch)}`);
+    }
+  }
+  let offlineSearch = { skipped: true };
+  if (expectedOffline) {
+    offlineSearch = await evaluate(`(async function () {
+      document.querySelector('[data-app-view="recipes"]').click();
+      document.querySelector("#onlineRecipeSearch").value = "Arrabiata";
+      await searchRecipesByName();
+      return {
+        status: document.querySelector("#onlineStatus").textContent,
+        results: document.querySelectorAll("#onlineResults .online-result").length
+      };
+    })()`);
+    if (offlineSearch.results !== 0 || !/could not reach/i.test(offlineSearch.status)) {
+      throw new Error(`Android offline recipe message failed: ${JSON.stringify(offlineSearch)}`);
     }
   }
   const originalCount = await evaluate(`document.querySelectorAll(".recipe-card").length`);
@@ -152,7 +172,8 @@ Brush the cod with oil and bake for 15 minutes.\`;
   console.log(JSON.stringify({
     passed: true,
     title: target.title,
-    nativeFetch,
+    onlineSearch,
+    offlineSearch,
     review,
     saved,
     photoReview

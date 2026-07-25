@@ -1,6 +1,7 @@
 import path from "node:path";
 import process from "node:process";
 import {
+  adbRun,
   androidProperty,
   forwardWebView,
   installApk,
@@ -66,9 +67,33 @@ await runSmoke("work/smoke-android-compatibility.js", smokeEnvironment);
 await runSmoke("work/smoke-android-recipe-capture.js", {
   ...smokeEnvironment,
   ANDROID_RECIPE_PHOTO: path.resolve("work/recipe-fixtures/sample-recipe.png"),
-  ANDROID_SKIP_ONLINE: "1",
+  ANDROID_SKIP_ONLINE: options.online ? "0" : "1",
 });
 await runSmoke("work/smoke-android-recovery.js", smokeEnvironment);
+
+if (options.offline) {
+  try {
+    adbRun(serial, ["shell", "cmd", "connectivity", "airplane-mode", "enable"]);
+    adbRun(serial, ["shell", "svc", "wifi", "disable"]);
+    adbRun(serial, ["shell", "svc", "data", "disable"]);
+    await sleep(3000);
+    const offlineEnvironment = {
+      ...smokeEnvironment,
+      ANDROID_EXPECTED_OFFLINE: "1",
+    };
+    await runSmoke("work/smoke-android-compatibility.js", offlineEnvironment);
+    await runSmoke("work/smoke-android-recipe-capture.js", {
+      ...offlineEnvironment,
+      ANDROID_RECIPE_PHOTO: path.resolve("work/recipe-fixtures/sample-recipe.png"),
+      ANDROID_SKIP_ONLINE: "1",
+    });
+  } finally {
+    adbRun(serial, ["shell", "cmd", "connectivity", "airplane-mode", "disable"]);
+    adbRun(serial, ["shell", "svc", "data", "enable"]);
+    adbRun(serial, ["shell", "svc", "wifi", "enable"]);
+    await sleep(3000);
+  }
+}
 
 console.log(JSON.stringify({
   passed: true,
@@ -77,5 +102,7 @@ console.log(JSON.stringify({
   android: expectedRelease,
   layout: expectedLayout,
   upgrade: Boolean(options.upgrade),
+  online: Boolean(options.online),
+  offline: Boolean(options.offline),
   apk: candidateApk,
 }, null, 2));
