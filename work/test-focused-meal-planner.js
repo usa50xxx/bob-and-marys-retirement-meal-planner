@@ -350,6 +350,36 @@ async function run() {
       "Text recipe prepares a complete scaled message",
       sharedRecipe.replace(/\s+/g, " ").slice(0, 220)
     );
+    await page.evaluate(() => renderPrintSheet());
+    await page.emulateMedia({ media: "print" });
+    const printLayout = await page.locator("#printSheet").evaluate((sheet) => {
+      const sheetStyle = getComputedStyle(sheet);
+      const columnsStyle = getComputedStyle(sheet.querySelector(".print-columns"));
+      const bodyStyle = getComputedStyle(document.body);
+      return {
+        display: sheetStyle.display,
+        color: sheetStyle.color,
+        background: sheetStyle.backgroundColor,
+        fontSize: sheetStyle.fontSize,
+        columns: columnsStyle.columnCount,
+        bodyBackground: bodyStyle.backgroundColor,
+        devicePrompt: getComputedStyle(document.querySelector("#devicePrompt")).display,
+        cookingMode: getComputedStyle(document.querySelector("#cookingMode")).display
+      };
+    });
+    check(
+      printLayout.display === "block"
+        && printLayout.color === "rgb(0, 0, 0)"
+        && printLayout.background === "rgb(255, 255, 255)"
+        && Math.abs(Number.parseFloat(printLayout.fontSize) - (16 * 96 / 72)) < 0.1
+        && printLayout.columns === "3"
+        && printLayout.bodyBackground === "rgb(255, 255, 255)"
+        && printLayout.devicePrompt === "none"
+        && printLayout.cookingMode === "none",
+      "Printed recipes use black 16-point text on white paper in three columns",
+      JSON.stringify(printLayout)
+    );
+    await page.emulateMedia({ media: "screen" });
     await page.locator("#startCooking").click();
     check(await page.locator("#cookingMode").isVisible(), "Guided cooking opens for the selected recipe");
     check(
