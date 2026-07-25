@@ -1,0 +1,6 @@
+title: Bob and Mary's Retirement Meal Planner
+description: Privacy policy for Bob and Mary's Retirement Meal Planner
+lang: en-US
+markdown: kramdown
+exclude:
+  - README.md

@@ -95,7 +95,9 @@ stated requirement for new apps and updates beginning August 31, 2026.
 - [x] Automated WCAG A/AA checks cover every main screen, selected recipes, guided cooking, phone layouts, keyboard access, visible focus, and screen-reader names.
 - [ ] Manual accessibility review covers 200% text scaling and real TalkBack or VoiceOver use.
 - [x] Privacy policy draft describes local data, photos, files, internet access, and disabled Android automatic backup.
-- [ ] Privacy policy is published at a stable URL, linked inside the app, and entered in Play Console.
+- [ ] Privacy policy is published at a stable URL, linked inside the app, and
+  entered in Play Console. A tested GitHub Pages build and deploy workflow is
+  prepared for `main`; Pages enablement and the in-app link remain.
 - [ ] Play Console Data safety answers match the verified release behavior and
   third-party requests. The
   [submission worksheet](PLAY_CONSOLE_DATA_SAFETY.md) is prepared; TheMealDB

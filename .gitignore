@@ -19,6 +19,9 @@ work/beef-cut-screens/
 work/android-web/
 work/release-web/
 work/release-assets-test/
+work/privacy-site-built/
+work/privacy-site-output/
+work/privacy-site-test/
 
 # Native Android build dependencies and generated intermediates.
 node_modules/

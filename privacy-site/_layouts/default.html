@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="{{ site.lang | default: 'en-US' }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#111817">
+    <meta name="description" content="{{ site.description | escape }}">
+    <title>{{ page.title | default: site.title | escape }}</title>
+    <link rel="stylesheet" href="{{ '/assets/privacy.css' | relative_url }}">
+  </head>
+  <body>
+    <main>
+      {{ content }}
+    </main>
+  </body>
+</html>
