@@ -126,13 +126,24 @@ jobs:
           - label: Android 7 phone
             api: 24
             release: "7.0"
+            profile: pixel_2
+            layout: phone
             upgrade: false
             extra: ""
           - label: Android 15 phone and upgrade
             api: 35
             release: "15"
+            profile: pixel_2
+            layout: phone
             upgrade: true
             extra: "--upgrade --online --offline"
+          - label: Android 15 tablet
+            api: 35
+            release: "15"
+            profile: pixel_c
+            layout: tablet
+            upgrade: false
+            extra: ""
 
     steps:
       - name: Check out source
@@ -192,7 +203,7 @@ jobs:
           api-level: ${{ matrix.api }}
           target: google_apis
           arch: x86_64
-          profile: pixel_2
+          profile: ${{ matrix.profile }}
           emulator-options: >-
             -no-window -gpu swiftshader_indirect -no-snapshot
             -noaudio -no-boot-anim -camera-back none
@@ -202,6 +213,6 @@ jobs:
             --apk dist
             --api ${{ matrix.api }}
             --release ${{ matrix.release }}
-            --layout phone
+            --layout ${{ matrix.layout }}
             ${{ matrix.upgrade && '--baseline upgrade-dist' || '' }}
             ${{ matrix.extra }}
