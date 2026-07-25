@@ -45,6 +45,9 @@ CodeQL default setup is enabled with the Extended query suite. It scans
 supported source and workflow languages on the default branch, pull requests,
 and a weekly schedule without duplicating the Android build workflow.
 
+Private vulnerability reporting is enabled, and `.github/SECURITY.md` directs
+security reports to GitHub's private advisory form instead of public issues.
+
 Each signed release APK, Android App Bundle, portable website archive, and
 checksum file receives a GitHub artifact attestation. This records verifiable
 build provenance for the exact files produced by the release workflow.

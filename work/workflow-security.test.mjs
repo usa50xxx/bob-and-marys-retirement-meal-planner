@@ -85,6 +85,14 @@ assert.equal(
   "Each dependency ecosystem must have a weekly update schedule.",
 );
 
+const securityPolicy = fs.readFileSync(".github/SECURITY.md", "utf8");
+assert.match(securityPolicy, /^## Report a vulnerability privately$/m);
+assert.match(
+  securityPolicy,
+  /github\.com\/usa50xxx\/bob-and-marys-retirement-meal-planner\/security\/advisories\/new/,
+);
+assert.match(securityPolicy, /Do not open a public issue/i);
+
 console.log(
   `Workflow security checks passed for ${workflowNames.length} workflows.`,
 );
