@@ -85,6 +85,35 @@ assert.deepEqual(parseIngredientLine("¾ cup breadcrumbs"), {
   unit: "cup",
   name: "breadcrumbs"
 });
+assert.deepEqual(parseIngredientLine("1 cup macaroni &amp; cheese"), {
+  amount: 1,
+  unit: "cup",
+  name: "macaroni & cheese"
+});
+assert.equal(
+  parseIngredientLine("1 cup encoded &amp;lt;ingredient&amp;gt;").name,
+  "encoded &lt;ingredient&gt;"
+);
+
+const commentedJsonLd = parseHtml(`
+<script>window.notARecipe = true;</script>
+<script data-description="1 > 0" TYPE='application/ld+json'>
+<!--
+{
+  "@context": "https://schema.org",
+  "@type": "Recipe",
+  "name": "Comment Wrapped Chili",
+  "recipeYield": "6 servings",
+  "recipeIngredient": ["2 cans beans"],
+  "recipeInstructions": "Simmer for 30 minutes."
+}
+--!>
+</script >`);
+assert.equal(commentedJsonLd.name, "Comment Wrapped Chili");
+assert.equal(commentedJsonLd.baseServings, 6);
+assert.equal(commentedJsonLd.ingredients[0].name, "beans");
+assert.match(commentedJsonLd.notes, /Simmer for 30 minutes/);
+
 assert.equal(friendlyDuration("PT2H30M"), "2 hours 30 minutes");
 assert.equal(extractTemperature("Preheat oven to 375 degrees F."), "375°F");
 

@@ -1,4 +1,6 @@
-const fs = require("node:fs");
+function sanitizeForLog(value) {
+  return String(value).replace(/[\r\n\u2028\u2029]/g, " ");
+}
 
 async function run() {
   const endpoint = process.env.ANDROID_CDP_URL || "http://127.0.0.1:9223";
@@ -134,16 +136,48 @@ Brush the cod with oil and bake for 15 minutes.\`;
   let photoReview = null;
   const photoPath = process.env.ANDROID_RECIPE_PHOTO;
   if (photoPath) {
-    const photoBase64 = fs.readFileSync(photoPath).toString("base64");
     photoReview = await evaluate(`(async function () {
       document.querySelector('[data-app-view="recipes"]').click();
       document.querySelector("#recipeReview").hidden = true;
-      var binary = atob(${JSON.stringify(photoBase64)});
-      var bytes = new Uint8Array(binary.length);
-      for (var index = 0; index < binary.length; index += 1) {
-        bytes[index] = binary.charCodeAt(index);
+      var lines = [
+        "EASY SALMON DINNER",
+        "Serves 2",
+        "Prep time: 10 minutes",
+        "Cook time: 18 minutes",
+        "Temperature: 400 F",
+        "",
+        "Ingredients",
+        "2 salmon fillets",
+        "1 tbsp olive oil",
+        "1 lemon",
+        "1 tsp garlic powder",
+        "",
+        "Instructions",
+        "Heat the oven to 400 F.",
+        "Brush salmon with oil and season.",
+        "Bake for 18 minutes."
+      ];
+      var canvas = document.createElement("canvas");
+      canvas.width = 1200;
+      canvas.height = 900;
+      var context = canvas.getContext("2d");
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.fillStyle = "#101010";
+      lines.forEach(function (line, index) {
+        var isHeading = index === 0 || line === "Ingredients" || line === "Instructions";
+        context.font = (isHeading ? "700 " : "500 ")
+          + (index === 0 ? "40px " : "28px ")
+          + "Arial, sans-serif";
+        context.fillText(line || " ", 65, 75 + index * 46);
+      });
+      var blob = await new Promise(function (resolve) {
+        canvas.toBlob(resolve, "image/png");
+      });
+      if (!blob) {
+        throw new Error("The Android WebView could not create the recipe test image.");
       }
-      var file = new File([bytes], "sample-recipe.png", { type: "image/png" });
+      var file = new File([blob], "sample-recipe.png", { type: "image/png" });
       var input = { files: [file], value: "sample-recipe.png" };
       await reviewRecipeFromFile({ target: input });
       return {
@@ -169,7 +203,7 @@ Brush the cod with oil and bake for 15 minutes.\`;
 
   if (exceptions.length) throw new Error(`Android WebView exceptions: ${exceptions.join(" | ")}`);
 
-  console.log(JSON.stringify({
+  console.log(sanitizeForLog(JSON.stringify({
     passed: true,
     title: target.title,
     onlineSearch,
@@ -177,11 +211,11 @@ Brush the cod with oil and bake for 15 minutes.\`;
     review,
     saved,
     photoReview
-  }, null, 2));
+  }, null, 2)));
   socket.close();
 }
 
 run().catch((error) => {
-  console.error(error.stack || error);
+  console.error(sanitizeForLog(error.stack || error));
   process.exitCode = 1;
 });

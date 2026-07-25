@@ -10,21 +10,54 @@ const wrapper = path.join(
   process.platform === "win32" ? "gradlew.bat" : "gradlew",
 );
 const MAX_CAPTURED_OUTPUT = 2 * 1024 * 1024;
-const TRANSIENT_NETWORK_PATTERNS = [
-  /java\.net\.(?:SocketException|SocketTimeoutException|UnknownHostException)/i,
-  /\b(?:connection reset|connection timed out|read timed out)\b/i,
-  /\btemporary failure in name resolution\b/i,
-  /\bcould not resolve host\b/i,
-  /\bremote host terminated the handshake\b/i,
-  /\b(?:502 bad gateway|503 service unavailable|504 gateway timeout)\b/i,
+const TRANSIENT_NETWORK_TEXT = [
+  "java.net.socketexception",
+  "java.net.sockettimeoutexception",
+  "java.net.unknownhostexception",
+  "connection reset",
+  "connection timed out",
+  "read timed out",
+  "temporary failure in name resolution",
+  "could not resolve host",
+  "remote host terminated the handshake",
+  "502 bad gateway",
+  "503 service unavailable",
+  "504 gateway timeout",
 ];
+const ALLOWED_GRADLE_ARGUMENTS = new Map([
+  "assembleDebug",
+  "assembleRelease",
+  "bundleRelease",
+  "lintDebug",
+  "lintRelease",
+].map((argument) => [argument, argument]));
 
 export function isRetryableGradleFailure(output) {
-  return TRANSIENT_NETWORK_PATTERNS.some((pattern) => pattern.test(output));
+  const normalized = String(output || "").toLowerCase();
+  return TRANSIENT_NETWORK_TEXT.some((fragment) => normalized.includes(fragment));
 }
 
 export function isSafeGradleArgument(value) {
-  return /^[A-Za-z0-9_:.=+@/\\-]+$/.test(value);
+  try {
+    canonicalGradleArgument(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function canonicalGradleArgument(value) {
+  const allowed = ALLOWED_GRADLE_ARGUMENTS.get(value);
+  if (allowed) return allowed;
+
+  const versionOverride = /^-PbobMaryVersionCodeOverride=(\d{1,9})$/.exec(value);
+  if (versionOverride) {
+    const versionCode = Number(versionOverride[1]);
+    if (Number.isSafeInteger(versionCode) && versionCode > 0) {
+      return `-PbobMaryVersionCodeOverride=${versionCode}`;
+    }
+  }
+  throw new Error(`Unsupported Gradle argument: ${value}`);
 }
 
 function appendOutput(current, chunk) {
@@ -79,16 +112,13 @@ export async function runGradle(tasks, {
   if (!tasks.length) {
     throw new Error("Provide at least one Gradle task.");
   }
-  const unsafeArgument = tasks.find((task) => !isSafeGradleArgument(task));
-  if (unsafeArgument) {
-    throw new Error(`Unsafe Gradle argument: ${unsafeArgument}`);
-  }
+  const canonicalTasks = tasks.map(canonicalGradleArgument);
   if (process.platform !== "win32") {
     fs.chmodSync(wrapper, 0o755);
   }
 
   for (let attempt = 0; attempt <= retries; attempt += 1) {
-    const result = await runAttempt(tasks);
+    const result = await runAttempt(canonicalTasks);
     if (result.status === 0) return;
     if (result.error) throw result.error;
 

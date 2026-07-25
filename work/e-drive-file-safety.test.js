@@ -7,6 +7,13 @@ const {
   writeExclusiveBackup,
 } = require("./e-drive-click-test.js");
 
+async function readOpenFile(fileHandle, encoding) {
+  const details = await fileHandle.stat();
+  const contents = Buffer.alloc(details.size);
+  await fileHandle.read(contents, 0, contents.length, 0);
+  return encoding ? contents.toString(encoding) : contents;
+}
+
 async function run() {
   const harnessSource = await fs.readFile(
     path.join(__dirname, "e-drive-click-test.js"),
@@ -36,10 +43,10 @@ async function run() {
     assert.deepEqual(await fs.readFile(backupPath), original);
 
     await replaceOpenFile(dataHandle, replacement);
-    assert.equal(await fs.readFile(dataPath, "utf8"), replacement);
+    assert.equal(await readOpenFile(dataHandle, "utf8"), replacement);
 
     await replaceOpenFile(dataHandle, original);
-    assert.deepEqual(await fs.readFile(dataPath), original);
+    assert.deepEqual(await readOpenFile(dataHandle), original);
   } finally {
     await dataHandle.close();
     await fs.rm(directory, { recursive: true, force: true });

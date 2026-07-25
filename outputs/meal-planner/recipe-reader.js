@@ -33,14 +33,22 @@
   };
 
   function decodeEntities(value) {
-    return String(value || "")
-      .replace(/&nbsp;/gi, " ")
-      .replace(/&amp;/gi, "&")
-      .replace(/&quot;/gi, "\"")
-      .replace(/&#39;|&apos;/gi, "'")
-      .replace(/&lt;/gi, "<")
-      .replace(/&gt;/gi, ">")
-      .replace(/&#(\d+);/g, (_, number) => String.fromCharCode(Number(number)));
+    const namedEntities = {
+      nbsp: " ",
+      amp: "&",
+      quot: "\"",
+      apos: "'",
+      lt: "<",
+      gt: ">"
+    };
+    return String(value || "").replace(
+      /&(?:nbsp|amp|quot|apos|lt|gt|#39|#\d+);/gi,
+      function decodeEntity(entity) {
+        const code = entity.slice(1, -1);
+        if (code.charAt(0) === "#") return String.fromCharCode(Number(code.slice(1)));
+        return namedEntities[code.toLowerCase()];
+      }
+    );
   }
 
   function stripHtml(value) {
@@ -272,16 +280,103 @@
     return "";
   }
 
+  function scriptElements(html) {
+    const source = String(html || "");
+    const lowerSource = source.toLowerCase();
+    const elements = [];
+    let offset = 0;
+
+    while (offset < source.length) {
+      const start = lowerSource.indexOf("<script", offset);
+      if (start < 0) break;
+      const boundary = source.charAt(start + 7);
+      if (boundary && !/[\s/>]/.test(boundary)) {
+        offset = start + 7;
+        continue;
+      }
+
+      let quote = "";
+      let openEnd = start + 7;
+      for (; openEnd < source.length; openEnd += 1) {
+        const character = source.charAt(openEnd);
+        if (quote) {
+          if (character === quote) quote = "";
+        } else if (character === "\"" || character === "'") {
+          quote = character;
+        } else if (character === ">") {
+          break;
+        }
+      }
+      if (openEnd >= source.length) break;
+
+      let closeStart = lowerSource.indexOf("</script", openEnd + 1);
+      while (
+        closeStart >= 0
+        && source.charAt(closeStart + 8)
+        && !/[\s>]/.test(source.charAt(closeStart + 8))
+      ) {
+        closeStart = lowerSource.indexOf("</script", closeStart + 8);
+      }
+      if (closeStart < 0) break;
+      const closeEnd = source.indexOf(">", closeStart + 8);
+      if (closeEnd < 0) break;
+
+      elements.push({
+        openTag: source.slice(start, openEnd + 1),
+        body: source.slice(openEnd + 1, closeStart)
+      });
+      offset = closeEnd + 1;
+    }
+    return elements;
+  }
+
+  function attributeValue(openTag, requestedName) {
+    const source = String(openTag || "");
+    const requested = String(requestedName || "").toLowerCase();
+    let offset = source.toLowerCase().indexOf("script") + 6;
+
+    while (offset > 5 && offset < source.length) {
+      while (offset < source.length && /[\s/>]/.test(source.charAt(offset))) offset += 1;
+      const nameStart = offset;
+      while (offset < source.length && !/[\s=/>]/.test(source.charAt(offset))) offset += 1;
+      if (nameStart === offset) break;
+      const name = source.slice(nameStart, offset).toLowerCase();
+      while (offset < source.length && /\s/.test(source.charAt(offset))) offset += 1;
+      if (source.charAt(offset) !== "=") continue;
+      offset += 1;
+      while (offset < source.length && /\s/.test(source.charAt(offset))) offset += 1;
+
+      const quote = source.charAt(offset);
+      let valueStart = offset;
+      let valueEnd = offset;
+      if (quote === "\"" || quote === "'") {
+        valueStart = offset + 1;
+        valueEnd = source.indexOf(quote, valueStart);
+        if (valueEnd < 0) valueEnd = source.length;
+        offset = valueEnd + 1;
+      } else {
+        while (valueEnd < source.length && !/[\s>]/.test(source.charAt(valueEnd))) valueEnd += 1;
+        offset = valueEnd;
+      }
+      if (name === requested) return source.slice(valueStart, valueEnd);
+    }
+    return "";
+  }
+
+  function unwrapHtmlComment(value) {
+    const source = String(value || "").trim();
+    if (source.slice(0, 4) === "<!--") {
+      if (source.slice(-3) === "-->") return source.slice(4, -3).trim();
+      if (source.slice(-4) === "--!>") return source.slice(4, -4).trim();
+    }
+    return source;
+  }
+
   function jsonLdRecipe(html) {
-    const scripts = String(html || "").match(/<script\b[^>]*>[\s\S]*?<\/script>/gi) || [];
+    const scripts = scriptElements(html);
     for (const script of scripts) {
-      const openTag = script.match(/^<script\b[^>]*>/i)?.[0] || "";
-      if (!/type\s*=\s*["']?application\/ld\+json/i.test(openTag)) continue;
-      const body = script
-        .replace(/^<script\b[^>]*>/i, "")
-        .replace(/<\/script>$/i, "")
-        .replace(/^\s*<!--|-->\s*$/g, "")
-        .trim();
+      if (attributeValue(script.openTag, "type").toLowerCase() !== "application/ld+json") continue;
+      const body = unwrapHtmlComment(script.body);
       try {
         const found = findRecipeObject(JSON.parse(body));
         if (found) return found;

@@ -1,3 +1,7 @@
+function sanitizeForLog(value) {
+  return String(value).replace(/[\r\n\u2028\u2029]/g, " ");
+}
+
 async function run() {
   const endpoint = process.env.ANDROID_CDP_URL || "http://127.0.0.1:9223";
   const targets = await fetch(`${endpoint}/json`).then((response) => response.json());
@@ -141,17 +145,17 @@ async function run() {
   }
   if (exceptions.length) throw new Error(`Android WebView exceptions: ${exceptions.join(" | ")}`);
 
-  console.log(JSON.stringify({
+  console.log(sanitizeForLog(JSON.stringify({
     passed: true,
     title: target.title,
     original,
     changedName,
     restored
-  }, null, 2));
+  }, null, 2)));
   socket.close();
 }
 
 run().catch((error) => {
-  console.error(error.stack || error);
+  console.error(sanitizeForLog(error.stack || error));
   process.exitCode = 1;
 });
