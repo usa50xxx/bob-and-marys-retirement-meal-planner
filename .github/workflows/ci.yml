@@ -138,7 +138,7 @@ jobs:
             profile: pixel_2
             layout: phone
             upgrade: true
-            extra: "--upgrade --online --offline"
+            extra: "--upgrade --online --offline --large-text"
           - label: Android 15 tablet
             api: 35
             release: "15"

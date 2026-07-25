@@ -13,7 +13,7 @@ export const adb = process.env.ADB
 
 export function parseArguments(values) {
   const options = {};
-  const booleanOptions = new Set(["upgrade", "online", "offline"]);
+  const booleanOptions = new Set(["upgrade", "online", "offline", "large-text"]);
   for (let index = 0; index < values.length; index += 1) {
     const value = values[index];
     if (!value.startsWith("--")) continue;

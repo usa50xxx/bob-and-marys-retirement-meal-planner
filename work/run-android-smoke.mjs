@@ -47,12 +47,14 @@ const smokeEnvironment = {
   ANDROID_EXPECTED_LAYOUT: expectedLayout,
 };
 
-async function runSmoke(script, environment) {
+async function runSmoke(script, environment, { capture = false } = {}) {
   let lastError;
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     try {
-      run(process.execPath, [script], { env: environment });
-      return;
+      return run(process.execPath, [script], {
+        env: environment,
+        capture,
+      });
     } catch (error) {
       lastError = error;
       if (attempt === 2) break;
@@ -95,6 +97,59 @@ if (options.offline) {
   }
 }
 
+if (options["large-text"]) {
+  const originalFontScale = adbRun(
+    serial,
+    ["shell", "settings", "get", "system", "font_scale"],
+    { capture: true },
+  );
+  const baselineOutput = await runSmoke(
+    "work/smoke-android-large-text.js",
+    {
+      ...smokeEnvironment,
+      ANDROID_LARGE_TEXT_PHASE: "baseline",
+    },
+    { capture: true },
+  );
+  const baseline = JSON.parse(baselineOutput);
+
+  try {
+    adbRun(serial, ["shell", "settings", "put", "system", "font_scale", "2.0"]);
+    const appliedFontScale = adbRun(
+      serial,
+      ["shell", "settings", "get", "system", "font_scale"],
+      { capture: true },
+    );
+    if (Number.parseFloat(appliedFontScale) < 1.99) {
+      throw new Error(`Android did not apply 200% text; font_scale=${appliedFontScale}.`);
+    }
+
+    adbRun(serial, ["shell", "am", "force-stop", "com.bobandmary.mealplanner"]);
+    const largeTextPid = await startApp(serial);
+    const largeTextEndpoint = await forwardWebView(serial, largeTextPid);
+    await runSmoke("work/smoke-android-large-text.js", {
+      ...smokeEnvironment,
+      ANDROID_CDP_URL: largeTextEndpoint,
+      ANDROID_LARGE_TEXT_PHASE: "scaled",
+      ANDROID_LARGE_TEXT_BASELINE: Buffer.from(
+        JSON.stringify(baseline),
+        "utf8",
+      ).toString("base64"),
+    });
+  } finally {
+    if (/^(?:null)?$/i.test(originalFontScale)) {
+      adbRun(serial, ["shell", "settings", "delete", "system", "font_scale"]);
+    } else {
+      adbRun(
+        serial,
+        ["shell", "settings", "put", "system", "font_scale", originalFontScale],
+      );
+    }
+    adbRun(serial, ["shell", "am", "force-stop", "com.bobandmary.mealplanner"]);
+    await startApp(serial);
+  }
+}
+
 console.log(JSON.stringify({
   passed: true,
   serial,
@@ -104,5 +159,6 @@ console.log(JSON.stringify({
   upgrade: Boolean(options.upgrade),
   online: Boolean(options.online),
   offline: Boolean(options.offline),
+  largeText: Boolean(options["large-text"]),
   apk: candidateApk,
 }, null, 2));

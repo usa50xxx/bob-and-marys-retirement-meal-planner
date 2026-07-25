@@ -14,7 +14,7 @@ The `Build and test` workflow runs on every push. It:
 8. Reuses that exact APK on Android 7 and Android 15 phone emulators plus an
    Android 15 Pixel C tablet emulator.
 9. Tests live recipe search, airplane-mode behavior, offline recipe-photo
-   reading, recovery, touch sizing, and phone layout.
+   reading, recovery, touch sizing, phone layout, and Android 200% text scaling.
 10. Upgrades a lower-version installation and verifies saved recipes and inventory survive.
 
 The `Draft Android release` workflow runs for semantic version tags such as
@@ -93,7 +93,10 @@ stated requirement for new apps and updates beginning August 31, 2026.
   message, and local recipe/photo processing while offline.
 - [x] Backup and restore are tested with realistic data.
 - [x] Automated WCAG A/AA checks cover every main screen, selected recipes, guided cooking, phone layouts, keyboard access, visible focus, and screen-reader names.
-- [ ] Manual accessibility review covers 200% text scaling and real TalkBack or VoiceOver use.
+- [x] Android 15 automation restarts the native app at 200% text, proves that
+  text enlarged, and checks every main area for clipping, horizontal overflow,
+  off-screen controls, and touch-target size.
+- [ ] Manual accessibility review covers real TalkBack or VoiceOver use.
 - [x] Privacy policy draft describes local data, photos, files, internet access, and disabled Android automatic backup.
 - [ ] Privacy policy is published at a stable URL, linked inside the app, and
   entered in Play Console. A tested GitHub Pages build and deploy workflow is
