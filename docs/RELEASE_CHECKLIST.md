@@ -52,6 +52,10 @@ Each signed release APK, Android App Bundle, portable website archive, and
 checksum file receives a GitHub artifact attestation. This records verifiable
 build provenance for the exact files produced by the release workflow.
 
+Immutable releases are enabled for the repository. The workflow creates a
+draft and attaches every asset before human publication. Publishing then locks
+the release assets and associated tag against modification or deletion.
+
 ## One-time signing setup
 
 Create and protect a release keystore before making a release tag. The same key
@@ -95,7 +99,13 @@ git push origin v0.9.1
 ```
 
 The workflow creates a draft release. Install and inspect that exact APK before
-publishing the draft.
+publishing the draft. After publication, verify the immutable release and a
+downloaded asset:
+
+```powershell
+gh release verify v0.9.1 -R usa50xxx/bob-and-marys-retirement-meal-planner
+gh release verify-asset v0.9.1 Bob-and-Marys-Meal-Planner-v0.9.1.apk -R usa50xxx/bob-and-marys-retirement-meal-planner
+```
 
 The Android project already targets API level 36, which meets Google Play's
 stated requirement for new apps and updates beginning August 31, 2026.

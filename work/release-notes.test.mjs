@@ -23,6 +23,14 @@ assert.match(
   notes,
   /gh attestation verify RELEASE-FILE\.apk -R usa50xxx\/bob-and-marys-retirement-meal-planner/,
 );
+assert.match(
+  notes,
+  /gh release verify v1\.0\.0 -R usa50xxx\/bob-and-marys-retirement-meal-planner/,
+);
+assert.match(
+  notes,
+  /gh release verify-asset v1\.0\.0 RELEASE-FILE\.apk -R usa50xxx\/bob-and-marys-retirement-meal-planner/,
+);
 assert.doesNotMatch(notes, /\b(?:TODO|TBD)\b|<[^>]+>/i);
 assert.match(workflow, /docs\/releases\/\$\{RELEASE_TAG\}\.md/);
 assert.match(workflow, /isDraft/);
