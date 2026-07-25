@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/seafood-v1.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "salmon", "label": "Whole side of salmon" },
+    { "key": "salmon_fillets", "label": "Salmon fillets" },
+    { "key": "cod", "label": "Cod fillets" },
+    { "key": "haddock", "label": "Haddock fillets" },
+    { "key": "halibut", "label": "Halibut steaks" },
+    { "key": "flounder", "label": "Flounder fillets" },
+    { "key": "catfish", "label": "Catfish fillets" },
+    { "key": "trout", "label": "Rainbow trout fillets" }
+  ]
+}

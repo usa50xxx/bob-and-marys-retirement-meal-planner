@@ -2,13 +2,14 @@
 
 Status: **blocks a public v1.0 release**
 
-The current ingredient folder contains 257 byte-unique WebP files and no
-duplicate files. A browser alias map preserves 135 additional ingredient names
-without shipping repeated bytes. Eight project-original beef images have
-complete approved metadata. Existing legacy notes identify a source for 55 of
-the remaining physical files, but those records are not complete license
-approvals. The other 202 physical files have no recorded source. In total, 249
-physical files still need replacement or complete approval before release.
+The current ingredient folder contains 295 byte-unique WebP files and no
+duplicate files. A browser alias map preserves 101 additional ingredient names
+without shipping repeated bytes. Sixty-four project-original images have
+complete approved metadata. Existing legacy notes identify a source for 57 of
+the physical files, but those records are not complete license approvals.
+Seventeen files appear in both sets, leaving 104 physical files with at least
+one source record and 191 with none. In total, 231 physical files still need
+replacement or complete approval before release.
 
 Run the report without failing normal development:
 
@@ -64,7 +65,8 @@ permission.
 - Exact duplicate files were collapsed into `IMAGE_ALIASES.json`; every alias
   resolves locally, alias chains are rejected, and automated tests require all
   physical files to have unique bytes.
-- Eight repeated beef placeholders were replaced by visually distinct,
-  project-original generated images. Their unedited source sheet is retained
-  under `assets/generated`, their derivation is reproducible, and their release
-  permission is recorded in `IMAGE_LICENSE.md` and `IMAGE_PROVENANCE.json`.
+- Sixty-four beef, chicken, pork, and seafood images now have visually distinct,
+  project-original generated sources. The unedited source sheets and exact grid
+  manifests are retained under `assets/generated`, their derivation is
+  reproducible, and their release permission is recorded in `IMAGE_LICENSE.md`
+  and `IMAGE_PROVENANCE.json`.

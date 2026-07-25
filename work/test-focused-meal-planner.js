@@ -112,6 +112,41 @@ async function clickView(page, view) {
   await page.waitForFunction((name) => document.querySelector(`[data-app-view="${name}"]`)?.getAttribute("aria-current") === "page", view);
 }
 
+async function inspectBuilderImages(page, groupLabel, minimumCount) {
+  await page.locator("#resetBuiltMeal").click();
+  await page.locator("#mainChoiceButtons").getByRole(
+    "button",
+    { name: groupLabel, exact: true }
+  ).click();
+  await page.waitForFunction((expectedCount) => {
+    const cards = [...document.querySelectorAll("#mainChoiceButtons .choice-button")];
+    return cards.length >= expectedCount &&
+      cards.every((card) => {
+        const image = card.querySelector("img");
+        return image?.complete && image.naturalWidth > 0;
+      });
+  }, minimumCount, { timeout: 15_000 });
+
+  const cards = await page.locator("#mainChoiceButtons .choice-button").evaluateAll((buttons) =>
+    buttons.map((button) => ({
+      name: button.textContent.trim().replace(/\s+/g, " "),
+      src: button.querySelector("img")?.getAttribute("src") || "",
+      loaded: Boolean(button.querySelector("img")?.naturalWidth)
+    }))
+  );
+  const hashes = await Promise.all(cards.map(async (card) => {
+    const response = await fetch(new URL(card.src, page.url()));
+    assert(response.ok, `Could not load ${groupLabel} picture: ${card.name}`);
+    const contents = Buffer.from(await response.arrayBuffer());
+    return createHash("sha256").update(contents).digest("hex");
+  }));
+  return {
+    cards: cards.map((card, index) => ({ ...card, hash: hashes[index] })),
+    loaded: cards.filter((card) => card.loaded).length,
+    unique: new Set(hashes).size
+  };
+}
+
 async function run() {
   const server = createServer();
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -266,34 +301,25 @@ async function run() {
     await page.locator("#quickBuildMeal").click();
     check(await page.locator("#weeklyPlannerCard").isVisible(), "Plan this week shortcut opens the weekly planner");
     await clickView(page, "recipes");
-    await page.locator("#resetBuiltMeal").click();
-    await page.locator("#mainChoiceButtons .choice-button").filter({ hasText: /^Beef$/ }).click();
-    await page.waitForFunction(() => {
-      const cards = [...document.querySelectorAll("#mainChoiceButtons .choice-button")];
-      return cards.length >= 18 &&
-        cards.every((card) => {
-          const image = card.querySelector("img");
-          return image?.complete && image.naturalWidth > 0;
-        });
-    }, null, { timeout: 15_000 });
-    const beefCards = await page.locator("#mainChoiceButtons .choice-button").evaluateAll((buttons) =>
-      buttons.map((button) => ({
-        name: button.textContent.trim().replace(/\s+/g, " "),
-        src: button.querySelector("img")?.getAttribute("src") || "",
-        loaded: Boolean(button.querySelector("img")?.naturalWidth)
-      }))
-    );
-    const loadedBeefCards = beefCards.filter((card) => card.loaded);
-    const beefPictureHashes = await Promise.all(beefCards.map(async (card) => {
-      const response = await fetch(new URL(card.src, page.url()));
-      const contents = Buffer.from(await response.arrayBuffer());
-      return createHash("sha256").update(contents).digest("hex");
-    }));
-    const uniqueBeefPictures = new Set(beefPictureHashes).size;
-    check(beefCards.length >= 18 && loadedBeefCards.length === beefCards.length && uniqueBeefPictures >= 18,
-      "Beef choices have loaded, distinct pictures",
-      `${beefCards.length} choices, ${loadedBeefCards.length} loaded, ${uniqueBeefPictures} byte-unique; ` +
-      `missing: ${beefCards.filter((card) => !card.loaded).map((card) => `${card.name}=${card.src}`).join(", ")}`);
+    const builderGroups = [
+      { label: "Beef", minimumCount: 18, minimumUnique: 18 },
+      { label: "Chicken", minimumCount: 10, minimumUnique: 10 },
+      { label: "Pork", minimumCount: 14, minimumUnique: 14 },
+      { label: "Seafood", minimumCount: 18, minimumUnique: 18 }
+    ];
+    for (const group of builderGroups) {
+      const result = await inspectBuilderImages(page, group.label, group.minimumCount);
+      check(
+        result.cards.length >= group.minimumCount &&
+          result.loaded === result.cards.length &&
+          result.unique >= group.minimumUnique,
+        `${group.label} choices have loaded, distinct pictures`,
+        `${result.cards.length} choices, ${result.loaded} loaded, ${result.unique} byte-unique; ` +
+        result.cards.map((card) => (
+          `${card.name}=${card.src}#${card.hash.slice(0, 8)}`
+        )).join("; ")
+      );
+    }
     console.error("CHECKPOINT builder");
 
     await clickView(page, "groceries");

@@ -68,6 +68,13 @@ try {
 
 const provenance = await readJson(provenanceFile, []);
 const aliases = await readJson(aliasesFile, {});
+const provenanceSources = new Set(
+  provenance
+    .filter((record) => String(record.sourceUrl || "").trim())
+    .map((record) => normalizedImageName(record.file))
+    .filter((name) => imageNames.includes(name)),
+);
+const recordedSources = new Set([...referenced, ...provenanceSources]);
 const approved = new Set(
   provenance
     .filter(isCompleteApproval)
@@ -85,7 +92,9 @@ const summary = {
   duplicateFiles: imageNames.length - hashes.size,
   imageAliases: Object.keys(aliases).length,
   referencedByExistingNotes: referenced.size,
-  missingAnySourceRecord: imageNames.length - referenced.size,
+  provenanceRecords: provenanceSources.size,
+  recordedSources: recordedSources.size,
+  missingAnySourceRecord: imageNames.length - recordedSources.size,
   approvedForRelease: approved.size,
   unresolvedForRelease: imageNames.length - approved.size,
   staleApprovedRecords: staleApprovals.length,
@@ -96,7 +105,9 @@ console.log(`  Files: ${summary.totalImages}`);
 console.log(`  Byte-for-byte unique: ${summary.uniqueImages}`);
 console.log(`  Duplicate files: ${summary.duplicateFiles}`);
 console.log(`  Ingredient aliases: ${summary.imageAliases}`);
-console.log(`  Existing source references: ${summary.referencedByExistingNotes}`);
+console.log(`  Legacy source references: ${summary.referencedByExistingNotes}`);
+console.log(`  Formal provenance records: ${summary.provenanceRecords}`);
+console.log(`  Files with any source record: ${summary.recordedSources}`);
 console.log(`  Missing any source record: ${summary.missingAnySourceRecord}`);
 console.log(`  Fully approved for release: ${summary.approvedForRelease}`);
 console.log(`  Unresolved for release: ${summary.unresolvedForRelease}`);

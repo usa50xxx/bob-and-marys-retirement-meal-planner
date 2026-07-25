@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/pork-cuts-v1.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "pork_chops", "label": "Bone-in pork chops" },
+    { "key": "pork_roast", "label": "Tied pork roast" },
+    { "key": "pork_tenderloin", "label": "Pork tenderloin" },
+    { "key": "pork_butt", "label": "Boston butt pork roast" },
+    { "key": "pork_shoulder", "label": "Pork shoulder roast" },
+    { "key": "pork_loin", "label": "Center-cut pork loin roast" },
+    { "key": "pork_belly", "label": "Pork belly" },
+    { "key": "pork_ribs", "label": "Pork ribs" }
+  ]
+}

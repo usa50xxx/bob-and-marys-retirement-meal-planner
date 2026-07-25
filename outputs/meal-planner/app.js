@@ -1556,10 +1556,18 @@ function renderMealBuilder() {
     });
   } else if (!builderState.kind) {
     builderQuestion.textContent = `What kind of ${builderOptions[builderState.main].label.toLowerCase()}?`;
-    renderChoiceButtons(mainChoiceButtons, builderOptions[builderState.main].kinds, builderState.kind, (key) => {
-      builderState.kind = key;
-      renderMealBuilder();
-    });
+    renderChoiceButtons(
+      mainChoiceButtons,
+      builderOptions[builderState.main].kinds,
+      builderState.kind,
+      (key) => {
+        builderState.kind = key;
+        renderMealBuilder();
+      },
+      "",
+      false,
+      builderState.main
+    );
   } else if (!builderState.style) {
     builderQuestion.textContent = "How do you want to cook it?";
     renderChoiceButtons(mainChoiceButtons, builderStyles, builderState.style, (key) => {
@@ -1605,7 +1613,15 @@ function mealBuilderTrail() {
   return parts.length ? `Choices: ${parts.join(" > ")}` : "";
 }
 
-function renderChoiceButtons(container, choices, selected, onClick, emptyText = "", disabled = false) {
+function renderChoiceButtons(
+  container,
+  choices,
+  selected,
+  onClick,
+  emptyText = "",
+  disabled = false,
+  imageGroup = ""
+) {
   container.innerHTML = "";
   const entries = Object.entries(choices);
   if (!entries.length || disabled) {
@@ -1620,7 +1636,7 @@ function renderChoiceButtons(container, choices, selected, onClick, emptyText = 
     button.dataset.choiceKey = key;
     button.className = `choice-button ${selected === key ? "active" : ""}`;
     const image = document.createElement("img");
-    image.src = choiceImageFor(key, displayLabel);
+    image.src = choiceImageFor(key, displayLabel, imageGroup);
     image.alt = "";
     image.onerror = () => {
       image.onerror = null;
@@ -1634,7 +1650,57 @@ function renderChoiceButtons(container, choices, selected, onClick, emptyText = 
   });
 }
 
-function choiceImageFor(key, label) {
+function choiceImageFor(key, label, group = "") {
+  const groupChoiceMap = {
+    chicken: {
+      breast: "chicken breast",
+      thighs: "chicken thighs",
+      whole_chicken: "whole chicken",
+      leg_quarters: "chicken leg quarters",
+      half: "half chicken",
+      cutlets: "chicken cutlets",
+      tenders: "chicken tenders",
+      ground_chicken: "ground chicken",
+      drumsticks: "drumsticks",
+      wings: "wings"
+    },
+    pork: {
+      chops: "pork chops",
+      roast: "pork roast",
+      tenderloin: "pork tenderloin",
+      pork_butt: "pork butt",
+      pork_shoulder: "pork shoulder",
+      pork_loin: "pork loin",
+      pork_belly: "pork belly",
+      ribs: "pork ribs",
+      baby_back_ribs: "baby back ribs",
+      spare_ribs: "spare ribs",
+      ground_pork: "ground pork",
+      sausage: "pork sausage",
+      bacon: "bacon",
+      ham: "ham"
+    },
+    fish: {
+      salmon: "salmon",
+      salmon_fillets: "salmon fillets",
+      cod: "cod",
+      haddock: "haddock",
+      halibut: "halibut",
+      flounder: "flounder",
+      catfish: "catfish",
+      trout: "trout",
+      shrimp: "shrimp",
+      jumbo_shrimp: "jumbo shrimp",
+      tuna: "tuna steaks",
+      crab_cakes: "crab cakes",
+      scallops: "scallops",
+      tilapia: "tilapia",
+      lobster: "lobster",
+      mussels: "mussels",
+      clams: "clams",
+      fish_fillets: "fish fillets"
+    }
+  };
   const choiceMap = {
     beef: "beef",
     hamburger: "ground beef",
@@ -1700,7 +1766,7 @@ function choiceImageFor(key, label) {
     grill: "beef",
     slow: "broth"
   };
-  return ingredientImageUrl(choiceMap[key] || label);
+  return ingredientImageUrl(groupChoiceMap[group]?.[key] || choiceMap[key] || label);
 }
 
 function renderBuilderListEditor() {
@@ -2781,14 +2847,20 @@ function ingredientImageKey(name) {
     ["corned beef", "corned_beef"],
     ["ribeye", "ribeye"],
     ["sirloin", "sirloin"],
+    ["tuna steak", "tuna_steaks"],
+    ["pork steak", "pork_steak"],
+    ["ham steak", "ham_steak"],
     ["beef steak", "beef_steak"],
     ["steak", "beef_steak"],
     ["chuck roast", "chuck_roast"],
     ["brisket", "brisket"],
     ["stew meat", "stew_meat"],
+    ["pork roast", "pork_roast"],
     ["roast", "beef_roast"],
     ["hamburger", "ground_beef"],
     ["beef", "beef"],
+    ["half chicken", "half_chicken"],
+    ["chicken tender", "chicken_tenders"],
     ["chicken breast", "chicken_breast"],
     ["chicken thigh", "chicken_thighs"],
     ["whole chicken", "whole_chicken"],
@@ -2806,6 +2878,8 @@ function ingredientImageKey(name) {
     ["drumstick", "drumsticks"],
     ["wing", "wings"],
     ["chicken", "chicken"],
+    ["pork tenderloin", "pork_tenderloin"],
+    ["pork rib", "pork_ribs"],
     ["pork chop", "pork_chops"],
     ["pork steak", "pork_steak"],
     ["pork butt", "pork_butt"],
@@ -2997,24 +3071,33 @@ function ingredientImageKey(name) {
     ["pesto", "pesto"],
     ["enchilada sauce", "enchilada_sauce"],
     ["taco sauce", "taco_sauce"],
+    ["smoked salmon", "smoked_salmon"],
+    ["salmon fillet", "salmon_fillets"],
     ["salmon", "salmon"],
     ["catfish", "catfish"],
     ["mahi", "mahi_mahi"],
     ["oyster", "oysters"],
     ["calamari", "calamari"],
     ["anchovy", "anchovies"],
+    ["lobster tail", "lobster_tails"],
     ["lobster", "lobster"],
     ["mussel", "mussels"],
     ["clam", "clams"],
     ["crab meat", "crab"],
     ["crab leg", "crab"],
-    ["crab cake", "crab"],
+    ["crab cake", "crab_cakes"],
     ["crab", "crab"],
+    ["sea scallop", "sea_scallops"],
+    ["bay scallop", "bay_scallops"],
     ["scallop", "scallops"],
     ["cod", "cod"],
+    ["tuna steak", "tuna_steaks"],
+    ["canned tuna", "canned_tuna"],
     ["tuna", "tuna"],
+    ["raw shrimp", "raw_shrimp"],
+    ["cooked shrimp", "cooked_shrimp"],
+    ["jumbo shrimp", "jumbo_shrimp"],
     ["shrimp", "shrimp"],
-    ["fish", "fish"],
     ["ground turkey", "ground_turkey"],
     ["turkey leg", "turkey_legs"],
     ["turkey wing", "turkey_wings"],
@@ -3030,19 +3113,11 @@ function ingredientImageKey(name) {
     ["grouper", "grouper"],
     ["trout", "trout"],
     ["swordfish", "swordfish"],
+    ["sea bass fillet", "sea_bass_fillets"],
     ["sea bass", "sea_bass"],
     ["pollock", "pollock"],
     ["sardine", "sardines"],
-    ["smoked salmon", "smoked_salmon"],
-    ["salmon fillet", "salmon_fillets"],
-    ["tuna steak", "tuna_steaks"],
-    ["canned tuna", "canned_tuna"],
-    ["raw shrimp", "raw_shrimp"],
-    ["cooked shrimp", "cooked_shrimp"],
-    ["jumbo shrimp", "jumbo_shrimp"],
-    ["lobster tail", "lobster_tails"],
-    ["sea scallop", "sea_scallops"],
-    ["bay scallop", "bay_scallops"],
+    ["fish", "fish"],
     ["carrot", "carrot"],
     ["celery", "celery"],
     ["chicken broth", "chicken_broth"],
@@ -3071,7 +3146,10 @@ function ingredientImageKey(name) {
     ["bread", "bread"]
   ];
 
-  const found = stockMap.find(([needle]) => cleaned.includes(needle));
+  const found = stockMap.reduce((best, entry) => {
+    if (!cleaned.includes(entry[0])) return best;
+    return !best || entry[0].length > best[0].length ? entry : best;
+  }, null);
   return found ? found[1] : cleaned.split(/\s+/).slice(0, 2).join("_") || "chicken";
 }
 

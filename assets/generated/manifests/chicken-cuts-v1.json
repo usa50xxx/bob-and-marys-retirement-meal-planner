@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/chicken-cuts-v1.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "chicken_breast", "label": "Boneless skinless chicken breast" },
+    { "key": "chicken_thighs", "label": "Bone-in skin-on chicken thighs" },
+    { "key": "whole_chicken", "label": "Whole raw chicken" },
+    { "key": "chicken_leg_quarters", "label": "Chicken leg quarter" },
+    { "key": "half_chicken", "label": "Half chicken" },
+    { "key": "chicken_cutlets", "label": "Chicken breast cutlets" },
+    { "key": "chicken_tenders", "label": "Chicken tenderloins" },
+    { "key": "ground_chicken", "label": "Ground chicken" }
+  ]
+}
