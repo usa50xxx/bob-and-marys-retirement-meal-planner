@@ -5,8 +5,9 @@ param(
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $serverScript = Join-Path $root "outputs\meal-planner\meal-planner-server.ps1"
-$outFile = Join-Path $env:TEMP "bob-mary-recipe-server-out.txt"
-$errFile = Join-Path $env:TEMP "bob-mary-recipe-server-err.txt"
+$temporaryDirectory = [System.IO.Path]::GetTempPath()
+$outFile = Join-Path $temporaryDirectory "bob-mary-recipe-server-out.txt"
+$errFile = Join-Path $temporaryDirectory "bob-mary-recipe-server-err.txt"
 Remove-Item -LiteralPath $outFile, $errFile -Force -ErrorAction SilentlyContinue
 
 $process = Start-Process -FilePath "powershell" -ArgumentList @(
