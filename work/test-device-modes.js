@@ -90,11 +90,25 @@ async function run() {
     const android = await browser.newPage({ ...devices["Pixel 7"], viewport: { width: 412, height: 915 } });
     await android.goto(`${baseUrl}/android.html`, { waitUntil: "networkidle" });
     await android.waitForFunction(() => location.search.includes("device=android") && document.body.dataset.deviceMode === "android");
+    await android.locator("[data-app-view='groceries']").click();
+    await android.locator("#walmartPaste").fill(
+      "Walmart\n1 x Whole Milk $3.49 SKU 12345"
+    );
+    await android.locator("#addWalmartOrder").click();
+    await android.locator(".receipt-review-row").first().waitFor();
+    await android.locator("#commitReceiptItems").click();
     await android.locator("[data-app-view='inventory']").click();
+    await android.waitForSelector(".inventory-food .inventory-remove");
     await android.waitForTimeout(900);
     const stickyNavResult = await android.evaluate(() => ({
       tabsBottom: Math.round(document.querySelector(".app-tabs")?.getBoundingClientRect().bottom || 0),
-      focusedTop: Math.round(document.querySelector("#focusedLayout")?.getBoundingClientRect().top || 0)
+      focusedTop: Math.round(document.querySelector("#focusedLayout")?.getBoundingClientRect().top || 0),
+      inventoryRemoveHeight: Math.round(
+        document.querySelector(".inventory-food .inventory-remove")?.getBoundingClientRect().height || 0
+      ),
+      inventoryDateHeight: Math.round(
+        document.querySelector(".inventory-food .inventory-date input")?.getBoundingClientRect().height || 0
+      )
     }));
     await android.locator("[data-app-view='recipes']").click();
     await android.locator(".recipe-card").first().click();
@@ -169,6 +183,7 @@ async function run() {
     if (iphoneResult.mastheadColumns.split(" ").length > 1 || androidResult.mastheadColumns.split(" ").length > 1) failures.push("Phone masthead did not collapse to one column.");
     if (!iphoneResult.headingVisible || iphoneResult.bodyTextLength < 300) failures.push("iPhone screen did not show the planner content.");
     if (androidResult.focusedTop < androidResult.tabsBottom - 2) failures.push("Sticky phone navigation covers the selected screen.");
+    if (androidResult.inventoryRemoveHeight < 48 || androidResult.inventoryDateHeight < 48) failures.push("Phone inventory controls are too small for touch use.");
     if (!cookingResult.open || !cookingResult.title || !cookingResult.stepText || !cookingResult.ingredientCount) failures.push("Guided cooking did not open with recipe content on Android.");
     if (!cookingResult.ingredientsCollapsed || !cookingResult.ingredientSummaryVisible) failures.push("Guided cooking did not prioritize the current step while keeping ingredients reachable on Android.");
     if (!cookingResult.fitsViewport || !cookingResult.noHorizontalOverflow) failures.push("Guided cooking overflows the Android viewport.");

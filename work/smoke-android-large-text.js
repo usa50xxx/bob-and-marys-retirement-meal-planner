@@ -59,6 +59,7 @@ try {
         document.querySelectorAll("button, a.device-link, input, select, textarea, summary")
       ).filter(visible);
       var clippedText = visibleControls.filter(function (control) {
+        if (!control.matches("button, a.device-link, summary")) return false;
         if (!String(control.textContent || control.value || "").trim()) return false;
         return control.scrollWidth > control.clientWidth + 2
           || control.scrollHeight > control.clientHeight + 2;
@@ -77,21 +78,28 @@ try {
           .trim()
           .slice(0, 80);
       });
-      var buttonHeights = visibleControls
+      var actions = visibleControls
         .filter(function (control) {
           return control.matches("button, a.device-link");
         })
         .map(function (control) {
-          return Math.round(control.getBoundingClientRect().height);
-        });
+          return {
+            label: String(
+              control.getAttribute("aria-label")
+              || control.textContent
+              || control.value
+              || control.tagName
+            ).replace(/\\s+/g, " ").trim().slice(0, 80),
+            height: Math.round(control.getBoundingClientRect().height)
+          };
+        })
+        .sort(function (left, right) { return left.height - right.height; });
       return {
         name: button.getAttribute("data-app-view"),
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         clippedText: clippedText,
         offscreenControls: offscreenControls,
-        minimumActionHeight: buttonHeights.length
-          ? Math.min.apply(Math, buttonHeights)
-          : null
+        minimumAction: actions.length ? actions[0] : null
       };
     });
     document.querySelector('[data-app-view="home"]').click();
@@ -153,9 +161,10 @@ try {
           + view.offscreenControls.join(" | "),
         );
       }
-      if (view.minimumActionHeight !== null && view.minimumActionHeight < 40) {
+      if (view.minimumAction !== null && view.minimumAction.height < 48) {
         throw new Error(
-          `The ${view.name} area has a ${view.minimumActionHeight}px action at 200% text.`,
+          `The ${view.name} area has a ${view.minimumAction.height}px `
+          + `"${view.minimumAction.label}" action at 200% text.`,
         );
       }
     }

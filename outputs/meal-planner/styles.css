@@ -1873,6 +1873,14 @@ body.phone-layout textarea {
   font-size: 16px;
 }
 
+body.phone-layout .inventory-food .inventory-date input {
+  min-height: 48px;
+}
+
+body.phone-layout .inventory-food .inventory-remove {
+  min-height: 50px;
+}
+
 body.phone-layout .masthead {
   grid-template-columns: 1fr;
   gap: 14px;
