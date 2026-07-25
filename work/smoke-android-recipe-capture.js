@@ -216,6 +216,6 @@ Brush the cod with oil and bake for 15 minutes.\`;
 }
 
 run().catch((error) => {
-  console.error(sanitizeForLog(error.stack || error));
+  console.error("Android recipe capture smoke test failed.");
   process.exitCode = 1;
 });

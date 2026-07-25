@@ -101,11 +101,9 @@ assert.equal(
 
 const securityPolicy = fs.readFileSync(".github/SECURITY.md", "utf8");
 assert.match(securityPolicy, /^## Report a vulnerability privately$/m);
-assert.equal(
-  securityPolicy.includes(
-    "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/security/advisories/new",
-  ),
-  true,
+assert.match(
+  securityPolicy,
+  /^\[private vulnerability report\]\(https:\/\/github\.com\/usa50xxx\/bob-and-marys-retirement-meal-planner\/security\/advisories\/new\)$/m,
 );
 assert.match(securityPolicy, /Do not open a public issue/i);
 

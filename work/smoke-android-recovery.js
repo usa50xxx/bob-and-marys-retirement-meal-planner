@@ -156,6 +156,6 @@ async function run() {
 }
 
 run().catch((error) => {
-  console.error(sanitizeForLog(error.stack || error));
+  console.error("Android recovery smoke test failed.");
   process.exitCode = 1;
 });
