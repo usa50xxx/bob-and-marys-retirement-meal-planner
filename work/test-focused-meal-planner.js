@@ -68,6 +68,38 @@ let plannerData = {
   builderStyles: null,
   builderTemplates: {},
   mealCostHistory: [],
+  groceryPriceHistory: [{
+    id: "price-aldi-beef",
+    name: "ground beef",
+    amount: 1,
+    unit: "lb",
+    price: 4,
+    store: "Aldi",
+    itemNumber: "ALDI-BEEF",
+    recordedAt: new Date().toISOString()
+  }, {
+    id: "price-walmart-beef",
+    name: "ground beef",
+    amount: 1,
+    unit: "lb",
+    price: 5,
+    store: "Walmart",
+    itemNumber: "WM-BEEF",
+    recordedAt: new Date().toISOString()
+  }, {
+    id: "price-publix-beef",
+    name: "ground beef",
+    amount: 1,
+    unit: "lb",
+    price: 6,
+    store: "Publix",
+    itemNumber: "PUBLIX-BEEF",
+    recordedAt: new Date().toISOString()
+  }],
+  shoppingSettings: {
+    stores: ["Walmart", "Publix", "Aldi"],
+    assignments: {}
+  },
   weeklyPlan: {}
 };
 
@@ -304,6 +336,59 @@ async function run() {
     console.error("CHECKPOINT plan");
     const weeklyText = await page.locator("#weeklyGroceryGroups").innerText();
     check(/ground beef/i.test(weeklyText) && /Buy\s+1\.5 lb/i.test(weeklyText), "Weekly list calculates Have / Need / Buy", weeklyText.replace(/\s+/g, " "));
+    const comparisonText = await page.locator("#storeComparison").innerText();
+    check(
+      /Walmart[\s\S]*\$10\.00/i.test(comparisonText)
+        && /Publix[\s\S]*\$12\.00/i.test(comparisonText)
+        && /Aldi[\s\S]*Cheapest[\s\S]*\$8\.00/i.test(comparisonText),
+      "Shopping list compares three stores side by side using full packages",
+      comparisonText.replace(/\s+/g, " ").slice(0, 500)
+    );
+    check(
+      await page.locator("[data-shopping-store-choice='Aldi']:checked").count() === 1
+        && /ground beef[\s\S]*\$8\.00[\s\S]*2 packages, 1 lb each/i.test(
+          await page.locator("#storeShoppingLists .store-shopping-list", { hasText: "Aldi" }).innerText()
+        ),
+      "Cheapest prices are checked and separated into a store shopping list"
+    );
+    await page.locator("[data-shopping-store-choice='Walmart']").check();
+    await page.waitForTimeout(350);
+    check(
+      /ground beef[\s\S]*\$10\.00/i.test(
+        await page.locator("#storeShoppingLists .store-shopping-list", { hasText: "Walmart" }).innerText()
+      )
+        && await page.locator("[data-shopping-store-choice='Walmart']:checked").count() === 1,
+      "A shopper can move an item to a different store list"
+    );
+    const packageChecks = await page.evaluate(() => {
+      const candidates = [
+        { name: "granulated sugar", amount: 1, unit: "item", price: 2.5, store: "Walmart", source: "Saved receipt", sourceRank: 3, date: new Date().toISOString() },
+        { name: "canned corn", amount: 1, unit: "item", price: 1.25, store: "Walmart", source: "Saved receipt", sourceRank: 3, date: new Date().toISOString() },
+        { name: "ribeye steak", amount: 1, unit: "item", price: 12, store: "Walmart", source: "Saved receipt", sourceRank: 3, date: new Date().toISOString() },
+        { name: "granulated sugar", amount: 4, unit: "lb", price: 6, store: "Aldi", source: "Inventory receipt", sourceRank: 1, date: new Date().toISOString() }
+      ];
+      const sugar = estimateStorePrice({ name: "sugar", buy: 2, unit: "tbsp" }, "Walmart", candidates);
+      const corn = estimateStorePrice({ name: "corn", buy: 20, unit: "oz" }, "Walmart", candidates);
+      const steak = estimateStorePrice({ name: "ribeye steak", buy: 2, unit: "oz" }, "Walmart", candidates);
+      const partialInventory = estimateStorePrice({ name: "sugar", buy: 2, unit: "tbsp" }, "Aldi", candidates);
+      return { sugar, corn, steak, partialInventory };
+    });
+    check(
+      packageChecks.sugar.packageCount === 1
+        && packageChecks.sugar.packageUnit === "lb"
+        && packageChecks.sugar.packageCount * packageChecks.sugar.targetAmount >= 2
+        && packageChecks.corn.packageCount === 2
+        && packageChecks.corn.packageAmount === 12
+        && packageChecks.corn.packageCount * packageChecks.corn.targetAmount >= 20
+        && packageChecks.steak.packageCount === 1
+        && packageChecks.steak.packageUnit === "lb"
+        && packageChecks.steak.packageCount * packageChecks.steak.targetAmount >= 2
+        && packageChecks.partialInventory.packageAmount === 1
+        && packageChecks.partialInventory.packageUnit === "lb"
+        && packageChecks.partialInventory.packagePrice === 1.5,
+      "Package rounding always buys the required amount or extra",
+      JSON.stringify(packageChecks)
+    );
     await page.locator("[data-week-recipe='tuesday']").selectOption("test-burgers");
     await page.locator("[data-week-servings='tuesday']").fill("2");
     await page.waitForTimeout(450);
@@ -530,6 +615,12 @@ async function run() {
     await rows.first().locator(".receipt-best-by-date").fill(dateFromToday(2));
     await page.locator("#commitReceiptItems").click();
     await page.waitForTimeout(400);
+    check(
+      ["Walmart", "Publix", "Aldi"].every((store) =>
+        plannerData.groceryPriceHistory.some((item) => item.store === store && item.recordedAt)
+      ),
+      "Approved receipts save dated prices for future store comparisons"
+    );
     console.error("CHECKPOINT receipt");
 
     await clickView(page, "inventory");
@@ -678,7 +769,7 @@ async function run() {
 
     check(errors.length === 0, "No browser JavaScript errors", errors.join(" | "));
     check(badResponses.length === 0, "No failed local asset requests", badResponses.join(" | "));
-    check(plannerData.schemaVersion === 5, "Planner data saves with the current schema");
+    check(plannerData.schemaVersion === 6, "Planner data saves with the current schema");
     console.error("CHECKPOINT complete");
 
     console.log(JSON.stringify({ passed: results.length, results }, null, 2));

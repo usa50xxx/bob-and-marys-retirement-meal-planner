@@ -76,6 +76,22 @@
     count: { dimension: "count", factor: 1 }
   };
 
+  const INGREDIENT_EQUIVALENTS = [
+    { words: ["sugar"], weightAmount: 1, weightUnit: "lb", volumeAmount: 2.2, volumeUnit: "cup" },
+    { words: ["flour"], weightAmount: 5, weightUnit: "lb", volumeAmount: 17, volumeUnit: "cup" },
+    { words: ["rice"], weightAmount: 1, weightUnit: "lb", volumeAmount: 2.3, volumeUnit: "cup" },
+    { words: ["corn"], weightAmount: 12, weightUnit: "oz", volumeAmount: 1.25, volumeUnit: "cup" },
+    { words: ["cream cheese"], weightAmount: 8, weightUnit: "oz", volumeAmount: 0.9, volumeUnit: "cup" },
+    { words: ["sour cream"], weightAmount: 16, weightUnit: "oz", volumeAmount: 1.75, volumeUnit: "cup" },
+    { words: ["cheddar", "mozzarella", "parmesan", "cheese"], weightAmount: 8, weightUnit: "oz", volumeAmount: 1.75, volumeUnit: "cup" },
+    { words: ["butter"], weightAmount: 1, weightUnit: "lb", volumeAmount: 2, volumeUnit: "cup" },
+    { words: ["breadcrumbs"], weightAmount: 15, weightUnit: "oz", volumeAmount: 3.5, volumeUnit: "cup" },
+    { words: ["oats", "oatmeal"], weightAmount: 42, weightUnit: "oz", volumeAmount: 13, volumeUnit: "cup" },
+    { words: ["salt"], weightAmount: 26, weightUnit: "oz", volumeAmount: 42, volumeUnit: "tbsp" },
+    { words: ["black pepper"], weightAmount: 3, weightUnit: "oz", volumeAmount: 18, volumeUnit: "tbsp" },
+    { words: ["onion powder", "garlic powder", "paprika", "cumin", "oregano", "basil", "seasoning"], weightAmount: 2.5, weightUnit: "oz", volumeAmount: 10, volumeUnit: "tbsp" }
+  ];
+
   const STOP_WORDS = new Set([
     "and", "the", "with", "fresh", "frozen", "organic", "great", "value",
     "boneless", "skinless", "shredded", "large", "small", "medium", "favorite"
@@ -173,6 +189,37 @@
     return (value * fromInfo.factor) / toInfo.factor;
   }
 
+  function ingredientEquivalent(name) {
+    const normalized = normalizeFoodName(name);
+    return INGREDIENT_EQUIVALENTS.find((entry) =>
+      entry.words.some((word) =>
+        normalized === word
+        || normalized.startsWith(`${word} `)
+        || normalized.endsWith(` ${word}`)
+        || normalized.includes(` ${word} `)
+      )
+    ) || null;
+  }
+
+  function convertIngredientAmount(amount, fromUnit, toUnit, ingredientName) {
+    const direct = convertAmount(amount, fromUnit, toUnit);
+    if (direct !== null) return direct;
+
+    const equivalent = ingredientEquivalent(ingredientName);
+    if (!equivalent) return null;
+    const fromWeight = convertAmount(amount, fromUnit, equivalent.weightUnit);
+    if (fromWeight !== null) {
+      const volume = (fromWeight / equivalent.weightAmount) * equivalent.volumeAmount;
+      return convertAmount(volume, equivalent.volumeUnit, toUnit);
+    }
+    const fromVolume = convertAmount(amount, fromUnit, equivalent.volumeUnit);
+    if (fromVolume !== null) {
+      const weight = (fromVolume / equivalent.volumeAmount) * equivalent.weightAmount;
+      return convertAmount(weight, equivalent.weightUnit, toUnit);
+    }
+    return null;
+  }
+
   function normalizeFoodName(value) {
     return String(value || "")
       .toLowerCase()
@@ -216,7 +263,12 @@
     return flattenStorage(storage)
       .map((item) => {
         const score = nameMatchScore(name, item.name);
-        const conversion = convertAmount(1, item.unit || "", desiredUnit || item.unit || "");
+        const conversion = convertIngredientAmount(
+          1,
+          item.unit || "",
+          desiredUnit || item.unit || "",
+          name
+        );
         return { item, score, compatible: conversion !== null };
       })
       .filter((entry) => entry.score >= 55)
@@ -294,7 +346,12 @@
     const match = matches[0] || findBestInventoryItem(ingredient?.name, storage, unit);
     const lots = matches.map((item) => ({
       item,
-      have: convertAmount(cleanNumber(item.amount, 0), item.unit || "", unit) || 0,
+      have: convertIngredientAmount(
+        cleanNumber(item.amount, 0),
+        item.unit || "",
+        unit,
+        ingredient?.name
+      ) || 0,
       price: cleanNumber(item.price, 0)
     }));
     const compatible = lots.length > 0;
@@ -312,10 +369,11 @@
     lots.forEach((lot) => {
       if (remainingNeed <= 0.0001 || lot.have <= 0) return;
       const requestedAmount = Math.min(remainingNeed, lot.have);
-      const storedAmount = convertAmount(
+      const storedAmount = convertIngredientAmount(
         requestedAmount,
         unit,
-        lot.item.unit || ""
+        lot.item.unit || "",
+        ingredient?.name
       );
       if (storedAmount === null) return;
 
@@ -456,6 +514,7 @@
     cleanNumber,
     consumeIngredients,
     convertAmount,
+    convertIngredientAmount,
     daysUntilBestBy,
     expiryState,
     findBestInventoryItem,

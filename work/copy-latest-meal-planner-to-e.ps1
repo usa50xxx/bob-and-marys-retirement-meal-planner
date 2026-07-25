@@ -43,7 +43,6 @@ $topLevelFiles = @(
   "README.txt",
   "Start Meal Planner.bat",
   "Start Meal Planner for Phones.bat",
-  "Start Meal Planner From Drive.bat",
   "Start Supperloom.bat",
   "Start Supperloom for Phones.bat",
   "autorun.inf",
@@ -99,6 +98,22 @@ foreach ($file in $rootStarterFiles) {
   $sourceFile = Join-Path $driveRootSource $file
   if (Test-Path -LiteralPath $sourceFile -PathType Leaf) {
     Copy-Item -LiteralPath $sourceFile -Destination $rootFile -Force
+  }
+}
+
+$obsoleteDistributionFiles = @(
+  "E:\Start Meal Planner.bat",
+  "E:\Start Meal Planner.zip",
+  "E:\Meal Planner\Start Meal Planner From Drive.bat"
+)
+
+foreach ($obsoleteFile in $obsoleteDistributionFiles) {
+  $resolvedParent = [System.IO.Path]::GetFullPath((Split-Path -Parent $obsoleteFile))
+  if (-not $resolvedParent.StartsWith("E:\", [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "Refusing to remove an obsolete file outside drive E: $obsoleteFile"
+  }
+  if (Test-Path -LiteralPath $obsoleteFile -PathType Leaf) {
+    Remove-Item -LiteralPath $obsoleteFile -Force
   }
 }
 

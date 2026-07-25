@@ -63,6 +63,55 @@ const sampleRecipes = Array.isArray(window.SUPPERLOOM_STARTER_RECIPES)
   ? window.SUPPERLOOM_STARTER_RECIPES
   : fallbackRecipes;
 const STARTER_CATALOG_VERSION = 1;
+const SHOPPING_STORE_CHOICES = [
+  "Walmart",
+  "Publix",
+  "Aldi",
+  "Kroger",
+  "Target",
+  "Costco",
+  "Sam's Club",
+  "Winn-Dixie",
+  "Whole Foods"
+];
+const DEFAULT_SHOPPING_STORES = ["Walmart", "Publix", "Aldi"];
+const SHOPPING_PACKAGE_DEFAULTS = [
+  { words: ["corn"], amount: 12, unit: "oz", container: "can", yieldAmount: 1.25, yieldUnit: "cup" },
+  { words: ["green beans", "peas", "kidney beans", "black beans", "white beans", "baked beans", "diced tomatoes", "stewed tomatoes"], amount: 15, unit: "oz", container: "can" },
+  { words: ["tomato paste"], amount: 6, unit: "oz", container: "can" },
+  { words: ["tomato sauce", "marinara sauce", "pasta sauce"], amount: 24, unit: "oz", container: "jar" },
+  { words: ["tuna"], amount: 5, unit: "oz", container: "can" },
+  { words: ["cream of mushroom soup", "tomato soup", "condensed soup"], amount: 10.5, unit: "oz", container: "can" },
+  { words: ["steak", "ground beef", "hamburger", "chicken", "pork", "fish", "salmon", "shrimp"], amount: 1, unit: "lb", container: "package" },
+  { words: ["bacon", "sausage"], amount: 1, unit: "lb", container: "package" },
+  { words: ["deli ham", "deli turkey"], amount: 8, unit: "oz", container: "package" },
+  { words: ["spaghetti", "pasta", "noodles", "macaroni", "ziti"], amount: 16, unit: "oz", container: "box" },
+  { words: ["cream cheese"], amount: 8, unit: "oz", container: "package" },
+  { words: ["shredded cheese", "cheddar", "mozzarella", "parmesan"], amount: 8, unit: "oz", container: "package", yieldAmount: 1.75, yieldUnit: "cup" },
+  { words: ["sour cream"], amount: 16, unit: "oz", container: "container", yieldAmount: 1.75, yieldUnit: "cup" },
+  { words: ["sugar"], amount: 1, unit: "lb", container: "bag", yieldAmount: 2.2, yieldUnit: "cup" },
+  { words: ["flour"], amount: 5, unit: "lb", container: "bag", yieldAmount: 17, yieldUnit: "cup" },
+  { words: ["rice"], amount: 1, unit: "lb", container: "bag", yieldAmount: 2.3, yieldUnit: "cup" },
+  { words: ["breadcrumbs"], amount: 15, unit: "oz", container: "container", yieldAmount: 3.5, yieldUnit: "cup" },
+  { words: ["oats", "oatmeal"], amount: 42, unit: "oz", container: "container", yieldAmount: 13, yieldUnit: "cup" },
+  { words: ["cereal"], amount: 18, unit: "oz", container: "box" },
+  { words: ["butter"], amount: 1, unit: "lb", container: "box", yieldAmount: 2, yieldUnit: "cup" },
+  { words: ["potatoes"], amount: 5, unit: "lb", container: "bag" },
+  { words: ["eggs"], amount: 12, unit: "count", container: "carton" },
+  { words: ["tortillas"], amount: 10, unit: "count", container: "package" },
+  { words: ["hamburger buns", "hot dog buns"], amount: 8, unit: "count", container: "package" },
+  { words: ["bread"], amount: 20, unit: "count", container: "loaf" },
+  { words: ["taco seasoning", "onion soup mix", "fajita seasoning"], amount: 1, unit: "item", container: "packet" },
+  { words: ["milk"], amount: 1, unit: "gallon", container: "jug" },
+  { words: ["broth", "stock"], amount: 32, unit: "fl oz", container: "carton" },
+  { words: ["ketchup"], amount: 20, unit: "fl oz", container: "bottle" },
+  { words: ["mayonnaise", "mayo"], amount: 30, unit: "fl oz", container: "jar" },
+  { words: ["mustard", "barbecue sauce", "bbq sauce", "salsa"], amount: 16, unit: "fl oz", container: "bottle" },
+  { words: ["salt"], amount: 26, unit: "oz", container: "container", yieldAmount: 42, yieldUnit: "tbsp" },
+  { words: ["black pepper"], amount: 3, unit: "oz", container: "container", yieldAmount: 18, yieldUnit: "tbsp" },
+  { words: ["onion powder", "garlic powder", "paprika", "cumin", "oregano", "basil", "seasoning"], amount: 2.5, unit: "oz", container: "container", yieldAmount: 10, yieldUnit: "tbsp" },
+  { words: ["cooking oil", "vegetable oil", "olive oil", "canola oil"], amount: 48, unit: "fl oz", container: "bottle" }
+];
 
 let planner;
 let recipes;
@@ -73,6 +122,8 @@ let builderTemplates;
 let mealCostHistory;
 let weeklyPlan;
 let inventorySettings;
+let groceryPriceHistory;
+let shoppingSettings;
 let selectedRecipeId = null;
 let visualRecipeIndex = 0;
 let lastRecipeSpinAt = 0;
@@ -147,6 +198,11 @@ const weeklyGroceryGroups = document.querySelector("#weeklyGroceryGroups");
 const clearWeeklyPlan = document.querySelector("#clearWeeklyPlan");
 const printWeeklyList = document.querySelector("#printWeeklyList");
 const copyWeeklyList = document.querySelector("#copyWeeklyList");
+const shoppingStoreSelectors = document.querySelectorAll("[data-shopping-store]");
+const storeComparisonSummary = document.querySelector("#storeComparisonSummary");
+const storeComparisonRows = document.querySelector("#storeComparisonRows");
+const storeShoppingLists = document.querySelector("#storeShoppingLists");
+const addComparisonReceipt = document.querySelector("#addComparisonReceipt");
 const pasteRecipeCard = document.querySelector("#pasteRecipeCard");
 const recipeUrlInput = document.querySelector("#recipeUrlInput");
 const readRecipeUrl = document.querySelector("#readRecipeUrl");
@@ -300,6 +356,15 @@ deleteBuilderChoice.addEventListener("click", deleteCurrentBuilderChoice);
 clearWeeklyPlan.addEventListener("click", clearWeekPlan);
 printWeeklyList.addEventListener("click", printWeeklyGroceryList);
 copyWeeklyList.addEventListener("click", copyWeeklyGroceryList);
+shoppingStoreSelectors.forEach((select) => {
+  select.addEventListener("change", () => updateShoppingStore(Number(select.dataset.shoppingStore), select.value));
+});
+storeComparisonRows.addEventListener("change", handleStoreAssignmentChange);
+addComparisonReceipt.addEventListener("click", () => {
+  setAppView("groceries", { focus: false });
+  receiptImportCard.scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => walmartPaste.focus(), 350);
+});
 askFoodAi.addEventListener("click", answerFoodAi);
 foodAiQuestion.addEventListener("keydown", (event) => {
   if (event.key === "Enter") answerFoodAi();
@@ -420,6 +485,8 @@ function loadPlanner() {
       mealCostHistory: [],
       weeklyPlan: normalizeWeeklyPlan(),
       inventorySettings: normalizeInventorySettings(),
+      groceryPriceHistory: [],
+      shoppingSettings: normalizeShoppingSettings(),
       starterCatalogVersion: STARTER_CATALOG_VERSION,
       starterCatalogMigrated: true
     };
@@ -439,6 +506,8 @@ function plannerDataFromSource(parsed) {
     mealCostHistory: normalizeMealCostHistory(parsed.mealCostHistory),
     weeklyPlan: normalizeWeeklyPlan(parsed.weeklyPlan),
     inventorySettings: normalizeInventorySettings(parsed.inventorySettings),
+    groceryPriceHistory: normalizeGroceryPriceHistory(parsed.groceryPriceHistory),
+    shoppingSettings: normalizeShoppingSettings(parsed.shoppingSettings),
     starterCatalogVersion: STARTER_CATALOG_VERSION,
     starterCatalogMigrated,
     savedAt: String(parsed.savedAt || "")
@@ -865,6 +934,8 @@ function applyPlannerData(data) {
   mealCostHistory = normalizeMealCostHistory(source.mealCostHistory);
   weeklyPlan = normalizeWeeklyPlan(source.weeklyPlan);
   inventorySettings = normalizeInventorySettings(source.inventorySettings);
+  groceryPriceHistory = normalizeGroceryPriceHistory(source.groceryPriceHistory);
+  shoppingSettings = normalizeShoppingSettings(source.shoppingSettings);
   return starterCatalogMigrated;
 }
 
@@ -971,7 +1042,7 @@ function writePlannerLocally(data, options = {}) {
 
 function currentPlannerData() {
   return {
-    schemaVersion: 5,
+    schemaVersion: 6,
     starterCatalogVersion: STARTER_CATALOG_VERSION,
     recipes,
     foodStorage,
@@ -981,6 +1052,8 @@ function currentPlannerData() {
     mealCostHistory,
     weeklyPlan,
     inventorySettings,
+    groceryPriceHistory,
+    shoppingSettings,
     savedAt: new Date().toISOString()
   };
 }
@@ -1089,7 +1162,8 @@ function normalizeFoodItem(item) {
     price: cleanNumber(item.price, 0),
     itemNumber: item.itemNumber || "",
     store: item.store || "",
-    bestBy: MealPlannerFood.normalizeDateValue(item.bestBy || item.expirationDate || item.expires)
+    bestBy: MealPlannerFood.normalizeDateValue(item.bestBy || item.expirationDate || item.expires),
+    purchasedAt: validTimestamp(item.purchasedAt)
   };
 }
 
@@ -1110,6 +1184,8 @@ function defaultPlannerData() {
     mealCostHistory: [],
     weeklyPlan: normalizeWeeklyPlan(),
     inventorySettings: normalizeInventorySettings(),
+    groceryPriceHistory: [],
+    shoppingSettings: normalizeShoppingSettings(),
     starterCatalogVersion: STARTER_CATALOG_VERSION
   };
 }
@@ -1163,6 +1239,46 @@ function normalizeMealCostHistory(saved) {
     date: entry.date || new Date().toISOString(),
     items: Array.isArray(entry.items) ? entry.items : []
   }));
+}
+
+function validTimestamp(value) {
+  const text = String(value || "");
+  return Number.isFinite(Date.parse(text)) ? text : "";
+}
+
+function normalizeGroceryPriceHistory(saved) {
+  if (!Array.isArray(saved)) return [];
+  return saved
+    .map((entry) => ({
+      id: entry?.id || crypto.randomUUID(),
+      name: String(entry?.name || "").trim(),
+      amount: cleanNumber(entry?.amount, 0),
+      unit: String(entry?.unit || "").trim(),
+      price: cleanNumber(entry?.price, 0),
+      store: String(entry?.store || "").trim(),
+      itemNumber: String(entry?.itemNumber || "").trim(),
+      recordedAt: validTimestamp(entry?.recordedAt) || new Date().toISOString()
+    }))
+    .filter((entry) => entry.name && entry.amount > 0 && entry.price > 0 && entry.store)
+    .slice(0, 1000);
+}
+
+function normalizeShoppingSettings(saved) {
+  const sourceStores = Array.isArray(saved?.stores) ? saved.stores : [];
+  const stores = [];
+  [...sourceStores, ...DEFAULT_SHOPPING_STORES].forEach((store) => {
+    const choice = SHOPPING_STORE_CHOICES.find((candidate) =>
+      normalizeName(candidate) === normalizeName(store)
+    );
+    if (choice && !stores.includes(choice) && stores.length < 3) stores.push(choice);
+  });
+  const assignments = {};
+  if (saved?.assignments && typeof saved.assignments === "object") {
+    Object.entries(saved.assignments).forEach(([key, store]) => {
+      if (typeof store === "string" && store.trim()) assignments[key] = store.trim();
+    });
+  }
+  return { stores, assignments };
 }
 
 function normalizeWeeklyPlan(saved) {
@@ -1361,6 +1477,8 @@ builderTemplates = planner.builderTemplates;
 mealCostHistory = planner.mealCostHistory;
 weeklyPlan = planner.weeklyPlan;
 inventorySettings = planner.inventorySettings;
+groceryPriceHistory = planner.groceryPriceHistory;
+shoppingSettings = planner.shoppingSettings;
 selectedRecipeId = recipes[0]?.id || null;
 cookingSession = loadCookingSession();
 lastSaveReceipt = loadSaveReceipt();
@@ -1547,10 +1665,12 @@ function weeklyGroceryItems() {
 function renderWeeklyGroceryList() {
   const items = weeklyGroceryItems();
   weeklyGroceryGroups.innerHTML = "";
+  renderShoppingStoreSelectors();
 
   if (!items.length) {
     weeklyGrocerySummary.textContent = "Plan meals above to build a grocery list.";
     weeklyGroceryGroups.innerHTML = '<p class="empty">No weekly groceries yet.</p>';
+    renderStorePriceComparison([]);
     return;
   }
 
@@ -1577,6 +1697,412 @@ function renderWeeklyGroceryList() {
       });
     weeklyGroceryGroups.appendChild(section);
   });
+  renderStorePriceComparison(items);
+}
+
+function renderShoppingStoreSelectors() {
+  shoppingStoreSelectors.forEach((select, index) => {
+    if (!select.options.length) {
+      SHOPPING_STORE_CHOICES.forEach((store) => {
+        const option = document.createElement("option");
+        option.value = store;
+        option.textContent = store;
+        select.appendChild(option);
+      });
+    }
+    select.value = shoppingSettings.stores[index] || DEFAULT_SHOPPING_STORES[index];
+  });
+}
+
+function updateShoppingStore(index, store) {
+  if (!Number.isInteger(index) || index < 0 || index > 2 || !SHOPPING_STORE_CHOICES.includes(store)) return;
+  const stores = shoppingSettings.stores.slice();
+  if (stores.some((current, currentIndex) => currentIndex !== index && current === store)) {
+    window.alert(`${store} is already in the comparison. Choose a different store.`);
+    renderShoppingStoreSelectors();
+    return;
+  }
+  captureUndo("shopping store change");
+  stores[index] = store;
+  shoppingSettings = normalizeShoppingSettings({ ...shoppingSettings, stores });
+  persistRecipes();
+  renderWeeklyGroceryList();
+}
+
+function storeKey(value) {
+  const normalized = normalizeName(value)
+    .replace(/\b(supermarkets?|grocery|marketplace|stores?)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (normalized.includes("wal mart") || normalized.includes("walmart")) return "walmart";
+  if (normalized.includes("publix")) return "publix";
+  if (normalized.includes("aldi")) return "aldi";
+  if (normalized.includes("sam s club") || normalized.includes("sams club")) return "sam s club";
+  if (normalized.includes("winn dixie")) return "winn dixie";
+  if (normalized.includes("whole foods")) return "whole foods";
+  return normalized;
+}
+
+function shoppingItemKey(item) {
+  return `${normalizeName(item.name)}|${MealPlannerFood.normalizeUnit(item.unit || "")}`;
+}
+
+function packageDefaultFor(item) {
+  const name = normalizeName(item.name);
+  return SHOPPING_PACKAGE_DEFAULTS.find((entry) =>
+    entry.words.some((word) =>
+      name === word || name.startsWith(`${word} `) || name.endsWith(` ${word}`) || name.includes(` ${word} `)
+    )
+  ) || null;
+}
+
+function storePriceCandidates() {
+  const receiptHistory = groceryPriceHistory.map((item) => ({
+    ...item,
+    source: "Saved receipt",
+    sourceRank: 3,
+    date: item.recordedAt
+  }));
+  const cookedHistory = mealCostHistory.flatMap((entry) =>
+    (entry.items || []).map((item) => ({
+      ...item,
+      name: item.ingredientName || item.name,
+      source: "Meal history",
+      sourceRank: 2,
+      date: entry.date
+    }))
+  );
+  const inventoryHistory = allFoodItems().map((item) => ({
+    ...item,
+    source: "Inventory receipt",
+    sourceRank: 1,
+    date: item.purchasedAt
+  }));
+  return [...receiptHistory, ...cookedHistory, ...inventoryHistory]
+    .filter((item) =>
+      String(item.name || "").trim()
+      && String(item.store || "").trim()
+      && cleanNumber(item.amount, 0) > 0
+      && cleanNumber(item.price, 0) > 0
+    );
+}
+
+function packageDetailsForCandidate(item, candidate) {
+  const targetUnit = MealPlannerFood.normalizeUnit(item.unit || "");
+  const candidateUnit = MealPlannerFood.normalizeUnit(candidate.unit || "");
+  if (candidate.sourceRank !== 1) {
+    const converted = MealPlannerFood.convertIngredientAmount(
+      cleanNumber(candidate.amount, 0),
+      candidateUnit,
+      targetUnit,
+      item.name
+    );
+    if (converted && converted > 0) {
+      return {
+        targetAmount: converted,
+        amount: cleanNumber(candidate.amount, 0),
+        unit: candidateUnit || candidate.unit || "item",
+        container: "package",
+        assumed: false
+      };
+    }
+  }
+
+  const fallback = packageDefaultFor(item);
+  if (!fallback) return null;
+  const candidatePackageAmount = candidate.sourceRank === 1
+    ? null
+    : MealPlannerFood.convertAmount(
+      cleanNumber(candidate.amount, 0),
+      candidateUnit,
+      fallback.unit
+    );
+  const packageScale = candidatePackageAmount
+    ? candidatePackageAmount / fallback.amount
+    : 1;
+  const displayAmount = candidatePackageAmount || fallback.amount;
+  const displayUnit = candidatePackageAmount ? fallback.unit : fallback.unit;
+  const fallbackTarget = MealPlannerFood.convertIngredientAmount(
+    displayAmount,
+    displayUnit,
+    targetUnit,
+    item.name
+  ) || (fallback.yieldAmount
+    ? MealPlannerFood.convertAmount(
+      fallback.yieldAmount * packageScale,
+      fallback.yieldUnit,
+      targetUnit
+    )
+    : null);
+  if (!fallbackTarget || fallbackTarget <= 0) return null;
+  return {
+    targetAmount: fallbackTarget,
+    amount: displayAmount,
+    unit: displayUnit,
+    container: fallback.container,
+    assumed: true
+  };
+}
+
+function estimateStorePrice(item, store, candidates) {
+  const desiredStore = storeKey(store);
+  const matches = candidates
+    .filter((candidate) => storeKey(candidate.store) === desiredStore)
+    .map((candidate) => {
+      const score = MealPlannerFood.nameMatchScore(item.name, candidate.name);
+      const packageDetails = packageDetailsForCandidate(item, candidate);
+      if (score < 70 || !packageDetails) return null;
+
+      let packagePrice = cleanNumber(candidate.price, 0);
+      if (candidate.sourceRank === 1 && packageDetails.assumed) {
+        const candidateTarget = MealPlannerFood.convertIngredientAmount(
+          cleanNumber(candidate.amount, 0),
+          candidate.unit || "",
+          item.unit || "",
+          item.name
+        );
+        if (candidateTarget) {
+          packagePrice = packageDetails.targetAmount * (packagePrice / candidateTarget);
+        }
+      }
+      const packageCount = Math.max(1, Math.ceil((item.buy / packageDetails.targetAmount) - 0.000001));
+      return {
+        store,
+        score,
+        packageCount,
+        packagePrice,
+        total: packageCount * packagePrice,
+        packageAmount: packageDetails.amount,
+        packageUnit: packageDetails.unit,
+        targetAmount: packageDetails.targetAmount,
+        container: packageDetails.container,
+        assumedPackage: packageDetails.assumed,
+        source: candidate.source,
+        sourceRank: candidate.sourceRank,
+        sourceDate: validTimestamp(candidate.date),
+        itemNumber: candidate.itemNumber || "",
+        recordedName: candidate.name
+      };
+    })
+    .filter(Boolean)
+    .sort((left, right) =>
+      right.score - left.score
+      || right.sourceRank - left.sourceRank
+      || Date.parse(right.sourceDate || 0) - Date.parse(left.sourceDate || 0)
+    );
+  return matches[0] || null;
+}
+
+function packageRecommendation(item) {
+  const fallback = packageDefaultFor(item);
+  if (!fallback) return null;
+  const targetUnit = MealPlannerFood.normalizeUnit(item.unit || "");
+  const targetAmount = MealPlannerFood.convertIngredientAmount(
+    fallback.amount,
+    fallback.unit,
+    targetUnit,
+    item.name
+  ) || (fallback.yieldAmount
+    ? MealPlannerFood.convertAmount(fallback.yieldAmount, fallback.yieldUnit, targetUnit)
+    : null);
+  if (!targetAmount || targetAmount <= 0) return null;
+  const packageCount = Math.max(1, Math.ceil((item.buy / targetAmount) - 0.000001));
+  return {
+    packageCount,
+    packageAmount: fallback.amount,
+    packageUnit: fallback.unit,
+    container: fallback.container,
+    targetAmount
+  };
+}
+
+function packageDescription(estimate) {
+  const count = estimate.packageCount;
+  const container = estimate.container === "package"
+    ? (count === 1 ? "package" : "packages")
+    : `${estimate.container}${count === 1 ? "" : "s"}`;
+  if (
+    ["can", "jar", "packet", "carton", "loaf"].includes(estimate.container)
+    && ["item", "count"].includes(MealPlannerFood.normalizeUnit(estimate.packageUnit))
+    && Number(estimate.packageAmount) === 1
+  ) {
+    return `${count} ${container}`;
+  }
+  return `${count} ${container}, ${formatAmount(estimate.packageAmount)} ${estimate.packageUnit} each`;
+}
+
+function packageCoverageDescription(item, estimate) {
+  const covered = estimate.packageCount * estimate.targetAmount;
+  const extra = Math.max(0, covered - item.buy);
+  return extra > 0.0001
+    ? `Covers ${formatAmount(covered)} ${item.unit || "item"} | ${formatAmount(extra)} extra`
+    : `Covers exactly ${formatAmount(covered)} ${item.unit || "item"}`;
+}
+
+function priceDateText(estimate) {
+  if (!estimate.sourceDate) return estimate.source;
+  return `${estimate.source} ${new Date(estimate.sourceDate).toLocaleDateString()}`;
+}
+
+function storeComparisonRowsFor(items) {
+  const stores = shoppingSettings.stores;
+  const candidates = storePriceCandidates();
+  return items.map((item) => {
+    const estimates = stores.map((store) => estimateStorePrice(item, store, candidates));
+    const available = estimates.filter(Boolean).sort((left, right) => left.total - right.total);
+    const cheapest = available[0] || null;
+    const key = shoppingItemKey(item);
+    const preferredStore = shoppingSettings.assignments[key];
+    const selected = estimates.find((estimate) => estimate?.store === preferredStore) || cheapest;
+    return { item, key, estimates, cheapest, selected };
+  });
+}
+
+function renderStorePriceComparison(items) {
+  storeComparisonRows.innerHTML = "";
+  storeShoppingLists.innerHTML = "";
+  const stores = shoppingSettings.stores;
+
+  if (!items.length) {
+    storeComparisonSummary.textContent = "Add meals to the weekly plan to compare their grocery prices.";
+    storeComparisonRows.innerHTML = '<p class="empty">Store comparisons will appear with the grocery list.</p>';
+    return;
+  }
+
+  const rows = storeComparisonRowsFor(items);
+  const storeTotals = stores.map((store, index) => {
+    const known = rows.map((row) => row.estimates[index]).filter(Boolean);
+    return {
+      store,
+      count: known.length,
+      complete: known.length === rows.length,
+      total: known.reduce((sum, estimate) => sum + estimate.total, 0)
+    };
+  });
+  const completeStores = storeTotals.filter((entry) => entry.complete);
+  const bestCompleteStore = completeStores.slice().sort((a, b) => a.total - b.total)[0] || null;
+  const assignedRows = rows.filter((row) => row.selected);
+  const assignedTotal = assignedRows.reduce((sum, row) => sum + row.selected.total, 0);
+
+  storeComparisonSummary.innerHTML = [
+    ...storeTotals.map((entry) => `
+      <div class="store-total ${bestCompleteStore?.store === entry.store ? "best-total" : ""}">
+        <span>${escapeHtml(entry.store)}</span>
+        <strong>${entry.count ? formatMoney(entry.total) : "No prices yet"}</strong>
+        <small>${entry.complete ? "All items priced" : `${entry.count} of ${rows.length} priced`}</small>
+      </div>
+    `),
+    `
+      <div class="store-total ${assignedRows.length === rows.length ? "best-total" : ""}">
+        <span>Checked lists</span>
+        <strong>${assignedRows.length ? formatMoney(assignedTotal) : "No prices yet"}</strong>
+        <small>${assignedRows.length === rows.length ? "Every item assigned" : `${rows.length - assignedRows.length} need a price`}</small>
+      </div>
+    `
+  ].join("");
+
+  rows.forEach((row) => {
+    const article = document.createElement("article");
+    article.className = "store-comparison-row";
+    article.innerHTML = `
+      <div class="store-comparison-item">
+        <span>${escapeHtml(row.item.name)}</span>
+        <strong>Need ${formatAmount(row.item.buy)} ${escapeHtml(row.item.unit || "item")}</strong>
+        <small>${row.item.have ? `Have ${formatAmount(row.item.have)} ${escapeHtml(row.item.unit || "item")}` : "None in the house"}</small>
+      </div>
+      ${row.estimates.map((estimate, index) => {
+        const store = stores[index];
+        if (!estimate) {
+          return `
+            <div class="store-price-cell unknown">
+              <label class="store-price-choice">
+                <input type="checkbox" disabled aria-label="${escapeHtml(store)} price unavailable for ${escapeHtml(row.item.name)}">
+                <span class="store-price-choice-text">
+                  <span>${escapeHtml(store)}</span>
+                  <strong>Price needed</strong>
+                  <small>Add a receipt</small>
+                </span>
+              </label>
+            </div>
+          `;
+        }
+        const checked = row.selected?.store === store;
+        const cheapest = row.cheapest?.store === store;
+        return `
+          <div class="store-price-cell ${cheapest ? "best-price" : ""}">
+            <label class="store-price-choice">
+              <input
+                type="checkbox"
+                data-shopping-key="${escapeHtml(row.key)}"
+                data-shopping-store-choice="${escapeHtml(store)}"
+                ${checked ? "checked" : ""}
+                aria-label="Put ${escapeHtml(row.item.name)} on the ${escapeHtml(store)} shopping list"
+              >
+              <span class="store-price-choice-text">
+                <span>${escapeHtml(store)}${cheapest ? " | Cheapest" : ""}</span>
+                <strong>${formatMoney(estimate.total)}</strong>
+                <small>${escapeHtml(packageDescription(estimate))}</small>
+                <small>${escapeHtml(packageCoverageDescription(row.item, estimate))}</small>
+                <small>${escapeHtml(priceDateText(estimate))}${estimate.assumedPackage ? " | typical size" : ""}</small>
+              </span>
+            </label>
+          </div>
+        `;
+      }).join("")}
+    `;
+    storeComparisonRows.appendChild(article);
+  });
+
+  renderSeparateStoreLists(rows);
+}
+
+function renderSeparateStoreLists(rows) {
+  const stores = shoppingSettings.stores;
+  const groups = stores.map((store) => ({
+    store,
+    rows: rows.filter((row) => row.selected?.store === store)
+  }));
+  const unpriced = rows.filter((row) => !row.selected);
+
+  [...groups, ...(unpriced.length ? [{ store: "Price needed", rows: unpriced }] : [])].forEach((group) => {
+    const subtotal = group.rows.reduce((sum, row) => sum + cleanNumber(row.selected?.total, 0), 0);
+    const section = document.createElement("section");
+    section.className = `store-shopping-list ${group.rows.length ? "has-items" : ""}`;
+    section.innerHTML = `
+      <h4>
+        ${escapeHtml(group.store)}
+        <span>${subtotal ? formatMoney(subtotal) : ""}</span>
+      </h4>
+      <ul>
+        ${group.rows.length
+          ? group.rows.map((row) => `
+            <li>
+              <span>${escapeHtml(row.item.name)}</span>
+              <strong>${row.selected ? formatMoney(row.selected.total) : "No price"}</strong>
+              <small>${row.selected
+                ? `${escapeHtml(packageDescription(row.selected))} | ${escapeHtml(packageCoverageDescription(row.item, row.selected))}`
+                : (() => {
+                  const recommendation = packageRecommendation(row.item);
+                  return recommendation
+                    ? `${escapeHtml(packageDescription(recommendation))} | ${escapeHtml(packageCoverageDescription(row.item, recommendation))}`
+                    : `Need at least ${formatAmount(row.item.buy)} ${escapeHtml(row.item.unit || "item")}`;
+                })()}</small>
+            </li>
+          `).join("")
+          : '<li class="empty">No items checked for this store.</li>'}
+      </ul>
+    `;
+    storeShoppingLists.appendChild(section);
+  });
+}
+
+function handleStoreAssignmentChange(event) {
+  const input = event.target.closest("[data-shopping-store-choice]");
+  if (!input || input.disabled) return;
+  captureUndo("store list choice");
+  shoppingSettings.assignments[input.dataset.shoppingKey] = input.dataset.shoppingStoreChoice;
+  persistRecipes();
+  renderWeeklyGroceryList();
 }
 
 function groceryCategory(name) {
@@ -4585,13 +5111,32 @@ function addReviewedReceiptItems() {
   }
   const validItems = pendingReceiptItems.slice();
   captureUndo("add groceries");
-  validItems.forEach((item) => addFoodStorageItem(item));
+  const recordedAt = new Date().toISOString();
+  validItems.forEach((item) => {
+    recordGroceryPrice(item, recordedAt);
+    addFoodStorageItem({ ...item, purchasedAt: recordedAt });
+  });
+  groceryPriceHistory = groceryPriceHistory.slice(0, 1000);
   walmartPaste.value = "";
   clearReceiptReview();
   persistRecipes();
   renderMealViews();
   setSaveStatus(`${validItems.length} grocery item${validItems.length === 1 ? "" : "s"} added`, 2200);
   celebrateMachineSuccess();
+}
+
+function recordGroceryPrice(item, recordedAt) {
+  if (cleanNumber(item.price, 0) <= 0 || !String(item.store || "").trim()) return;
+  groceryPriceHistory.unshift({
+    id: crypto.randomUUID(),
+    name: item.name,
+    amount: cleanNumber(item.amount, 1),
+    unit: item.unit || "item",
+    price: cleanNumber(item.price, 0),
+    store: String(item.store).trim(),
+    itemNumber: item.itemNumber || "",
+    recordedAt
+  });
 }
 
 function clearReceiptReview() {
@@ -4610,6 +5155,8 @@ function addFoodStorageItem(item) {
   const existing = list.find((stored) => {
     if (normalizeName(stored.name) !== key) return false;
     if (MealPlannerFood.normalizeDateValue(stored.bestBy) !== bestBy) return false;
+    if (stored.store && item.store && normalizeName(stored.store) !== normalizeName(item.store)) return false;
+    if (stored.itemNumber && item.itemNumber && normalizeName(stored.itemNumber) !== normalizeName(item.itemNumber)) return false;
     return MealPlannerFood.convertAmount(1, item.unit || "", stored.unit || "") !== null;
   });
   if (existing) {
@@ -4622,6 +5169,7 @@ function addFoodStorageItem(item) {
     existing.price = cleanNumber(existing.price, 0) + cleanNumber(item.price, 0);
     existing.itemNumber = existing.itemNumber || item.itemNumber || "";
     existing.store = existing.store || item.store || "";
+    existing.purchasedAt = validTimestamp(item.purchasedAt) || existing.purchasedAt || "";
     return;
   }
 
@@ -4633,7 +5181,8 @@ function addFoodStorageItem(item) {
     price: cleanNumber(item.price, 0),
     itemNumber: item.itemNumber || "",
     store: item.store || "",
-    bestBy
+    bestBy,
+    purchasedAt: validTimestamp(item.purchasedAt)
   });
 }
 
