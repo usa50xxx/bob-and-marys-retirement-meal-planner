@@ -19,6 +19,10 @@ for (const heading of [
 assert.match(notes, /Do not uninstall/i);
 assert.match(notes, /Export backup/);
 assert.match(notes, /Android 7/);
+assert.match(
+  notes,
+  /gh attestation verify RELEASE-FILE\.apk -R usa50xxx\/bob-and-marys-retirement-meal-planner/,
+);
 assert.doesNotMatch(notes, /\b(?:TODO|TBD)\b|<[^>]+>/i);
 assert.match(workflow, /docs\/releases\/\$\{RELEASE_TAG\}\.md/);
 assert.match(workflow, /isDraft/);

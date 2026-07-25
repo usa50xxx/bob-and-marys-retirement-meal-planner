@@ -35,6 +35,15 @@ Normal builds report image provenance progress. Signed release builds use the
 strict audit and stop until every ingredient image has approved redistribution
 metadata.
 
+Repository secret scanning and push protection are enabled. Dependabot
+vulnerability alerts and automatic security updates are enabled, and the
+`Dependency review` workflow blocks pull requests that introduce dependencies
+with moderate-or-higher known vulnerabilities.
+
+Each signed release APK, Android App Bundle, portable website archive, and
+checksum file receives a GitHub artifact attestation. This records verifiable
+build provenance for the exact files produced by the release workflow.
+
 ## One-time signing setup
 
 Create and protect a release keystore before making a release tag. The same key

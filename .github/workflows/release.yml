@@ -13,6 +13,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 concurrency:
   group: release-${{ github.event.inputs.release_tag || github.ref_name }}
@@ -197,6 +199,15 @@ jobs:
           )
           cd dist
           sha256sum *.apk *.aab *.zip > SHA256SUMS.txt
+
+      - name: Attest release files
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
+        with:
+          subject-path: |
+            dist/*.apk
+            dist/*.aab
+            dist/*.zip
+            dist/SHA256SUMS.txt
 
       - name: Upload release workflow artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
