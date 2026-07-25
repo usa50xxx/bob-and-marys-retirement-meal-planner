@@ -78,6 +78,24 @@ async function run() {
     await desktop.waitForSelector(".recipe-showcase");
 
     const iphone = await browser.newPage({ ...devices["iPhone 15"], viewport: { width: 393, height: 852 } });
+    await iphone.addInitScript(() => {
+      window.__sharedRecipe = null;
+      window.__sharedClipboard = "";
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: {
+          writeText: async (value) => {
+            window.__sharedClipboard = value;
+          }
+        }
+      });
+      Object.defineProperty(navigator, "share", {
+        configurable: true,
+        value: async (payload) => {
+          window.__sharedRecipe = payload;
+        }
+      });
+    });
     await iphone.goto(`${baseUrl}/iphone.html`, { waitUntil: "networkidle" });
     await iphone.waitForFunction(() => location.search.includes("device=iphone") && document.body.dataset.deviceMode === "iphone");
     await iphone.waitForSelector("h1", { state: "visible" });
@@ -87,6 +105,20 @@ async function run() {
     await iphone.evaluate(() => window.scrollTo(0, 0));
     await iphone.waitForTimeout(200);
     await iphone.screenshot({ path: screenshotPath, fullPage: false });
+    await iphone.locator("[data-app-view='recipes']").click();
+    await iphone.locator(".recipe-card").first().click();
+    await iphone.locator("#textRecipe").click();
+    await iphone.waitForFunction(() =>
+      /recipe shared/i.test(document.querySelector("#textRecipe")?.textContent || "")
+      && Boolean(window.__sharedRecipe?.text)
+    );
+    const iphoneShareResult = await iphone.evaluate(() => ({
+      title: window.__sharedRecipe?.title || "",
+      text: window.__sharedRecipe?.text || "",
+      clipboard: window.__sharedClipboard,
+      button: document.querySelector("#textRecipe")?.textContent || "",
+      status: document.querySelector("#saveStatus")?.textContent || ""
+    }));
 
     const android = await browser.newPage({ ...devices["Pixel 7"], viewport: { width: 412, height: 915 } });
     await android.goto(`${baseUrl}/android.html`, { waitUntil: "networkidle" });
@@ -216,6 +248,7 @@ async function run() {
       headingVisible: Boolean(document.querySelector("h1")?.getBoundingClientRect().height),
       bodyTextLength: document.body.innerText.trim().length
     }));
+    iphoneResult.share = iphoneShareResult;
 
     const androidLayoutResult = await android.evaluate(() => ({
       mode: document.body.dataset.deviceMode,
@@ -282,6 +315,21 @@ async function run() {
     if (iphoneResult.buttonHeight < 48 || androidResult.buttonHeight < 48) failures.push("Phone buttons are not large enough for touch use.");
     if (iphoneResult.mastheadColumns.split(" ").length > 1 || androidResult.mastheadColumns.split(" ").length > 1) failures.push("Phone masthead did not collapse to one column.");
     if (!iphoneResult.headingVisible || iphoneResult.bodyTextLength < 300) failures.push("iPhone screen did not show the planner content.");
+    if (
+      !iphoneResult.share?.title
+      || !/Ingredients/i.test(iphoneResult.share?.text)
+      || !/Instructions/i.test(iphoneResult.share?.text)
+      || (() => {
+        const parts = (iphoneResult.share?.text.split("\n")[1] || "")
+          .split("|")
+          .map((part) => part.trim())
+          .filter(Boolean);
+        return new Set(parts).size !== parts.length;
+      })()
+      || iphoneResult.share?.clipboard !== iphoneResult.share?.text
+      || !/Recipe shared/i.test(iphoneResult.share?.button)
+      || !/Full recipe shared and copied/i.test(iphoneResult.share?.status)
+    ) failures.push("iPhone recipe sharing did not open the native share handoff with a full recipe.");
     if (androidResult.focusedTop < androidResult.tabsBottom - 2) failures.push("Sticky phone navigation covers the selected screen.");
     if (androidResult.inventoryRemoveHeight < 48 || androidResult.inventoryDateHeight < 48) failures.push("Phone inventory controls are too small for touch use.");
     if (

@@ -424,8 +424,28 @@ async function run() {
     await page.fill("#targetServings", "4");
     const scaledText = await page.locator("#scaledList").innerText();
     check(/2 lb\s+ground beef/i.test(scaledText), "Recipe ingredients scale for four people", scaledText);
+    await page.evaluate(() => {
+      window.__shareAlertMessage = "";
+      window.__originalShareAlert = window.alert;
+      window.alert = (message) => {
+        window.__shareAlertMessage = String(message);
+      };
+    });
     await page.locator("#textRecipe").click();
+    await page.waitForFunction(() =>
+      /recipe copied/i.test(document.querySelector("#textRecipe")?.textContent || "")
+      && /full recipe has been copied/i.test(window.__shareAlertMessage || "")
+    );
     const sharedRecipe = await page.evaluate(() => window.__lastClipboardText);
+    const shareFeedback = await page.evaluate(() => ({
+      alert: window.__shareAlertMessage,
+      button: document.querySelector("#textRecipe")?.textContent || "",
+      status: document.querySelector("#saveStatus")?.textContent || ""
+    }));
+    await page.evaluate(() => {
+      window.alert = window.__originalShareAlert;
+      delete window.__originalShareAlert;
+    });
     check(
       /Test Meatloaf/i.test(sharedRecipe)
         && /Serves 4/i.test(sharedRecipe)
@@ -434,6 +454,13 @@ async function run() {
         && /Instructions/i.test(sharedRecipe),
       "Text recipe prepares a complete scaled message",
       sharedRecipe.replace(/\s+/g, " ").slice(0, 220)
+    );
+    check(
+      /full recipe has been copied/i.test(shareFeedback.alert)
+        && /recipe copied/i.test(shareFeedback.button)
+        && /full recipe copied/i.test(shareFeedback.status),
+      "Computer sharing gives clear visible instructions",
+      JSON.stringify(shareFeedback)
     );
     await page.evaluate(() => renderPrintSheet());
     await page.emulateMedia({ media: "print" });

@@ -5667,6 +5667,33 @@ async function textSelectedRecipe() {
   const phoneMode =
     document.body.classList.contains("phone-layout")
     || ["iphone", "android"].includes(document.body.dataset.deviceMode);
+  let copied = false;
+
+  try {
+    await navigator.clipboard.writeText(message);
+    copied = true;
+  } catch {
+    copied = false;
+  }
+
+  if (phoneMode && typeof navigator.share === "function") {
+    try {
+      await navigator.share({
+        title: recipe.name,
+        text: message
+      });
+      showTextRecipeButtonStatus("Recipe shared");
+      setSaveStatus(copied ? "Full recipe shared and copied" : "Full recipe shared", 2400);
+      celebrateMachineSuccess();
+      return;
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        showTextRecipeButtonStatus(copied ? "Recipe copied" : "Sharing canceled");
+        setSaveStatus(copied ? "Sharing canceled; full recipe copied" : "Sharing canceled", 2400);
+        return;
+      }
+    }
+  }
 
   if (phoneMode) {
     const separator = document.body.dataset.deviceMode === "iphone" ? "&" : "?";
@@ -5674,20 +5701,39 @@ async function textSelectedRecipe() {
     link.href = `sms:${separator}body=${encodeURIComponent(message)}`;
     link.hidden = true;
     document.body.appendChild(link);
+    showTextRecipeButtonStatus("Opening Messages");
     link.click();
     link.remove();
-    setSaveStatus("Opening a new text message", 2200);
+    setSaveStatus(
+      copied
+        ? "Opening Messages; the full recipe is copied too"
+        : "Opening Messages with the full recipe",
+      3000
+    );
     playMachineSound("zip");
     return;
   }
 
-  try {
-    await navigator.clipboard.writeText(message);
-    setSaveStatus("Recipe copied and ready to text", 2400);
+  if (copied) {
+    showTextRecipeButtonStatus("Recipe copied");
+    setSaveStatus("Full recipe copied and ready to paste", 3200);
     celebrateMachineSuccess();
-  } catch {
+    window.alert(
+      "The full recipe has been copied.\n\n"
+      + "Open a text message or email to your wife, then choose Paste and Send."
+    );
+  } else {
     setSaveStatus("Could not copy the recipe. Try Copy list instead.", 2600);
+    window.prompt("Copy this full recipe, then paste it into your message:", message);
   }
+}
+
+function showTextRecipeButtonStatus(message) {
+  const original = "Text recipe";
+  textRecipe.textContent = message;
+  window.setTimeout(() => {
+    textRecipe.textContent = original;
+  }, 2200);
 }
 
 function recipeTextMessage(recipe = selectedRecipe()) {
@@ -5702,7 +5748,7 @@ function recipeTextMessage(recipe = selectedRecipe()) {
   const instructions = recipe.notes?.trim() || "No cooking instructions were saved.";
   return [
     recipe.name,
-    `Serves ${people}${timing ? ` | ${timing}` : ""}${recipe.temperature ? ` | ${recipe.temperature}` : ""}`,
+    `Serves ${people}${timing ? ` | ${timing}` : ""}`,
     "",
     "Ingredients",
     ingredients,
