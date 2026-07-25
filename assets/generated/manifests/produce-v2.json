@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/produce-v2.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "lettuce", "label": "Green leaf lettuce" },
+    { "key": "mushrooms", "label": "White button mushrooms" },
+    { "key": "onion", "label": "Yellow onion" },
+    { "key": "shallot", "label": "Fresh shallots" },
+    { "key": "spinach", "label": "Fresh spinach leaves" },
+    { "key": "squash", "label": "Yellow summer squash" },
+    { "key": "zucchini", "label": "Fresh zucchini" },
+    { "key": "mint", "label": "Fresh mint sprigs" }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/dairy-v1.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "cream_cheese", "label": "Block of cream cheese" },
+    { "key": "feta", "label": "Crumbled feta cheese" },
+    { "key": "heavy_cream", "label": "Heavy cream" },
+    { "key": "milk", "label": "Milk" },
+    { "key": "mozzarella", "label": "Fresh mozzarella ball" },
+    { "key": "parmesan", "label": "Wedge of Parmesan cheese" },
+    { "key": "ricotta", "label": "Ricotta cheese" },
+    { "key": "sour_cream", "label": "Sour cream" }
+  ]
+}

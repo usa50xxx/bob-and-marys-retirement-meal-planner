@@ -40,8 +40,9 @@ data, interrupted-save files, logs, links, and unexpected root files are
 rejected; every staged package includes a deterministic SHA-256 manifest; and
 the signed release workflow refuses to continue until every bundled ingredient
 image has complete approved source and license metadata. A privacy policy and
-third-party notices are included, while image clearance and the repository
-license decision remain open release blockers.
+third-party notices are included, and all 298 physical ingredient images now
+pass the strict source and redistribution audit. The repository license
+decision remains an open release blocker.
 
 ### P1: highest-value product work
 

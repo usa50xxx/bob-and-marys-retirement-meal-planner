@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/dairy-v2.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "swiss", "label": "Wedge of Swiss cheese" },
+    { "key": "whipped_cream", "label": "Whipped cream" },
+    { "key": "sweetened_condensed_milk", "label": "Sweetened condensed milk" },
+    { "key": "chocolate_chips", "label": "Semisweet chocolate chips" },
+    { "key": "cocoa_powder", "label": "Cocoa powder" },
+    { "key": "hot_chocolate", "label": "Hot chocolate" },
+    { "key": "coffee", "label": "Coffee beans and brewed coffee" },
+    { "key": "molasses", "label": "Dark molasses" }
+  ]
+}

@@ -339,7 +339,16 @@ async function run() {
       "refried beans": "refried_beans",
       "split peas": "split_peas",
       "stewed tomatoes": "stewed_tomatoes",
-      "corned beef hash": "corned_beef_hash"
+      "corned beef hash": "corned_beef_hash",
+      "chicken liver": "chicken_liver",
+      "chicken wings": "chicken_wings",
+      "minced pork": "minced_pork",
+      "rainbow trout": "rainbow_trout",
+      "salt cod": "salt_cod",
+      "cream cheese": "cream_cheese",
+      "sweetened condensed milk": "sweetened_condensed_milk",
+      "bouillon cubes": "bouillon_cubes",
+      "taco shells": "taco_shells"
     };
     const imageKeyResults = await page.evaluate((cases) => (
       Object.entries(cases).map(([name, expected]) => ({

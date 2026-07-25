@@ -1,15 +1,12 @@
 # Ingredient image provenance audit
 
-Status: **blocks a public v1.0 release**
+Status: **cleared for the v1.0 release**
 
 The current ingredient folder contains 298 byte-unique WebP files and no
 duplicate files. A browser alias map preserves 100 additional ingredient names
-without shipping repeated bytes. One hundred eighty-four project-original
-images have complete approved metadata. Existing legacy notes identify a source
-for 57 of the physical files, but those records are not complete license
-approvals. Seventeen files appear in both sets, leaving 224 physical files with
-at least one source record and 74 with none. In total, 114 physical files still
-need replacement or complete approval before release.
+without shipping repeated bytes. All 298 physical images are project-original
+generated assets with complete approved metadata. Every physical file has a
+source record, and no image remains unresolved for release.
 
 Run the report without failing normal development:
 
@@ -65,8 +62,11 @@ permission.
 - Exact duplicate files were collapsed into `IMAGE_ALIASES.json`; every alias
   resolves locally, alias chains are rejected, and automated tests require all
   physical files to have unique bytes.
-- One hundred eighty-four beef, chicken, pork, seafood, spice, condiment, and
+- All 298 beef, chicken, pork, seafood, dairy, produce, spice, condiment, and
   pantry images now have visually distinct, project-original generated sources.
   The unedited source sheets and exact grid manifests are retained under
   `assets/generated`, their derivation is reproducible, and their release
   permission is recorded in `IMAGE_LICENSE.md` and `IMAGE_PROVENANCE.json`.
+- The strict release audit passes with 298 approved physical images, 298 unique
+  hashes, zero duplicate files, zero missing source records, and zero unresolved
+  files.

@@ -25,6 +25,30 @@
   },
   {
     "status": "approved",
+    "file": "almonds.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v7.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Whole almonds",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "anchovies.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Anchovy fillets",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "apple_cider_vinegar.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/condiments-v1.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -33,6 +57,42 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 1",
     "subject": "Apple cider vinegar",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "apple.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/fruit-nuts-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Red apple",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "asparagus.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Fresh asparagus spears",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "avocado.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "Fresh avocado",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -97,6 +157,18 @@
   },
   {
     "status": "approved",
+    "file": "banana.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/fruit-nuts-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "Ripe yellow bananas",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "basil.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/spices-v3.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -157,6 +229,54 @@
   },
   {
     "status": "approved",
+    "file": "beef_ribs.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "Raw beef ribs",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "beef_roast.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "subject": "Raw beef roast",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "beef_shank.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "subject": "Cross-cut raw beef shank",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "beef_steak.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "subject": "Generic raw beef steak",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "beef_tenderloin.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-replacements-v1.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -164,6 +284,18 @@
     "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 1",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "beef.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Raw beef cuts assortment",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -204,6 +336,18 @@
   },
   {
     "status": "approved",
+    "file": "blueberry.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/fruit-nuts-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "subject": "Fresh blueberries",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "boneless_chicken_thighs.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/chicken-cuts-v2.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -212,6 +356,30 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 2, column 3",
     "subject": "Boneless skinless chicken thighs",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "bottom_round.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "subject": "Raw bottom round roast",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "bouillon_cubes.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v7.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "subject": "Unwrapped bouillon cubes",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -264,6 +432,30 @@
   },
   {
     "status": "approved",
+    "file": "brisket.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "subject": "Whole raw beef brisket",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "broccoli.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "subject": "Fresh broccoli crown",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "broth.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v5.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -300,6 +492,30 @@
   },
   {
     "status": "approved",
+    "file": "butter.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v5.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "subject": "Stick of butter",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "cabbage.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "subject": "Green cabbage head",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "cajun_seasoning.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/spices-v5.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -308,6 +524,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 1",
     "subject": "Cajun seasoning blend",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "calamari.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "Cleaned raw calamari",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -348,6 +576,18 @@
   },
   {
     "status": "approved",
+    "file": "carrot.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "subject": "Fresh carrots",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "catfish.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v1.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -384,6 +624,18 @@
   },
   {
     "status": "approved",
+    "file": "celery.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "subject": "Fresh celery stalks",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "cereal.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v6.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -392,6 +644,30 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 2, column 4",
     "subject": "O-shaped breakfast cereal",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "cheddar.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v5.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "subject": "Block of orange cheddar",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "cheese.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v5.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "subject": "Common cheese wedge assortment",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -420,6 +696,18 @@
   },
   {
     "status": "approved",
+    "file": "chicken_drumsticks.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/poultry-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "Raw chicken drumsticks",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "chicken_gizzards.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/chicken-cuts-v2.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -440,6 +728,30 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 4",
     "subject": "Chicken leg quarter",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "chicken_legs.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/poultry-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "subject": "Raw whole chicken legs",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "chicken_liver.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/poultry-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "subject": "Raw chicken livers",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -476,6 +788,30 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 3",
     "subject": "Chicken wingettes and flats",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "chicken_wings.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/poultry-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "subject": "Raw whole chicken wings",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "chicken.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/poultry-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Raw chicken cuts assortment",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -540,6 +876,42 @@
   },
   {
     "status": "approved",
+    "file": "chocolate_chips.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "subject": "Semisweet chocolate chips",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "chorizo.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pork-misc-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Raw chorizo sausage links",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "chuck_roast.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "subject": "Raw chuck roast",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "cilantro.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/spices-v4.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -600,6 +972,18 @@
   },
   {
     "status": "approved",
+    "file": "cocoa_powder.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "subject": "Cocoa powder",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "cod.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v1.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -608,6 +992,30 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 3",
     "subject": "Cod fillets",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "coffee.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "subject": "Coffee beans and brewed coffee",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "coriander.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v7.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "subject": "Coriander seeds and ground coriander",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -659,6 +1067,18 @@
   },
   {
     "status": "approved",
+    "file": "cottage_cheese.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v5.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "subject": "Cottage cheese",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "country_style_ribs.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pork-cuts-v2.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -695,6 +1115,18 @@
   },
   {
     "status": "approved",
+    "file": "cream_cheese.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Block of cream cheese",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "cube_steak.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-replacements-v1.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -702,6 +1134,18 @@
     "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 3",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "cucumber.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "subject": "Fresh cucumber",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -766,6 +1210,18 @@
   },
   {
     "status": "approved",
+    "file": "dried_cranberries.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/fruit-nuts-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "subject": "Dried cranberries",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "drumsticks.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/chicken-cuts-v2.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -790,6 +1246,18 @@
   },
   {
     "status": "approved",
+    "file": "duck.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/poultry-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "subject": "Raw whole duck",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "egg_noodles.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v3.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -798,6 +1266,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 3",
     "subject": "Dry egg noodles",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "eggs.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pork-misc-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "subject": "Brown chicken eggs",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -837,6 +1317,42 @@
   },
   {
     "status": "approved",
+    "file": "feta.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "Crumbled feta cheese",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "fettuccine.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v8.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Dry fettuccine nests",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "filet_mignon.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v3.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Raw filet mignon medallion",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "fish_fillets.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v3.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -861,6 +1377,30 @@
   },
   {
     "status": "approved",
+    "file": "fish.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "subject": "Generic raw white fish fillets",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "flank_steak.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v3.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "Raw flank steak",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "flounder.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v1.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -881,6 +1421,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 1",
     "subject": "All-purpose flour",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "garam_masala.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v7.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "subject": "Garam masala spice blend",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -921,6 +1473,18 @@
   },
   {
     "status": "approved",
+    "file": "gravy.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "subject": "Prepared brown beef gravy",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "green_beans.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v6.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -945,6 +1509,30 @@
   },
   {
     "status": "approved",
+    "file": "grits.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v8.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "Yellow corn grits",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "ground_beef.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v3.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "subject": "Loose raw ground beef",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "ground_chicken.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/chicken-cuts-v1.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -965,6 +1553,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 3",
     "subject": "Ground pork",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "ground_turkey.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/poultry-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "subject": "Raw ground turkey",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1041,6 +1641,30 @@
   },
   {
     "status": "approved",
+    "file": "hanger_steak.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v3.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "subject": "Raw hanger steak",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "heavy_cream.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "subject": "Heavy cream",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "hoisin_sauce.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/condiments-v2.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1077,6 +1701,18 @@
   },
   {
     "status": "approved",
+    "file": "hot_chocolate.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "subject": "Hot chocolate",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "hot_sauce.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/condiments-v2.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1097,6 +1733,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 2",
     "subject": "Italian seasoning blend",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "jalapeno.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "subject": "Fresh green jalapeno peppers",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1173,6 +1821,42 @@
   },
   {
     "status": "approved",
+    "file": "lamb.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pork-misc-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "Raw lamb chops assortment",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "lasagna.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v8.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "subject": "Dry lasagna noodle sheets",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "lemon.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/fruit-nuts-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "subject": "Fresh lemon",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "lentils.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v6.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1181,6 +1865,30 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 3",
     "subject": "Brown lentils",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "lettuce.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Green leaf lettuce",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "lime.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/fruit-nuts-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "subject": "Fresh lime",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1279,6 +1987,18 @@
   },
   {
     "status": "approved",
+    "file": "milk.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "subject": "Milk",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "minced_beef.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-replacements-v1.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1286,6 +2006,66 @@
     "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
     "sourceType": "project-original-generated",
     "sourceCell": "row 2, column 3",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "minced_pork.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pork-misc-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "subject": "Raw minced pork",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "mint.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "subject": "Fresh mint sprigs",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "molasses.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "subject": "Dark molasses",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "mozzarella.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "subject": "Fresh mozzarella ball",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "mushrooms.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "White button mushrooms",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1314,6 +2094,18 @@
   },
   {
     "status": "approved",
+    "file": "new_york_strip.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v3.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "subject": "Raw New York strip steak",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "noodles.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v3.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1334,6 +2126,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 4",
     "subject": "Ground nutmeg",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "nuts.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v7.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "Mixed unsalted tree nuts",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1362,6 +2166,30 @@
   },
   {
     "status": "approved",
+    "file": "onion.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "subject": "Yellow onion",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "orange.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/fruit-nuts-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "subject": "Fresh orange",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "oregano.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/spices-v3.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1386,6 +2214,18 @@
   },
   {
     "status": "approved",
+    "file": "oysters.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "subject": "Fresh oysters in half shells",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "paprika.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/spices-v1.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1394,6 +2234,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 2, column 3",
     "subject": "Sweet paprika",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "parmesan.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "subject": "Wedge of Parmesan cheese",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1454,6 +2306,30 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 2, column 2",
     "subject": "Green peas",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "penne.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v8.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "subject": "Dry penne pasta",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "pie_crust.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v8.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "subject": "Unbaked round pie crust",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1578,6 +2454,18 @@
   },
   {
     "status": "approved",
+    "file": "pork_steak.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pork-misc-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "subject": "Raw pork shoulder steak",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "pork_tenderloin.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pork-cuts-v1.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1586,6 +2474,42 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 3",
     "subject": "Pork tenderloin",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "pork.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pork-misc-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "subject": "Raw pork cuts assortment",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "porterhouse.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v3.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "subject": "Raw porterhouse steak",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "pot_roast.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v3.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "subject": "Tied raw pot roast",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1614,6 +2538,42 @@
   },
   {
     "status": "approved",
+    "file": "prawns.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "subject": "Large raw shell-on prawns",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "pretzels.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v8.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "subject": "Small salted pretzels",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "prime_rib_roast.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v3.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "subject": "Raw prime rib roast",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "quinoa.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v2.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1622,6 +2582,42 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 2, column 3",
     "subject": "White quinoa",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "rainbow_trout.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "subject": "Whole raw rainbow trout",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "raisins.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v7.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "subject": "Golden and dark raisins",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "raw_shrimp.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "subject": "Peeled raw shrimp",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1674,6 +2670,18 @@
   },
   {
     "status": "approved",
+    "file": "red_wine.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pork-misc-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "subject": "Red cooking wine",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "refried_beans.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v5.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1682,6 +2690,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 2, column 3",
     "subject": "Refried beans",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "ribeye.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Raw ribeye steak",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1722,6 +2742,18 @@
   },
   {
     "status": "approved",
+    "file": "ricotta.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "subject": "Ricotta cheese",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "rosemary.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/spices-v3.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1730,6 +2762,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 2, column 1",
     "subject": "Fresh rosemary",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "rotel.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v8.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "subject": "Diced tomatoes with green chilies",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1793,6 +2837,18 @@
   },
   {
     "status": "approved",
+    "file": "salt_cod.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "subject": "Salted cod fillets",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "salt.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/spices-v1.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1801,6 +2857,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 1",
     "subject": "Fine table salt",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "sausage.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pork-misc-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "subject": "Plain raw sausage links",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1829,6 +2897,18 @@
   },
   {
     "status": "approved",
+    "file": "sea_bass.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v5.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Whole raw sea bass",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "sesame_oil.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/condiments-v4.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1837,6 +2917,30 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 1",
     "subject": "Toasted sesame oil",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "shallot.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "subject": "Fresh shallots",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "short_ribs.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "Raw beef short ribs",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1853,6 +2957,30 @@
   },
   {
     "status": "approved",
+    "file": "sirloin.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "subject": "Raw sirloin steak",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "skirt_steak.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "subject": "Raw skirt steak",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "smoked_paprika.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/spices-v1.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1865,6 +2993,18 @@
   },
   {
     "status": "approved",
+    "file": "smoked_salmon.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v5.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "Sliced smoked salmon",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "snapper.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v3.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1873,6 +3013,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 4",
     "subject": "Red snapper fillets",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "sour_cream.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "subject": "Sour cream",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1913,6 +3065,18 @@
   },
   {
     "status": "approved",
+    "file": "spinach.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "subject": "Fresh spinach leaves",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "split_chicken_breast.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/chicken-cuts-v2.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1937,6 +3101,42 @@
   },
   {
     "status": "approved",
+    "file": "squash.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "subject": "Yellow summer squash",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "sriracha.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v7.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "subject": "Sriracha-style chili sauce",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "stew_meat.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 1",
+    "subject": "Raw beef stew meat cubes",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "stewed_tomatoes.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v4.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1945,6 +3145,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 2, column 3",
     "subject": "Stewed canned tomatoes",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "strawberry.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/fruit-nuts-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "subject": "Fresh strawberries",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -1973,6 +3185,30 @@
   },
   {
     "status": "approved",
+    "file": "sweetened_condensed_milk.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "subject": "Sweetened condensed milk",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "swiss.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Wedge of Swiss cheese",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "swordfish.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v3.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -1981,6 +3217,30 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 2, column 1",
     "subject": "Swordfish steaks",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "t_bone_steak.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 2",
+    "subject": "Raw T-bone steak",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "taco_shells.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v8.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "subject": "Hard corn taco shells",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -2005,6 +3265,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 2, column 3",
     "subject": "Tartar sauce",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "tea.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v9.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 1",
+    "subject": "Loose black tea and brewed tea",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -2057,6 +3329,18 @@
   },
   {
     "status": "approved",
+    "file": "top_round.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/beef-v4.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "subject": "Raw top round roast",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "tortillas.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v3.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -2089,6 +3373,30 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 1, column 3",
     "subject": "Tuna steaks",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "tuna.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v5.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "subject": "Raw tuna loin",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "turkey.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/poultry-v1.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 4",
+    "subject": "Raw turkey breast portion",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -2153,6 +3461,30 @@
   },
   {
     "status": "approved",
+    "file": "walnuts.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v7.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 3",
+    "subject": "Walnut halves",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "whipped_cream.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/dairy-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "Whipped cream",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "white_vinegar.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/condiments-v4.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -2161,6 +3493,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 2, column 2",
     "subject": "White vinegar",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "white_wine.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/seafood-v5.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 4",
+    "subject": "White cooking wine",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   },
   {
@@ -2189,6 +3533,18 @@
   },
   {
     "status": "approved",
+    "file": "worcestershire.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v9.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 1, column 2",
+    "subject": "Worcestershire-style sauce",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
     "file": "yeast.webp",
     "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/pantry-v1.png",
     "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
@@ -2197,6 +3553,18 @@
     "sourceType": "project-original-generated",
     "sourceCell": "row 2, column 2",
     "subject": "Active dry yeast",
+    "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
+  },
+  {
+    "status": "approved",
+    "file": "zucchini.webp",
+    "sourceUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/assets/generated/produce-v2.png",
+    "author": "Bob and Mary's Retirement Meal Planner project with OpenAI image generation",
+    "license": "Project ingredient image license",
+    "licenseUrl": "https://github.com/usa50xxx/bob-and-marys-retirement-meal-planner/blob/main/IMAGE_LICENSE.md",
+    "sourceType": "project-original-generated",
+    "sourceCell": "row 2, column 3",
+    "subject": "Fresh zucchini",
     "changes": "Cropped from source sheet, resized to 420 by 420 pixels, and encoded as WebP."
   }
 ]

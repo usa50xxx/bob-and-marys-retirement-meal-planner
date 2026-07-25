@@ -93,7 +93,7 @@ stated requirement for new apps and updates beginning August 31, 2026.
 - [x] Privacy policy draft describes local data, photos, files, internet access, and disabled Android automatic backup.
 - [ ] Privacy policy is published at a stable URL, linked inside the app, and entered in Play Console.
 - [ ] Play Console Data safety answers match the verified release behavior and third-party requests.
-- [ ] Food image licenses and attribution are complete.
+- [x] Food image licenses and attribution are complete; all 298 physical images pass the strict provenance audit.
 - [ ] A paid TheMealDB publish key is configured and the provider credit is approved.
 - [ ] Repository software license is selected.
 - [x] Support and privacy questions can be submitted through the repository issue tracker.

@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/beef-v2.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "beef", "label": "Raw beef cuts assortment" },
+    { "key": "beef_ribs", "label": "Raw beef ribs" },
+    { "key": "beef_roast", "label": "Raw beef roast" },
+    { "key": "beef_shank", "label": "Cross-cut raw beef shank" },
+    { "key": "beef_steak", "label": "Generic raw beef steak" },
+    { "key": "bottom_round", "label": "Raw bottom round roast" },
+    { "key": "brisket", "label": "Whole raw beef brisket" },
+    { "key": "chuck_roast", "label": "Raw chuck roast" }
+  ]
+}

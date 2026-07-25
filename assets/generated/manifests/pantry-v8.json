@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/pantry-v8.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "fettuccine", "label": "Dry fettuccine nests" },
+    { "key": "grits", "label": "Yellow corn grits" },
+    { "key": "lasagna", "label": "Dry lasagna noodle sheets" },
+    { "key": "penne", "label": "Dry penne pasta" },
+    { "key": "pie_crust", "label": "Unbaked round pie crust" },
+    { "key": "pretzels", "label": "Small salted pretzels" },
+    { "key": "rotel", "label": "Diced tomatoes with green chilies" },
+    { "key": "taco_shells", "label": "Hard corn taco shells" }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/pantry-v7.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "almonds", "label": "Whole almonds" },
+    { "key": "nuts", "label": "Mixed unsalted tree nuts" },
+    { "key": "walnuts", "label": "Walnut halves" },
+    { "key": "raisins", "label": "Golden and dark raisins" },
+    { "key": "coriander", "label": "Coriander seeds and ground coriander" },
+    { "key": "garam_masala", "label": "Garam masala spice blend" },
+    { "key": "bouillon_cubes", "label": "Unwrapped bouillon cubes" },
+    { "key": "sriracha", "label": "Sriracha-style chili sauce" }
+  ]
+}

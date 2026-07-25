@@ -1,0 +1,16 @@
+{
+  "source": "assets/generated/produce-v1.png",
+  "columns": 4,
+  "rows": 2,
+  "outputSize": 420,
+  "items": [
+    { "key": "asparagus", "label": "Fresh asparagus spears" },
+    { "key": "avocado", "label": "Fresh avocado" },
+    { "key": "broccoli", "label": "Fresh broccoli crown" },
+    { "key": "cabbage", "label": "Green cabbage head" },
+    { "key": "carrot", "label": "Fresh carrots" },
+    { "key": "celery", "label": "Fresh celery stalks" },
+    { "key": "cucumber", "label": "Fresh cucumber" },
+    { "key": "jalapeno", "label": "Fresh green jalapeno peppers" }
+  ]
+}
