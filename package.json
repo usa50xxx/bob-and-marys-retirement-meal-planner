@@ -32,8 +32,8 @@
     "@capacitor/cli": "^8.0.0",
     "esbuild": "^0.28.1",
     "pdf-lib": "^1.17.1",
-    "playwright": "^1.61.1",
+    "playwright": "^1.62.0",
     "sharp": "^0.35.3",
-    "typescript": "6.0.3"
+    "typescript": "7.0.2"
   }
 }
