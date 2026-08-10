@@ -24,8 +24,8 @@
     "images:audit:strict": "node work/audit-image-provenance.mjs --strict"
   },
   "dependencies": {
-    "@capacitor/android": "^8.0.0",
-    "@capacitor/core": "^8.0.0"
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/core": "^8.5.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
